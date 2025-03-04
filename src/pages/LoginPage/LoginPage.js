@@ -6,11 +6,36 @@ function LoginPage() {
   const navigate = useNavigate();
 
   const handleGoogleLogin = () => {
-    navigate('/auth/callback?code=googleFakeCode');
+    const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+    const googleCallbackUrl = process.env.REACT_APP_GOOGLE_CALLBACK_URL;
+    const googleState = process.env.REACT_APP_GOOGLE_STATE;
+  
+    const googleAuthUrl =
+      `https://accounts.google.com/o/oauth2/v2/auth?response_type=code` +
+      `&client_id=${googleClientId}` +
+      `&redirect_uri=${encodeURIComponent(googleCallbackUrl)}` +
+      `&scope=email%20profile` +
+      `&state=${googleState}`;
+  
+    console.log("Google Auth URL:", googleAuthUrl);
+    window.location.href = googleAuthUrl;
   };
 
+  // 네이버 OAuth 버튼 클릭
   const handleNaverLogin = () => {
-    navigate('/auth/callback?code=naverFakeCode');
+    const naverclientId = process.env.REACT_APP_NAVER_CLIENT_ID;
+    const navercallbackUrl = process.env.REACT_APP_NAVER_CALLBACK_URL;
+    const naverstate = process.env.REACT_APP_NAVER_STATE;
+
+    // 네이버 OAuth 인증 URL 생성
+    const naverAuthUrl =
+      `https://nid.naver.com/oauth2.0/authorize?response_type=code` +
+      `&client_id=${naverclientId}` +
+      `&redirect_uri=${encodeURIComponent(navercallbackUrl)}` +
+      `&state=${naverstate}`;
+
+    // 네이버 로그인 페이지로 이동
+    window.location.href = naverAuthUrl;
   };
 
   return (

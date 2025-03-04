@@ -1,34 +1,61 @@
+// src/pages/AuthCallback/AuthCallback.js
 import React, { useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 
 function AuthCallback() {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // 소셜 로그인 인증 후, URL에 ?code=...가 붙어있다고 가정
     const code = searchParams.get('code');
+    const state = searchParams.get('state');
 
-    if (code) {
-      // 실제로는 이 code를 백엔드로 보내 JWT를 받아오겠지만,
-      // 여기서는 "가짜"로 토큰을 생성해 localStorage에 저장
-      console.log('Received code:', code);
-
-      // 가짜 토큰 생성
-      const fakeToken = `FAKE_TOKEN_${code}_${Date.now()}`;
-
-      // 토큰 저장
-      localStorage.setItem('token', fakeToken);
-
-      // 이후 홈 화면으로 이동
-      window.location.replace('./MainPage/MainPage');
+    if (!code || !state) {
+      navigate('/');
+      return;
     }
-  }, [searchParams]);
 
-  return (
-    <div style={{ textAlign: 'center', marginTop: '50px' }}>
-      <p>소셜 로그인 처리 중입니다... (가짜)</p>
-    </div>
-  );
+    // 백엔드 엔드포인트는 URL 경로에 따라 결정
+    let endpoint = '';
+    if (location.pathname === '/naverLogin') {
+      endpoint = 'http://your-backend-address/api/naver/callback';
+    } else if (location.pathname === '/googleLogin') {
+      endpoint = 'http://your-backend-address/api/google/callback';
+    } else {
+      console.error('Unknown callback path:', location.pathname);
+      navigate('/');
+      return;
+    }
+
+    // 백엔드에 code와 state를 전송
+    fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, state }),
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Backend request failed');
+        return res.json();
+      })
+      .then(data => {
+        console.log('Backend response:', data);
+        if (data.registered) {
+          // 이미 회원가입된 경우: 백엔드가 발급한 토큰을 저장하고 메인 페이지로 이동
+          localStorage.setItem('token', data.token);
+          navigate('/main');
+        } else {
+          // 미가입인 경우: 소셜 계정 정보를 SignupPage에 전달
+          navigate('/signup', { state: { socialData: data.socialData } });
+        }
+      })
+      .catch(err => {
+        console.error('Error communicating with backend:', err);
+        navigate('/');
+      });
+  }, [searchParams, location, navigate]);
+
+  return <div>소셜 로그인 처리 중...</div>;
 }
 
 export default AuthCallback;

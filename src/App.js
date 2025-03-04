@@ -1,4 +1,4 @@
-// App.js
+// src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage/LoginPage';
@@ -7,20 +7,22 @@ import MainPage from './pages/MainPage/MainPage';
 import ProtectedRoute from './ProtectedRoute';
 import './App.css';
 
-
 function App() {
   return (
     <Router>
       <Routes>
-        {/* 1) 메인(로그인) 페이지 */}
+        {/* 로그인 페이지 */}
         <Route path="/" element={<LoginPage />} />
 
-        {/* 2) 소셜 로그인 후, 돌아오는 콜백 페이지 */}
-        <Route path="/auth/callback" element={<AuthCallback />} />
+        {/* 네이버 콜백 URL */}
+        <Route path="/naverLogin" element={<AuthCallback />} />
 
-        {/* 3) 로그인 후 접근 가능한 홈 페이지 (보호 라우트) */}
+        {/* 구글 콜백 URL */}
+        <Route path="/googleLogin" element={<AuthCallback />} />
+
+        {/* 보호된 메인 페이지 */}
         <Route
-          path="/Pages/MainPage/MainPage"
+          path="/main"
           element={
             <ProtectedRoute>
               <MainPage />
