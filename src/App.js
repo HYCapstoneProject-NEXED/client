@@ -2,6 +2,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage/LoginPage';
+import SignupPage from './pages/LoginPage/SignupPage';
 import AuthCallback from './pages/AuthCallback/AuthCallback';
 import MainPage from './pages/MainPage/MainPage';
 import ProtectedRoute from './ProtectedRoute';
@@ -29,6 +30,10 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* 4) 회원가입 페이지 추가 */}
+        <Route path="/signup" element={<SignupPage />} />
+
       </Routes>
     </Router>
   );
