@@ -13,7 +13,7 @@ function App() {
     <Router>
       <Routes>
         {/* 로그인 페이지 */}
-        <Route path="/" element={<LoginPage />} />
+        <Route path="/signin" element={<LoginPage />} />
 
         {/* 네이버 콜백 URL */}
         <Route path="/naverLogin" element={<AuthCallback />} />
