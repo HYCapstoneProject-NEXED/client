@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './SignupPage.css';
+
+const API_URL = "https://3cb10afb-6a7e-4ea3-9af3-f685c60b3d88.mock.pstmn.io"; // Mock API URL
 
 function SignupPage() {
   console.log("✅ SignupPage 렌더링됨!");
@@ -9,7 +11,7 @@ function SignupPage() {
   // 입력값을 관리하는 state
   const [form, setForm] = useState({
     name: '',
-    email: '',
+    email: '', // 초기 이메일 값
     factoryName: '',
     role: '',
     nationality: 'Korea',
@@ -18,6 +20,21 @@ function SignupPage() {
     accountNumber: '',
     agreed: false,
   });
+
+  // 🚀 API에서 사용자 이메일 가져오기
+  useEffect(() => {
+    fetch(`https://3cb10afb-6a7e-4ea3-9af3-f685c60b3d88.mock.pstmn.io/auth/login`) // 실제 API 엔드포인트로 변경
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.user && data.user.google_email) {
+          setForm((prevForm) => ({
+            ...prevForm,
+            email: data.user.google_email, // API에서 받은 이메일 설정
+          }));
+        }
+      })
+      .catch((error) => console.error("API 호출 오류:", error));
+  }, []);
 
   // 입력값 변경 핸들러
   const handleChange = (e) => {
@@ -53,12 +70,12 @@ function SignupPage() {
         <form className="signup-form" onSubmit={handleSubmit}>
           <div className="input-box">
             <label>Name (Use the same name as your bank account name.)</label>
-            <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="Kim BogYung" required />
+            <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="Kim BoKyung" required />
           </div>
 
           <div className="input-box">
             <label>이메일 주소</label>
-            <input type="email" name="email" value={form.email} onChange={handleChange} placeholder="name@example.com" required />
+            <input type="email" name="email" value={form.email} onChange={handleChange} readOnly required />
           </div>
 
           <div className="input-box">
@@ -84,7 +101,7 @@ function SignupPage() {
 
           <div className="input-box">
             <label>Nationality</label>
-            <input type="text" name="nationality" value={form.nationality} readOnly />
+            <input type="text" name="nationality" value={form.nationality} onChange={handleChange}  placeholder="Korea" required />
           </div>
 
           <div className="input-box">
