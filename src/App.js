@@ -1,19 +1,28 @@
 // src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import LoginPage from './pages/LoginPage/LoginPage';
-import SignupPage from './pages/LoginPage/SignupPage';
+
+
+import ProtectedRoute from './routes/ProtectedRoute';
+import CustomerRoutes from './routes/CustomerRoutes';
+import LoginRoutes from './routes/LoginRoutes';
+
 import AuthCallback from './pages/AuthCallback/AuthCallback';
 import MainPage from './pages/MainPage/MainPage';
-import ProtectedRoute from './ProtectedRoute';
+
 import './App.css';
+
+import CustomerDashboard from './pages/Customer/Dashboard';
+import CustomerData from './pages/Customer/Defectdata';
+import Editclass from './pages/Customer/Editclass';
+import Statistics from './pages/Customer/Statistics';
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* 로그인 페이지 */}
-        <Route path="/signin" element={<LoginPage />} />
+        {/* 로그인 관련 */}
+        <Route path="/*" element={<LoginRoutes />} />
 
         {/* 네이버 콜백 URL */}
         <Route path="/naverLogin" element={<AuthCallback />} />
@@ -31,8 +40,41 @@ function App() {
           }
         />
 
-        {/* 4) 회원가입 페이지 추가 */}
-        <Route path="/signup" element={<SignupPage />} />
+        {/* Customer 역할 전용 라우트 */}
+        <Route path="/*" element={<CustomerRoutes />} />
+
+        <Route
+          path="/customer-dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["customer"]}>
+              <CustomerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer-defectdata"
+          element={
+            <ProtectedRoute allowedRoles={["customer"]}>
+              <CustomerData />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer-editclass"
+          element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <Editclass />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer-statistics"
+          element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <Statistics />
+            </ProtectedRoute>
+          }
+        />
 
       </Routes>
     </Router>

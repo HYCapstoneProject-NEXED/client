@@ -1,0 +1,34 @@
+.header {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* 👉 오른쪽 정렬 */
+    padding: 0 24px;
+    background-color: white;
+    border-bottom: 1px solid #eee;
+  }
+  
+  
+  .user-role {
+    font-weight: bold;
+    font-size: 16px;
+  }
+  
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .icon {
+    font-size: 18px;
+    color: #888;
+  }
+  
+  .profile-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  

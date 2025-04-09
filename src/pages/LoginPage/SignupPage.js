@@ -92,10 +92,10 @@ function SignupPage() {
             <label>Role</label>
             <select name="role" value={form.role} onChange={handleChange} required>
               <option value="">Select Role</option>
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-              <option value="MLengineer">ML Engineer</option>
+              <option value="customer">Customer</option>
               <option value="Annotator">Annotator</option>
+              <option value="MLengineer">ML Engineer</option>
+              
             </select>
           </div>
 
