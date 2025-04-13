@@ -9,6 +9,7 @@ import LoginRoutes from './routes/LoginRoutes';
 
 import AuthCallback from './pages/AuthCallback/AuthCallback';
 import MainPage from './pages/MainPage/MainPage';
+import AnnotationEditPage from './pages/AnnotatorPage/AnnotationEditPage';
 
 import './App.css';
 
@@ -75,6 +76,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+        {/* 어노테이션 편집 페이지 직접 접근 - 테스트용 */}
+        <Route path="/edit-annotation" element={<AnnotationEditPage />} />
 
       </Routes>
     </Router>
