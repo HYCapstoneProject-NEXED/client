@@ -10,16 +10,16 @@ import LoginRoutes from './routes/LoginRoutes';
 import AuthCallback from './pages/AuthCallback/AuthCallback';
 import MainPage from './pages/MainPage/MainPage';
 
-import './App.css';
+import ProfileModal from './components/ProfileModal'; // 컴포넌트
+import { ProfileModalProvider } from './context/ProfileModalContext'; // context
 
-import CustomerDashboard from './pages/Customer/Dashboard';
-import CustomerData from './pages/Customer/Defectdata';
-import Editclass from './pages/Customer/Editclass';
-import Statistics from './pages/Customer/Statistics';
+
+import './App.css';
 
 function App() {
   return (
-    <Router>
+    <ProfileModalProvider>
+      <Router>
       <Routes>
         {/* 로그인 관련 */}
         <Route path="/*" element={<LoginRoutes />} />
@@ -41,43 +41,12 @@ function App() {
         />
 
         {/* Customer 역할 전용 라우트 */}
-        <Route path="/*" element={<CustomerRoutes />} />
+        <Route path="/customer/*" element={<CustomerRoutes />} />
 
-        <Route
-          path="/customer-dashboard"
-          element={
-            <ProtectedRoute allowedRoles={["customer"]}>
-              <CustomerDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/customer-defectdata"
-          element={
-            <ProtectedRoute allowedRoles={["customer"]}>
-              <CustomerData />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/customer-editclass"
-          element={
-            <ProtectedRoute allowedRoles={['customer']}>
-              <Editclass />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/customer-statistics"
-          element={
-            <ProtectedRoute allowedRoles={['customer']}>
-              <Statistics />
-            </ProtectedRoute>
-          }
-        />
-
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+      <ProfileModal /> {/* 항상 전역에서 접근 가능하게 */}
+    </ProfileModalProvider>
   );
 }
 
