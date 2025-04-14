@@ -1,5 +1,5 @@
 import React from 'react';
-import CustomerLayout from '../../components/CustomerLayout';
+import CustomerLayout from '../../components/Customer/CustomerLayout';
 
 //더미데이터
 const defectStats = [

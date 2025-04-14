@@ -1,5 +1,5 @@
 import React from 'react';
-import CustomerLayout from '../../components/CustomerLayout';
+import CustomerLayout from '../../components/Customer/CustomerLayout';
 
 const Statistics = () => {
   return (
