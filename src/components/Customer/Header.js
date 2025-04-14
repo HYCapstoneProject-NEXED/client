@@ -2,7 +2,7 @@ import React from 'react';
 import { FaBell } from 'react-icons/fa';
 import './Header.css';
 import { useContext } from 'react';
-import { ProfileModalContext } from '../context/ProfileModalContext';
+import { ProfileModalContext } from '../../context/ProfileModalContext';
 
 
 

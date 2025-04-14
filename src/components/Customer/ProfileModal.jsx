@@ -1,6 +1,6 @@
 // src/components/ProfileModal.jsx
 import { useContext } from 'react';
-import { ProfileModalContext } from '../context/ProfileModalContext';
+import { ProfileModalContext } from '../../context/ProfileModalContext';
 
 const ProfileModal = () => {
   const { isProfileOpen, setIsProfileOpen } = useContext(ProfileModalContext);

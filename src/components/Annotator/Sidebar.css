@@ -1,0 +1,88 @@
+.annotator-sidebar {
+  width: 286px;
+  height: 100%;
+  background: white;
+  border-right: 0.3px solid #B9B9B9;
+  padding: 20px;
+  padding-top: 30px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.annotator-data-info {
+  margin-bottom: 30px;
+  margin-top: 15px;
+}
+
+.annotator-info-item {
+  margin-bottom: 20px;
+}
+
+.annotator-info-item h2 {
+  color: #202224;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'Nunito Sans', sans-serif;
+  margin-top: 0;
+  margin-bottom: 5px;
+}
+
+.annotator-defect-list-container {
+  margin-top: 20px;
+}
+
+.annotator-defect-list-container h2 {
+  color: #202224;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: 'Nunito Sans', sans-serif;
+  margin-bottom: 20px;
+}
+
+.annotator-defect-list {
+  list-style: none;
+  padding: 0;
+}
+
+.annotator-defect-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.annotator-defect-item.selected {
+  background: rgba(72, 128, 255, 0.1);
+}
+
+.annotator-defect-color {
+  width: 15px;
+  height: 15px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.annotator-defect-a {
+  background: #5A8CFF;
+}
+
+.annotator-defect-b {
+  background: #00B69B;
+}
+
+.annotator-defect-c {
+  background: #EF3826;
+}
+
+.annotator-defect-d {
+  background: #FCAA0B;
+}
+
+.annotator-confidence {
+  margin-left: auto;
+  color: #4880FF;
+  font-weight: 700;
+} 
