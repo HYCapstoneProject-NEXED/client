@@ -118,10 +118,10 @@ const AnnotationEditPage = () => {
   };
 
   return (
-    <div className="annotation-edit-page">
+    <div className="annotator-annotation-edit-page">
       <Header onSave={handleSaveAnnotations} />
-      <div className="body-container">
-        <div className="sidebar-wrapper">
+      <div className="annotator-body-container">
+        <div className="annotator-sidebar-wrapper">
           <Sidebar 
             dataInfo={dataInfo} 
             defects={defects} 
@@ -129,14 +129,14 @@ const AnnotationEditPage = () => {
             onDefectSelect={handleDefectSelect}
           />
         </div>
-        <div className="main-wrapper">
-          <div className="annotation-tools-container">
+        <div className="annotator-main-wrapper">
+          <div className="annotator-tools-container">
             <AnnotationTools 
               onClassSelect={handleClassSelect}
               selectedDefectType={defects.find(d => String(d.id) === selectedDefect)?.type}
             />
           </div>
-          <main className="edit-area">
+          <main className="annotator-edit-area">
             <ImageCanvas 
               defects={defects}
               selectedDefect={selectedDefect}

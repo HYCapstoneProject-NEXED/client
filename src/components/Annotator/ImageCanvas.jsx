@@ -76,7 +76,7 @@ const ImageCanvas = ({ defects, selectedDefect, onDefectSelect, onCoordinateUpda
 
   // 드래그 시작
   const handleMouseDown = (e) => {
-    if (e.target === canvasRef.current || e.target.className === 'placeholder-text') {
+    if (e.target === canvasRef.current || e.target.className === 'annotator-placeholder-text') {
       setIsDragging(true);
       setDragStartPosition({
         x: e.clientX - position.x,
@@ -297,26 +297,26 @@ const ImageCanvas = ({ defects, selectedDefect, onDefectSelect, onCoordinateUpda
   const getBoxClassName = (defectType) => {
     switch(defectType) {
       case 'Defect_A':
-        return 'defect-a-box';
+        return 'annotator-defect-a-box';
       case 'Defect_B':
-        return 'defect-b-box';
+        return 'annotator-defect-b-box';
       case 'Defect_C':
-        return 'defect-c-box';
+        return 'annotator-defect-c-box';
       case 'Defect_D':
-        return 'defect-d-box';
+        return 'annotator-defect-d-box';
       default:
-        return 'defect-a-box';
+        return 'annotator-defect-a-box';
     }
   };
 
   return (
     <div 
-      className="image-container"
+      className="annotator-image-container"
       onWheel={handleWheel}
     >
       {/* 이미지 플레이스홀더 */}
       <div 
-        className="image-placeholder"
+        className="annotator-image-placeholder"
         ref={canvasRef}
         onMouseDown={handleMouseDown}
         style={{
@@ -325,7 +325,7 @@ const ImageCanvas = ({ defects, selectedDefect, onDefectSelect, onCoordinateUpda
         }}
       >
         {/* 실제 프로젝트에서는 여기에 이미지를 로드하게 됨 */}
-        <div className="placeholder-text">이미지 영역</div>
+        <div className="annotator-placeholder-text">이미지 영역</div>
         
         {/* 결함 바운딩 박스 */}
         {defects.map((defect) => {
@@ -335,7 +335,7 @@ const ImageCanvas = ({ defects, selectedDefect, onDefectSelect, onCoordinateUpda
           return (
             <div 
               key={defectId}
-              className={`bounding-box ${selectedDefect === defect.id ? 'selected' : ''} ${getBoxClassName(defect.type)}`}
+              className={`annotator-bounding-box ${selectedDefect === defect.id ? 'selected' : ''} ${getBoxClassName(defect.type)}`}
               style={{
                 left: `${boxPosition.x}px`,
                 top: `${boxPosition.y}px`,
@@ -349,26 +349,26 @@ const ImageCanvas = ({ defects, selectedDefect, onDefectSelect, onCoordinateUpda
               }}
               onMouseDown={(e) => handleBoxMouseDown(e, defect.id)}
             >
-              <div className="box-label">
+              <div className="annotator-box-label">
                 ({defect.id}) {defect.confidence.toFixed(2)}
               </div>
               {/* 리사이즈 핸들 - 선택된 바운딩 박스에만 표시 */}
               {selectedDefect === defect.id && (
                 <>
                   <div 
-                    className="resize-handle top-left" 
+                    className="annotator-resize-handle annotator-top-left" 
                     onMouseDown={(e) => handleResizeStart(e, defect.id, 'top-left')}
                   ></div>
                   <div 
-                    className="resize-handle top-right" 
+                    className="annotator-resize-handle annotator-top-right" 
                     onMouseDown={(e) => handleResizeStart(e, defect.id, 'top-right')}
                   ></div>
                   <div 
-                    className="resize-handle bottom-left" 
+                    className="annotator-resize-handle annotator-bottom-left" 
                     onMouseDown={(e) => handleResizeStart(e, defect.id, 'bottom-left')}
                   ></div>
                   <div 
-                    className="resize-handle bottom-right" 
+                    className="annotator-resize-handle annotator-bottom-right" 
                     onMouseDown={(e) => handleResizeStart(e, defect.id, 'bottom-right')}
                   ></div>
                 </>

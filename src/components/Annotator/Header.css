@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+.annotator-header {
+=======
 .header {
+>>>>>>> origin/main
   width: 100%;
   height: 100px;
   display: flex;
@@ -11,7 +15,11 @@
   box-sizing: border-box;
 }
 
+<<<<<<< HEAD
+.annotator-header h1 {
+=======
 .header h1 {
+>>>>>>> origin/main
   color: #343C6A;
   font-size: 28px;
   font-weight: 600;
@@ -19,7 +27,11 @@
   margin: 0;
 }
 
+<<<<<<< HEAD
+.annotator-save-button {
+=======
 .save-button {
+>>>>>>> origin/main
   width: 162px;
   height: 59px;
   background: #4880FF;

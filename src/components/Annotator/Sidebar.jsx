@@ -6,45 +6,45 @@ const Sidebar = ({ dataInfo, defects, selectedDefect, onDefectSelect }) => {
   const getDefectColorClass = (defectType) => {
     switch(defectType) {
       case 'Defect_A':
-        return 'defect-a';
+        return 'annotator-defect-a';
       case 'Defect_B':
-        return 'defect-b';
+        return 'annotator-defect-b';
       case 'Defect_C':
-        return 'defect-c';
+        return 'annotator-defect-c';
       case 'Defect_D':
-        return 'defect-d';
+        return 'annotator-defect-d';
       default:
-        return 'defect-a';
+        return 'annotator-defect-a';
     }
   };
 
   return (
-    <aside className="sidebar">
-      <div className="data-info">
-        <div className="info-item">
+    <aside className="annotator-sidebar">
+      <div className="annotator-data-info">
+        <div className="annotator-info-item">
           <h2>Data ID : {dataInfo.dataId}</h2>
         </div>
-        <div className="info-item">
+        <div className="annotator-info-item">
           <h2>Confidence Score : {dataInfo.confidenceScore.toFixed(2)}</h2>
         </div>
-        <div className="info-item">
+        <div className="annotator-info-item">
           <h2>State : {dataInfo.state}</h2>
         </div>
       </div>
 
-      <div className="defect-list-container">
+      <div className="annotator-defect-list-container">
         <h2>Defect list</h2>
-        <ul className="defect-list">
+        <ul className="annotator-defect-list">
           {defects.map((defect) => (
             <li 
               key={defect.id} 
               data-id={defect.id}
-              className={`defect-item ${selectedDefect === defect.id ? 'selected' : ''}`}
+              className={`annotator-defect-item ${selectedDefect === defect.id ? 'selected' : ''}`}
               onClick={() => onDefectSelect(defect.id)}
             >
-              <div className={`defect-color ${getDefectColorClass(defect.type)}`}></div>
+              <div className={`annotator-defect-color ${getDefectColorClass(defect.type)}`}></div>
               <span>({defect.id}) {defect.type}</span>
-              <span className="confidence">{defect.confidence.toFixed(2)}</span>
+              <span className="annotator-confidence">{defect.confidence.toFixed(2)}</span>
             </li>
           ))}
         </ul>

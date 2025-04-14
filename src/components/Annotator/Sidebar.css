@@ -1,4 +1,4 @@
-.sidebar {
+.annotator-sidebar {
   width: 286px;
   height: 100%;
   background: white;
@@ -11,16 +11,16 @@
   box-sizing: border-box;
 }
 
-.data-info {
+.annotator-data-info {
   margin-bottom: 30px;
   margin-top: 15px;
 }
 
-.info-item {
+.annotator-info-item {
   margin-bottom: 20px;
 }
 
-.info-item h2 {
+.annotator-info-item h2 {
   color: #202224;
   font-size: 18px;
   font-weight: 700;
@@ -29,11 +29,11 @@
   margin-bottom: 5px;
 }
 
-.defect-list-container {
+.annotator-defect-list-container {
   margin-top: 20px;
 }
 
-.defect-list-container h2 {
+.annotator-defect-list-container h2 {
   color: #202224;
   font-size: 16px;
   font-weight: 700;
@@ -41,12 +41,12 @@
   margin-bottom: 20px;
 }
 
-.defect-list {
+.annotator-defect-list {
   list-style: none;
   padding: 0;
 }
 
-.defect-item {
+.annotator-defect-item {
   display: flex;
   align-items: center;
   margin-bottom: 10px;
@@ -54,34 +54,34 @@
   cursor: pointer;
 }
 
-.defect-item.selected {
+.annotator-defect-item.selected {
   background: rgba(72, 128, 255, 0.1);
 }
 
-.defect-color {
+.annotator-defect-color {
   width: 15px;
   height: 15px;
   margin-right: 10px;
   flex-shrink: 0;
 }
 
-.defect-a {
+.annotator-defect-a {
   background: #5A8CFF;
 }
 
-.defect-b {
+.annotator-defect-b {
   background: #00B69B;
 }
 
-.defect-c {
+.annotator-defect-c {
   background: #EF3826;
 }
 
-.defect-d {
+.annotator-defect-d {
   background: #FCAA0B;
 }
 
-.confidence {
+.annotator-confidence {
   margin-left: auto;
   color: #4880FF;
   font-weight: 700;
