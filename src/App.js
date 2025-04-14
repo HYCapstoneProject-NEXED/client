@@ -9,17 +9,18 @@ import LoginRoutes from './routes/LoginRoutes';
 
 import AuthCallback from './pages/AuthCallback/AuthCallback';
 import MainPage from './pages/MainPage/MainPage';
-
-import ProfileModal from './components/ProfileModal'; // 컴포넌트
-import { ProfileModalProvider } from './context/ProfileModalContext'; // context
-
+import AnnotationEditPage from './pages/AnnotatorPage/AnnotationEditPage';
 
 import './App.css';
 
+import CustomerDashboard from './pages/Customer/Dashboard';
+import CustomerData from './pages/Customer/Defectdata';
+import Editclass from './pages/Customer/Editclass';
+import Statistics from './pages/Customer/Statistics';
+
 function App() {
   return (
-    <ProfileModalProvider>
-      <Router>
+    <Router>
       <Routes>
         {/* 로그인 관련 */}
         <Route path="/*" element={<LoginRoutes />} />
@@ -41,12 +42,45 @@ function App() {
         />
 
         {/* Customer 역할 전용 라우트 */}
-        <Route path="/customer/*" element={<CustomerRoutes />} />
+        <Route path="/*" element={<CustomerRoutes />} />
 
-        </Routes>
-      </Router>
-      <ProfileModal /> {/* 항상 전역에서 접근 가능하게 */}
-    </ProfileModalProvider>
+        <Route
+          path="/customer-dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["customer"]}>
+              <CustomerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer-defectdata"
+          element={
+            <ProtectedRoute allowedRoles={["customer"]}>
+              <CustomerData />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer-editclass"
+          element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <Editclass />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customer-statistics"
+          element={
+            <ProtectedRoute allowedRoles={['customer']}>
+              <Statistics />
+            </ProtectedRoute>
+          }
+        />
+        {/* 어노테이션 편집 페이지 직접 접근 - 테스트용 */}
+        <Route path="/edit-annotation" element={<AnnotationEditPage />} />
+
+      </Routes>
+    </Router>
   );
 }
 

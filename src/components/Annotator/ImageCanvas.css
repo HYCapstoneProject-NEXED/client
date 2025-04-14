@@ -1,0 +1,142 @@
+.image-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  /* 스크롤 금지 */
+  overscroll-behavior: none;
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #F0F0F0;
+  border-radius: 0;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform-origin: center;
+  transition: transform 0.1s ease;
+  will-change: transform;
+  /* 마우스 기본 동작 방지 */
+  touch-action: none;
+}
+
+.placeholder-text {
+  color: #888;
+  font-size: 24px;
+  user-select: none;
+}
+
+/* 결함 바운딩 박스 스타일 */
+.bounding-box {
+  position: absolute;
+  border: 2px solid;
+  box-sizing: border-box;
+  cursor: move;
+  transition: border-width 0.2s ease;
+}
+
+.bounding-box.selected {
+  border-width: 3px;
+}
+
+.defect-a-box {
+  border-color: #5A8CFF;
+}
+
+.defect-a-box .box-label {
+  background: #5A8CFF;
+}
+
+.defect-b-box {
+  border-color: #00B69B;
+}
+
+.defect-b-box .box-label {
+  background: #00B69B;
+}
+
+.defect-c-box {
+  border-color: #EF3826;
+}
+
+.defect-c-box .box-label {
+  background: #EF3826;
+}
+
+.defect-d-box {
+  border-color: #FCAA0B;
+}
+
+.defect-d-box .box-label {
+  background: #FCAA0B;
+}
+
+.box-label {
+  position: absolute;
+  top: -25px;
+  left: 0;
+  padding: 2px 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Nunito Sans', sans-serif;
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* 리사이즈 핸들 스타일 */
+.resize-handle {
+  width: 8px;
+  height: 8px;
+  background: white;
+  border: 1px solid;
+  position: absolute;
+}
+
+.defect-a-box .resize-handle {
+  border-color: #5A8CFF;
+}
+
+.defect-b-box .resize-handle {
+  border-color: #00B69B;
+}
+
+.defect-c-box .resize-handle {
+  border-color: #EF3826;
+}
+
+.defect-d-box .resize-handle {
+  border-color: #FCAA0B;
+}
+
+.top-left {
+  top: -4px;
+  left: -4px;
+  cursor: nw-resize;
+}
+
+.top-right {
+  top: -4px;
+  right: -4px;
+  cursor: ne-resize;
+}
+
+.bottom-left {
+  bottom: -4px;
+  left: -4px;
+  cursor: sw-resize;
+}
+
+.bottom-right {
+  bottom: -4px;
+  right: -4px;
+  cursor: se-resize;
+} 

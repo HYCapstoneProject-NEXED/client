@@ -1,0 +1,88 @@
+.sidebar {
+  width: 286px;
+  height: 100%;
+  background: white;
+  border-right: 0.3px solid #B9B9B9;
+  padding: 20px;
+  padding-top: 30px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.data-info {
+  margin-bottom: 30px;
+  margin-top: 15px;
+}
+
+.info-item {
+  margin-bottom: 20px;
+}
+
+.info-item h2 {
+  color: #202224;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'Nunito Sans', sans-serif;
+  margin-top: 0;
+  margin-bottom: 5px;
+}
+
+.defect-list-container {
+  margin-top: 20px;
+}
+
+.defect-list-container h2 {
+  color: #202224;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: 'Nunito Sans', sans-serif;
+  margin-bottom: 20px;
+}
+
+.defect-list {
+  list-style: none;
+  padding: 0;
+}
+
+.defect-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.defect-item.selected {
+  background: rgba(72, 128, 255, 0.1);
+}
+
+.defect-color {
+  width: 15px;
+  height: 15px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.defect-a {
+  background: #5A8CFF;
+}
+
+.defect-b {
+  background: #00B69B;
+}
+
+.defect-c {
+  background: #EF3826;
+}
+
+.defect-d {
+  background: #FCAA0B;
+}
+
+.confidence {
+  margin-left: auto;
+  color: #4880FF;
+  font-weight: 700;
+} 
