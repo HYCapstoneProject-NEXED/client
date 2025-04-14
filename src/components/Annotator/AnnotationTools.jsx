@@ -58,7 +58,6 @@ const AnnotationTools = ({ onClassSelect, selectedDefectType }) => {
   }, [showClassOptions]);
 
   return (
-<<<<<<< HEAD
     <div className="annotator-annotation-tools">
       <div className="annotator-toolbar">
         <div className="annotator-color-selector" ref={colorButtonRef} onClick={handleColorButtonClick}>
@@ -86,41 +85,11 @@ const AnnotationTools = ({ onClassSelect, selectedDefectType }) => {
         <div className="annotator-divider"></div>
         
         <button className="annotator-tool-button">
-=======
-    <div className="annotation-tools">
-      <div className="toolbar">
-        <div className="color-selector" ref={colorButtonRef} onClick={handleColorButtonClick}>
-          <div 
-            className="color-circle" 
-            style={{ background: getColorStyle(selectedDefectType) }}
-          ></div>
-          <FaChevronDown className="dropdown-icon" />
-        </div>
-        <div className="divider"></div>
-        
-        <button className="tool-button square-button">
-          <FiSquare className="square-icon" />
-        </button>
-        <div className="divider"></div>
-        
-        <button className="tool-button hand-button">
-          <FaRegHandPaper className="hand-icon" />
-        </button>
-        <div className="divider"></div>
-        
-        <button className="tool-button">
-          <FaUndo />
-        </button>
-        <div className="divider"></div>
-        
-        <button className="tool-button">
->>>>>>> origin/main
           <FaRedo />
         </button>
       </div>
       
       {showClassOptions && (
-<<<<<<< HEAD
         <div className="annotator-class-options-panel" ref={classOptionsRef}>
           <div className="annotator-panel-header">
             <span>Class</span>
@@ -140,27 +109,6 @@ const AnnotationTools = ({ onClassSelect, selectedDefectType }) => {
             </div>
             <div className="annotator-class-option" onClick={() => handleClassSelect('Defect_D')}>
               <div className="annotator-class-color annotator-defect-d-color"></div>
-=======
-        <div className="class-options-panel" ref={classOptionsRef}>
-          <div className="panel-header">
-            <span>Class</span>
-          </div>
-          <div className="class-list">
-            <div className="class-option" onClick={() => handleClassSelect('Defect_A')}>
-              <div className="class-color defect-a-color"></div>
-              <span>Defect_A</span>
-            </div>
-            <div className="class-option" onClick={() => handleClassSelect('Defect_B')}>
-              <div className="class-color defect-b-color"></div>
-              <span>Defect_B</span>
-            </div>
-            <div className="class-option" onClick={() => handleClassSelect('Defect_C')}>
-              <div className="class-color defect-c-color"></div>
-              <span>Defect_C</span>
-            </div>
-            <div className="class-option" onClick={() => handleClassSelect('Defect_D')}>
-              <div className="class-color defect-d-color"></div>
->>>>>>> origin/main
               <span>Defect_D</span>
             </div>
           </div>
