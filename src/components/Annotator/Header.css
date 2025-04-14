@@ -7,6 +7,8 @@
   background: #E6EEFF;
   border-bottom: 1px solid #E6EFF5;
   padding: 0 44px;
+  z-index: 10;
+  box-sizing: border-box;
 }
 
 .header h1 {
@@ -14,6 +16,7 @@
   font-size: 28px;
   font-weight: 600;
   font-family: 'Inter', sans-serif;
+  margin: 0;
 }
 
 .save-button {

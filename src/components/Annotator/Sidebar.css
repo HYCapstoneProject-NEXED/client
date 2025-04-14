@@ -4,12 +4,16 @@
   background: white;
   border-right: 0.3px solid #B9B9B9;
   padding: 20px;
+  padding-top: 30px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .data-info {
   margin-bottom: 30px;
+  margin-top: 15px;
 }
 
 .info-item {
@@ -21,6 +25,8 @@
   font-size: 18px;
   font-weight: 700;
   font-family: 'Nunito Sans', sans-serif;
+  margin-top: 0;
+  margin-bottom: 5px;
 }
 
 .defect-list-container {
@@ -56,14 +62,23 @@
   width: 15px;
   height: 15px;
   margin-right: 10px;
+  flex-shrink: 0;
 }
 
 .defect-a {
-  background: #00B69B;
+  background: #5A8CFF;
 }
 
 .defect-b {
-  background: #5A8CFF;
+  background: #00B69B;
+}
+
+.defect-c {
+  background: #EF3826;
+}
+
+.defect-d {
+  background: #FCAA0B;
 }
 
 .confidence {
