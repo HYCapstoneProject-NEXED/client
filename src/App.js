@@ -10,7 +10,7 @@ import LoginRoutes from './routes/LoginRoutes';
 import AuthCallback from './pages/AuthCallback/AuthCallback';
 import MainPage from './pages/MainPage/MainPage';
 
-import ProfileModal from './components/ProfileModal'; // 컴포넌트
+import ProfileModal from './components/ProfileModal'; // 컴포넌트
 import { ProfileModalProvider } from './context/ProfileModalContext'; // context
 
 
