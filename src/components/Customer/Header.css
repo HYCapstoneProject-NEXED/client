@@ -1,34 +1,38 @@
-.header {
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end; /* 👉 오른쪽 정렬 */
-    padding: 0 24px;
-    background-color: white;
-    border-bottom: 1px solid #eee;
-  }
-  
-  
-  .user-role {
-    font-weight: bold;
-    font-size: 16px;
-  }
-  
-  .user-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  
-  .icon {
-    font-size: 18px;
-    color: #888;
-  }
-  
-  .profile-img {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-  
+.top-header {
+  width: 100%;  
+  height: 200px;
+  background-color: white;
+  display: flex;
+  justify-content: flex-end; /* 오른쪽 정렬 */
+  align-items: center;
+  padding: 0 24px;
+  border-bottom: 1px solid #eee;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 30px; /* 요소 간 간격 */
+}
+
+.user-role {
+  font-weight: bold;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.icon {
+  font-size: 20px;
+  color: #1537fb;
+}
+
+.profile-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}

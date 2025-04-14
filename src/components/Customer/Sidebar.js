@@ -14,16 +14,16 @@ const Sidebar = () => {
     <div className="sidebar">
       <div className="logo">Defetect.</div>
       <nav className="nav">
-        <NavLink to="/customer-dashboard" className="nav-link">
+        <NavLink to="/customer/dashboard" className="nav-link">
           <FaHome /> Dashboard
         </NavLink>
-        <NavLink to="/customer-defectdata" className="nav-link">
+        <NavLink to="/customer/defectdata" className="nav-link">
           <FaDatabase /> Defect data
         </NavLink>
-        <NavLink to="/customer-statistics" className="nav-link">
+        <NavLink to="/customer/statistics" className="nav-link">
           <FaChartBar /> Statistics
         </NavLink>
-        <NavLink to="/customer-editclass" className="nav-link">
+        <NavLink to="/customer/editclass" className="nav-link">
           <FaWrench /> Edit class
         </NavLink>
       </nav>

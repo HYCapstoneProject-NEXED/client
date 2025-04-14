@@ -11,7 +11,7 @@ import Statistics from '../pages/Customer/Statistics';
 const CustomerRoutes = () => (
   <Routes>
     <Route
-      path="/customer-dashboard"
+      path="dashboard"
       element={
         <ProtectedRoute allowedRoles={['customer']}>
           <Dashboard />
@@ -19,7 +19,7 @@ const CustomerRoutes = () => (
       }
     />
     <Route
-      path="/customer-defectdata"
+      path="defectdata"
       element={
         <ProtectedRoute allowedRoles={['customer']}>
           <Defectdata />
@@ -27,7 +27,7 @@ const CustomerRoutes = () => (
       }
     />
     <Route
-      path="/customer-editclass"
+      path="editclass"
       element={
         <ProtectedRoute allowedRoles={['customer']}>
           <Editclass />
@@ -35,7 +35,7 @@ const CustomerRoutes = () => (
       }
     />
     <Route
-      path="/customer-statistics"
+      path="statistics"
       element={
         <ProtectedRoute allowedRoles={['customer']}>
           <Statistics />
