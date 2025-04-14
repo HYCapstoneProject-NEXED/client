@@ -1,0 +1,151 @@
+.annotator-annotation-tools {
+  position: relative;
+  z-index: 100;
+}
+
+.annotator-toolbar {
+  width: 320px;
+  height: 50px;
+  background: white;
+  box-shadow: 6px 6px 54px rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 15px;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.annotator-tool-button {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  background: transparent;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 4px;
+  color: #313D4F;
+  font-size: 16px;
+}
+
+.annotator-tool-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.annotator-divider {
+  width: 1px;
+  height: 25px;
+  background-color: rgba(151, 151, 151, 0.6);
+  margin: 0 12px;
+}
+
+.annotator-color-selector {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-left: 0;
+}
+
+.annotator-color-circle {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.annotator-dropdown-icon {
+  font-size: 12px;
+  color: #313D4F;
+}
+
+.annotator-square-button {
+  background: transparent;
+}
+
+.annotator-square-icon {
+  width: 25px;
+  height: 25px;
+  color: #313D4F;
+  stroke-width: 1.5px;
+}
+
+.annotator-hand-button {
+  background: transparent;
+}
+
+.annotator-hand-icon {
+  font-size: 20px;
+  color: #313D4F;
+}
+
+.annotator-class-options-panel {
+  width: 220px;
+  background: white;
+  box-shadow: 0px 9px 40px rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  position: absolute;
+  left: 11px;
+  top: 60px;
+  overflow: hidden;
+  z-index: 101;
+}
+
+.annotator-panel-header {
+  padding: 12px 15px;
+  color: #404040;
+  font-size: 14px;
+  font-family: 'Nunito Sans', sans-serif;
+  font-weight: 600;
+  border-bottom: 0.5px solid rgba(151, 151, 151, 0.26);
+}
+
+.annotator-class-list {
+  padding: 8px;
+}
+
+.annotator-class-option {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.annotator-class-option:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+  border-radius: 8px;
+}
+
+.annotator-class-color {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.annotator-class-option span {
+  color: #232323;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+}
+
+.annotator-defect-a-color {
+  background: #00B69B;
+}
+
+.annotator-defect-b-color {
+  background: #5A8CFF;
+}
+
+.annotator-defect-c-color {
+  background: #EF3826;
+}
+
+.annotator-defect-d-color {
+  background: #FCAA0B;
+} 

@@ -8,7 +8,7 @@ import {
   FaSignOutAlt
 } from 'react-icons/fa';
 import './Sidebar.css';
-
+  
 const Sidebar = () => {
   return (
     <div className="sidebar">

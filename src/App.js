@@ -12,9 +12,15 @@ import MainPage from './pages/MainPage/MainPage';
 
 import ProfileModal from './components/Customer/ProfileModal'; // 컴포넌트
 import { ProfileModalProvider } from './context/ProfileModalContext'; // context
+import AnnotationEditPage from './pages/AnnotatorPage/AnnotationEditPage'; // 어노테이션 편집 페이지
 
 
 import './App.css';
+
+import CustomerDashboard from './pages/Customer/Dashboard';
+import CustomerData from './pages/Customer/Defectdata';
+import Editclass from './pages/Customer/Editclass';
+import Statistics from './pages/Customer/Statistics';
 
 function App() {
   return (
@@ -39,9 +45,12 @@ function App() {
             </ProtectedRoute>
           }
         />
-
+ 
         {/* Customer 역할 전용 라우트 */}
-        <Route path="/customer/*" element={<CustomerRoutes />} />
+        <Route path="/*" element={<CustomerRoutes />} />
+
+        {/* Annotation Edit Page */}
+        <Route path="/edit-annotation" element={<AnnotationEditPage />} />
 
         </Routes>
       </Router>
