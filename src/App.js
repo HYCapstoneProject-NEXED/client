@@ -17,6 +17,11 @@ import AnnotationEditPage from './pages/AnnotatorPage/AnnotationEditPage'; // �
 
 import './App.css';
 
+import CustomerDashboard from './pages/Customer/Dashboard';
+import CustomerData from './pages/Customer/Defectdata';
+import Editclass from './pages/Customer/Editclass';
+import Statistics from './pages/Customer/Statistics';
+
 function App() {
   return (
     <ProfileModalProvider>
@@ -42,7 +47,7 @@ function App() {
         />
  
         {/* Customer 역할 전용 라우트 */}
-        <Route path="/customer/*" element={<CustomerRoutes />} />
+        <Route path="/*" element={<CustomerRoutes />} />
 
         {/* Annotation Edit Page */}
         <Route path="/edit-annotation" element={<AnnotationEditPage />} />
