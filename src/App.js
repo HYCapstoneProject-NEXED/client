@@ -9,13 +9,18 @@ import LoginRoutes from './routes/LoginRoutes';
 
 import AuthCallback from './pages/AuthCallback/AuthCallback';
 import MainPage from './pages/MainPage/MainPage';
+import AnnotationEditPage from './pages/AnnotatorPage/AnnotationEditPage';
 
 import './App.css';
 
+import CustomerDashboard from './pages/Customer/Dashboard';
+import CustomerData from './pages/Customer/Defectdata';
+import Editclass from './pages/Customer/Editclass';
+import Statistics from './pages/Customer/Statistics';
+
 function App() {
   return (
-    <ProfileModalProvider>
-      <Router>
+    <Router>
       <Routes>
         {/* 로그인 관련 */}
         <Route path="/*" element={<LoginRoutes />} />
@@ -71,11 +76,11 @@ function App() {
             </ProtectedRoute>
           }
         />
+        {/* 어노테이션 편집 페이지 직접 접근 - 테스트용 */}
+        <Route path="/edit-annotation" element={<AnnotationEditPage />} />
 
-        </Routes>
-      </Router>
-      <ProfileModal /> {/* 항상 전역에서 접근 가능하게 */}
-    </ProfileModalProvider>
+      </Routes>
+    </Router>
   );
 }
 
