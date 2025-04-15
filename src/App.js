@@ -17,11 +17,6 @@ import AnnotationEditPage from './pages/AnnotatorPage/AnnotationEditPage'; // ì–
 
 import './App.css';
 
-import CustomerDashboard from './pages/Customer/Dashboard';
-import CustomerData from './pages/Customer/Defectdata';
-import Editclass from './pages/Customer/Editclass';
-import Statistics from './pages/Customer/Statistics';
-
 function App() {
   return (
     <ProfileModalProvider>

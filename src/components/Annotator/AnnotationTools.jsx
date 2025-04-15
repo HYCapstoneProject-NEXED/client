@@ -3,8 +3,16 @@ import { FaUndo, FaRedo, FaRegHandPaper, FaChevronDown } from 'react-icons/fa';
 import { FiSquare } from 'react-icons/fi';
 import './AnnotationTools.css';
 
-const AnnotationTools = ({ onClassSelect, selectedDefectType }) => {
+// 도구 유형 상수 정의
+const TOOL_TYPES = {
+  HAND: 'hand',
+  RECTANGLE: 'rectangle'
+};
+
+const AnnotationTools = ({ onClassSelect, selectedDefectType, onToolChange, activeTool: externalActiveTool }) => {
   const [showClassOptions, setShowClassOptions] = useState(false);
+  // 활성화된 도구 상태 추가 (기본값: 손바닥)
+  const [activeTool, setActiveTool] = useState(TOOL_TYPES.HAND);
   const classOptionsRef = useRef(null);
   const colorButtonRef = useRef(null);
 
@@ -34,6 +42,15 @@ const AnnotationTools = ({ onClassSelect, selectedDefectType }) => {
     }
   };
 
+  // 도구 변경 핸들러
+  const handleToolChange = (toolType) => {
+    setActiveTool(toolType);
+    // 부모 컴포넌트에 도구 변경 알림
+    if (onToolChange) {
+      onToolChange(toolType);
+    }
+  };
+
   // 외부 클릭 감지하여 클래스 선택 패널 닫기
   useEffect(() => {
     function handleClickOutside(event) {
@@ -57,8 +74,21 @@ const AnnotationTools = ({ onClassSelect, selectedDefectType }) => {
     };
   }, [showClassOptions]);
 
+  // 외부 활성 도구 변경 감지
+  useEffect(() => {
+    if (externalActiveTool && externalActiveTool !== activeTool) {
+      setActiveTool(externalActiveTool);
+    }
+  }, [externalActiveTool]);
+
+  // 컴포넌트 마운트 시 부모 컴포넌트에 초기 도구 알림
+  useEffect(() => {
+    if (onToolChange) {
+      onToolChange(activeTool);
+    }
+  }, []);
+
   return (
-<<<<<<< HEAD
     <div className="annotator-annotation-tools">
       <div className="annotator-toolbar">
         <div className="annotator-color-selector" ref={colorButtonRef} onClick={handleColorButtonClick}>
@@ -70,57 +100,35 @@ const AnnotationTools = ({ onClassSelect, selectedDefectType }) => {
         </div>
         <div className="annotator-divider"></div>
         
-        <button className="annotator-tool-button annotator-square-button">
+        <button 
+          className={`annotator-tool-button annotator-square-button ${activeTool === TOOL_TYPES.RECTANGLE ? 'active' : ''}`}
+          onClick={() => handleToolChange(TOOL_TYPES.RECTANGLE)}
+          title="사각형 그리기"
+        >
           <FiSquare className="annotator-square-icon" />
         </button>
         <div className="annotator-divider"></div>
         
-        <button className="annotator-tool-button annotator-hand-button">
+        <button 
+          className={`annotator-tool-button annotator-hand-button ${activeTool === TOOL_TYPES.HAND ? 'active' : ''}`}
+          onClick={() => handleToolChange(TOOL_TYPES.HAND)}
+          title="이동 및 선택"
+        >
           <FaRegHandPaper className="annotator-hand-icon" />
         </button>
         <div className="annotator-divider"></div>
         
-        <button className="annotator-tool-button">
+        <button className="annotator-tool-button" title="실행 취소">
           <FaUndo />
         </button>
         <div className="annotator-divider"></div>
         
-        <button className="annotator-tool-button">
-=======
-    <div className="annotation-tools">
-      <div className="toolbar">
-        <div className="color-selector" ref={colorButtonRef} onClick={handleColorButtonClick}>
-          <div 
-            className="color-circle" 
-            style={{ background: getColorStyle(selectedDefectType) }}
-          ></div>
-          <FaChevronDown className="dropdown-icon" />
-        </div>
-        <div className="divider"></div>
-        
-        <button className="tool-button square-button">
-          <FiSquare className="square-icon" />
-        </button>
-        <div className="divider"></div>
-        
-        <button className="tool-button hand-button">
-          <FaRegHandPaper className="hand-icon" />
-        </button>
-        <div className="divider"></div>
-        
-        <button className="tool-button">
-          <FaUndo />
-        </button>
-        <div className="divider"></div>
-        
-        <button className="tool-button">
->>>>>>> origin/main
+        <button className="annotator-tool-button" title="다시 실행">
           <FaRedo />
         </button>
       </div>
       
       {showClassOptions && (
-<<<<<<< HEAD
         <div className="annotator-class-options-panel" ref={classOptionsRef}>
           <div className="annotator-panel-header">
             <span>Class</span>
@@ -140,27 +148,6 @@ const AnnotationTools = ({ onClassSelect, selectedDefectType }) => {
             </div>
             <div className="annotator-class-option" onClick={() => handleClassSelect('Defect_D')}>
               <div className="annotator-class-color annotator-defect-d-color"></div>
-=======
-        <div className="class-options-panel" ref={classOptionsRef}>
-          <div className="panel-header">
-            <span>Class</span>
-          </div>
-          <div className="class-list">
-            <div className="class-option" onClick={() => handleClassSelect('Defect_A')}>
-              <div className="class-color defect-a-color"></div>
-              <span>Defect_A</span>
-            </div>
-            <div className="class-option" onClick={() => handleClassSelect('Defect_B')}>
-              <div className="class-color defect-b-color"></div>
-              <span>Defect_B</span>
-            </div>
-            <div className="class-option" onClick={() => handleClassSelect('Defect_C')}>
-              <div className="class-color defect-c-color"></div>
-              <span>Defect_C</span>
-            </div>
-            <div className="class-option" onClick={() => handleClassSelect('Defect_D')}>
-              <div className="class-color defect-d-color"></div>
->>>>>>> origin/main
               <span>Defect_D</span>
             </div>
           </div>

@@ -9,3 +9,10 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - FAST_REFRESH=true
+      - WDS_SOCKET_PORT=3000
+    command: npm start -- --poll=500
+    stdin_open: true
+    tty: true 
