@@ -226,6 +226,18 @@
   background: #5A8CFF;
 }
 
+.annotator-defect-c-box {
+  border-color: #EF3826;
+}
+
+.annotator-defect-c-box .annotator-box-label {
+  background: #EF3826;
+}
+
+.annotator-defect-d-box {
+  border-color: #FCAA0B;
+}
+
 .annotator-box-label {
   position: absolute;
   top: -25px;
@@ -252,6 +264,14 @@
 
 .annotator-defect-b-box .annotator-resize-handle {
   border-color: #5A8CFF;
+}
+
+.annotator-defect-c-box .annotator-resize-handle {
+  border-color: #EF3826;
+}
+
+.annotator-defect-d-box .annotator-resize-handle {
+  border-color: #FCAA0B;
 }
 
 .annotator-top-left {

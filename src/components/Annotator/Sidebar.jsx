@@ -1,7 +1,7 @@
 import React from 'react';
 import './Sidebar.css';
 
-const Sidebar = ({ dataInfo, defects, selectedDefect, onDefectSelect }) => {
+const Sidebar = ({ dataInfo, defects, selectedDefect, onDefectSelect, onToolChange, toolTypes }) => {
   // 결함 타입별 색상 클래스 반환 함수
   const getDefectColorClass = (defectType) => {
     switch(defectType) {
@@ -15,6 +15,16 @@ const Sidebar = ({ dataInfo, defects, selectedDefect, onDefectSelect }) => {
         return 'annotator-defect-d';
       default:
         return 'annotator-defect-a';
+    }
+  };
+
+  // 결함 선택 및 손바닥 도구 활성화
+  const handleDefectSelect = (defectId) => {
+    onDefectSelect(defectId);
+    
+    // 결함 선택 시 자동으로 손바닥 도구 활성화
+    if (onToolChange && toolTypes) {
+      onToolChange(toolTypes.HAND);
     }
   };
 
@@ -40,7 +50,7 @@ const Sidebar = ({ dataInfo, defects, selectedDefect, onDefectSelect }) => {
               key={defect.id} 
               data-id={defect.id}
               className={`annotator-defect-item ${selectedDefect === defect.id ? 'selected' : ''}`}
-              onClick={() => onDefectSelect(defect.id)}
+              onClick={() => handleDefectSelect(defect.id)}
             >
               <div className={`annotator-defect-color ${getDefectColorClass(defect.type)}`}></div>
               <span>({defect.id}) {defect.type}</span>
