@@ -217,12 +217,31 @@ const ProfileModal = () => {
               />
             </div>
 
-            {/* Company / factory (edit) */}
+            {/* Company / factory  */}
             <div style={{ position: 'relative' }}>
               <label style={{ fontSize: '14px', color: '#555' }}>Company / factory</label>
               <input
                 type="text"
                 value="A company / 1 factory"
+                readOnly
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '8px',
+                  marginTop: '4px',
+                  backgroundColor: '#f9f9f9',
+                }}
+              />
+              
+            </div>
+
+            {/* Bank (edit 추가됨) */}
+            <div style={{ position: 'relative' }}>
+              <label style={{ fontSize: '14px', color: '#555' }}>Bank</label>
+              <input
+                type="text"
+                value="신한은행"
                 readOnly
                 style={{
                   width: '100%',
@@ -246,25 +265,7 @@ const ProfileModal = () => {
                 edit
               </span>
             </div>
-
-            {/* Bank */}
-            <div>
-              <label style={{ fontSize: '14px', color: '#555' }}>Bank</label>
-              <input
-                type="text"
-                value="신한은행"
-                readOnly
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '8px',
-                  marginTop: '4px',
-                  backgroundColor: '#f9f9f9',
-                }}
-              />
-            </div>
-
+            
             {/* Bank Account (edit) */}
             <div style={{ position: 'relative' }}>
               <label style={{ fontSize: '14px', color: '#555' }}>Bank account</label>

@@ -174,6 +174,9 @@ const AnnotationTools = ({
         </button>
         <div className="annotator-divider"></div>
         
+<<<<<<< HEAD
+        <button className="annotator-tool-button">
+=======
         {/* 다시 실행 버튼 */}
         <button 
           className={`annotator-tool-button ${!canRedo ? 'disabled' : ''}`} 
@@ -181,6 +184,7 @@ const AnnotationTools = ({
           onClick={onRedo}
           disabled={!canRedo}
         >
+>>>>>>> main
           <FaRedo />
         </button>
         
@@ -220,7 +224,11 @@ const AnnotationTools = ({
             </div>
             <div className="annotator-class-option" onClick={() => handleClassSelect(DEFECT_TYPES.DEFECT_D)}>
               <div className="annotator-class-color annotator-defect-d-color"></div>
+<<<<<<< HEAD
+              <span>Defect_D</span>
+=======
               <span>{DEFECT_TYPES.DEFECT_D}</span>
+>>>>>>> main
             </div>
           </div>
         </div>
