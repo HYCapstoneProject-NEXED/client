@@ -9,7 +9,16 @@ const TOOL_TYPES = {
   RECTANGLE: 'rectangle'
 };
 
-const AnnotationTools = ({ onClassSelect, selectedDefectType, onToolChange, activeTool: externalActiveTool }) => {
+const AnnotationTools = ({ 
+  onClassSelect, 
+  selectedDefectType, 
+  onToolChange, 
+  activeTool: externalActiveTool,
+  onUndo,
+  onRedo,
+  canUndo = false,
+  canRedo = false
+}) => {
   const [showClassOptions, setShowClassOptions] = useState(false);
   // 활성화된 도구 상태 추가 (기본값: 손바닥)
   const [activeTool, setActiveTool] = useState(TOOL_TYPES.HAND);
@@ -81,7 +90,7 @@ const AnnotationTools = ({ onClassSelect, selectedDefectType, onToolChange, acti
     }
   }, [externalActiveTool]);
 
-  // 컴포넌트 마운트 시 부모 컴포넌트에 초기 도구 알림
+  // 컴포넌트 마운트 시, 부모 컴포넌트에 초기 도구 알림
   useEffect(() => {
     if (onToolChange) {
       onToolChange(activeTool);
@@ -118,12 +127,22 @@ const AnnotationTools = ({ onClassSelect, selectedDefectType, onToolChange, acti
         </button>
         <div className="annotator-divider"></div>
         
-        <button className="annotator-tool-button" title="실행 취소">
+        <button 
+          className={`annotator-tool-button ${!canUndo ? 'disabled' : ''}`} 
+          title="실행 취소"
+          onClick={onUndo}
+          disabled={!canUndo}
+        >
           <FaUndo />
         </button>
         <div className="annotator-divider"></div>
         
-        <button className="annotator-tool-button" title="다시 실행">
+        <button 
+          className={`annotator-tool-button ${!canRedo ? 'disabled' : ''}`} 
+          title="다시 실행"
+          onClick={onRedo}
+          disabled={!canRedo}
+        >
           <FaRedo />
         </button>
       </div>

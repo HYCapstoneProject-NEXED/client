@@ -7,8 +7,8 @@ WORKDIR /app
 # package.json과 package-lock.json을 복사
 COPY package.json package-lock.json ./
 
-# 의존성 설치
-RUN npm install
+# 의존성 설치 및 axios 명시적 설치
+RUN npm install && npm install axios --save
 
 # 소스 코드 복사
 COPY . .

@@ -5,7 +5,7 @@ const ImageCanvas = ({
   defects, 
   selectedDefect, 
   onDefectSelect, 
-  onCoordinateUpdate, 
+  onCoordinateChange, 
   onCanvasClick, 
   onAddBox,
   activeTool,
@@ -23,7 +23,15 @@ const ImageCanvas = ({
   // 주석(바운딩 박스) 위치 상태 관리
   const [boxPositions, setBoxPositions] = useState({});
   const [isBoxDragging, setIsBoxDragging] = useState(false);
-  const [boxDragInfo, setBoxDragInfo] = useState({ id: null, startX: 0, startY: 0 });
+  const [boxDragInfo, setBoxDragInfo] = useState({ 
+    id: null, 
+    startX: 0, 
+    startY: 0, 
+    originalX: 0, 
+    originalY: 0,
+    currentX: 0,
+    currentY: 0
+  });
 
   // 리사이즈 상태 관리
   const [isResizing, setIsResizing] = useState(false);
@@ -35,7 +43,12 @@ const ImageCanvas = ({
     originalX: 0, 
     originalY: 0, 
     originalWidth: 0, 
-    originalHeight: 0 
+    originalHeight: 0,
+    currentX: 0,
+    currentY: 0,
+    currentWidth: 0,
+    currentHeight: 0,
+    isValid: true
   });
 
   // 새 바운딩 박스 생성을 위한 상태
@@ -79,21 +92,18 @@ const ImageCanvas = ({
     // defects가 변경되었을 때 실행됨
     console.log('defects changed:', defects);
     
-    // defects가 변경되었을 때만 초기 위치를 설정
-    const initialPositions = {};
+    // defects가 변경되었을 때 항상 boxPositions를 최신 상태로 업데이트
+    const updatedPositions = {};
     defects.forEach(defect => {
       const defectId = String(defect.id);
-      // 이미 boxPositions에 있는 defect은 위치를 유지
-      if (!boxPositions[defectId]) {
-        initialPositions[defectId] = {
-          x: defect.coordinates.x,
-          y: defect.coordinates.y
-        };
-      } else {
-        initialPositions[defectId] = boxPositions[defectId];
-      }
+      updatedPositions[defectId] = {
+        x: defect.coordinates.x,
+        y: defect.coordinates.y
+      };
     });
-    setBoxPositions(prev => ({...prev, ...initialPositions}));
+    
+    // 완전히 새로운 객체로 boxPositions 업데이트
+    setBoxPositions(updatedPositions);
   }, [defects]); // defects 배열이 변경될 때 실행
 
   // defects 배열 변경 감지 및 적용 - 클래스 변경 시 바운딩 박스 색상 변경 적용
@@ -187,6 +197,7 @@ const ImageCanvas = ({
           defect.coordinates.height
         );
         
+        // 화면 표시용 위치 업데이트 (실제 defect 객체는 마우스 업 이벤트에서 업데이트)
         setBoxPositions(prev => ({
           ...prev,
           [boxDragInfo.id]: {
@@ -194,6 +205,10 @@ const ImageCanvas = ({
             y: constrainedY
           }
         }));
+        
+        // 현재 위치를 boxDragInfo에 저장 (마우스 업 이벤트에서 사용)
+        boxDragInfo.currentX = constrainedX;
+        boxDragInfo.currentY = constrainedY;
       }
     }
     
@@ -315,16 +330,11 @@ const ImageCanvas = ({
         }
       }));
       
-      // defect 객체도 업데이트
-      const resizingDefect = defects.find(d => String(d.id) === resizeInfo.id);
-      if (resizingDefect && onCoordinateUpdate) {
-        onCoordinateUpdate(resizeInfo.id, {
-          x: newX,
-          y: newY,
-          width: newWidth,
-          height: newHeight
-        });
-      }
+      // 현재 리사이즈 정보를 저장 (마우스 업 이벤트에서 사용)
+      resizeInfo.currentX = newX;
+      resizeInfo.currentY = newY;
+      resizeInfo.currentWidth = newWidth;
+      resizeInfo.currentHeight = newHeight;
     }
 
     // 박스 그리기
@@ -350,36 +360,57 @@ const ImageCanvas = ({
 
   // 드래그 종료
   const handleMouseUp = (e) => {
-    setIsDragging(false);
+    // 캔버스 드래그 종료
+    if (isDragging) {
+      setIsDragging(false);
+    }
     
-    // 박스 드래그가 끝났을 때 좌표 업데이트
+    // 박스 드래그 종료
     if (isBoxDragging && boxDragInfo.id) {
-      const newPosition = boxPositions[boxDragInfo.id];
-      if (newPosition && onCoordinateUpdate) {
-        onCoordinateUpdate(boxDragInfo.id, {
-          x: newPosition.x,
-          y: newPosition.y
+      setIsBoxDragging(false);
+      
+      // 부모 컴포넌트에 좌표 업데이트 알림
+      if (onCoordinateChange) {
+        onCoordinateChange(boxDragInfo.id, {
+          x: boxDragInfo.currentX,
+          y: boxDragInfo.currentY
         });
       }
     }
     
-    setIsBoxDragging(false);
-    setIsResizing(false);
-
-    // 박스 그리기 종료
-    if (isDrawingBox && activeTool === toolTypes.RECTANGLE) {
-      console.log('Drawing box ended');
+    // 리사이징 종료
+    if (isResizing && resizeInfo.id) {
+      setIsResizing(false);
       
-      // 그린 박스의 좌표 계산
-      const x = Math.min(drawStartPos.x, currentDrawPos.x);
-      const y = Math.min(drawStartPos.y, currentDrawPos.y);
-      const width = Math.abs(currentDrawPos.x - drawStartPos.x);
-      const height = Math.abs(currentDrawPos.y - drawStartPos.y);
+      // 부모 컴포넌트에 크기 업데이트 알림
+      if (onCoordinateChange && resizeInfo.isValid) {
+        onCoordinateChange(resizeInfo.id, {
+          x: resizeInfo.currentX,
+          y: resizeInfo.currentY,
+          width: resizeInfo.currentWidth,
+          height: resizeInfo.currentHeight
+        });
+      }
+    }
+    
+    // 바운딩 박스 그리기 종료
+    if (isDrawingBox) {
+      const rect = canvasRef.current.getBoundingClientRect();
       
-      console.log('Box coordinates for adding:', { x, y, width, height });
-      console.log('Draw start/end positions:', { start: drawStartPos, end: currentDrawPos });
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
       
-      // 이미지 영역 내부 확인
+      // 이미지 내 실제 좌표로 변환
+      const currentX = (mouseX - position.x) / scale;
+      const currentY = (mouseY - position.y) / scale;
+      
+      // 시작점과 종료점으로부터 사각형 좌표와 크기 계산
+      const x = Math.min(drawStartPos.x, currentX);
+      const y = Math.min(drawStartPos.y, currentY);
+      const width = Math.abs(currentX - drawStartPos.x);
+      const height = Math.abs(currentY - drawStartPos.y);
+      
+      // 이미지 내부에서 시작된 경우에만 박스 추가 가능
       const isInsideImage = 
         drawStartPos.x >= 0 && drawStartPos.y >= 0 && 
         drawStartPos.x <= canvasDimensions.width && 
@@ -454,7 +485,9 @@ const ImageCanvas = ({
         startX: e.clientX,
         startY: e.clientY,
         originalX: boxPositions[defectIdStr]?.x || 0,
-        originalY: boxPositions[defectIdStr]?.y || 0
+        originalY: boxPositions[defectIdStr]?.y || 0,
+        currentX: boxPositions[defectIdStr]?.x || 0,
+        currentY: boxPositions[defectIdStr]?.y || 0
       });
     }
   };
@@ -488,7 +521,12 @@ const ImageCanvas = ({
         originalX: boxPositions[defectIdStr]?.x || defect.coordinates.x,
         originalY: boxPositions[defectIdStr]?.y || defect.coordinates.y,
         originalWidth: defect.coordinates.width,
-        originalHeight: defect.coordinates.height
+        originalHeight: defect.coordinates.height,
+        currentX: boxPositions[defectIdStr]?.x || defect.coordinates.x,
+        currentY: boxPositions[defectIdStr]?.y || defect.coordinates.y,
+        currentWidth: defect.coordinates.width,
+        currentHeight: defect.coordinates.height,
+        isValid: true
       });
     }
   };
@@ -662,7 +700,7 @@ const ImageCanvas = ({
                   handleBoxMouseDown(e, defect.id);
                 }}
               >
-                ({defect.id}) {defect.confidence.toFixed(2)}
+                ({defect.id}) {defect.confidence === 0.9 ? '-' : defect.confidence.toFixed(2)}
               </div>
               {/* 리사이즈 핸들 - 선택된 바운딩 박스에만 표시 */}
               {isSelected && (
