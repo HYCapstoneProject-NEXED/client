@@ -1,41 +1,36 @@
+/**
+ * Annotation Sidebar Component
+ * Displays data information and defect list.
+ */
 import React, { useState, useEffect } from 'react';
+import { getDefectColorClass } from '../../utils/annotationUtils';
 import './Sidebar.css';
 
-const Sidebar = ({ dataInfo, defects, selectedDefect, onDefectSelect, onToolChange, toolTypes }) => {
-  // 선택된 결함의 상세 정보
-  const [selectedDefectDetail, setSelectedDefectDetail] = useState(null);
-
-  // 결함 타입별 색상 클래스 반환 함수
-  const getDefectColorClass = (defectType) => {
-    switch(defectType) {
-      case 'Defect_A':
-        return 'annotator-defect-a';
-      case 'Defect_B':
-        return 'annotator-defect-b';
-      case 'Defect_C':
-        return 'annotator-defect-c';
-      case 'Defect_D':
-        return 'annotator-defect-d';
-      default:
-        return 'annotator-defect-a';
-    }
-  };
-
-  // 선택된 결함이 변경될 때 상세 정보 업데이트
-  useEffect(() => {
-    if (selectedDefect) {
-      const detail = defects.find(d => d.id === selectedDefect);
-      setSelectedDefectDetail(detail);
-    } else {
-      setSelectedDefectDetail(null);
-    }
-  }, [selectedDefect, defects]);
-
-  // 결함 선택 및 손바닥 도구 활성화
+/**
+ * Annotation Sidebar Component
+ * @param {Object} props - Component properties
+ * @param {Object} props.dataInfo - Image/data information
+ * @param {Array} props.defects - List of defects
+ * @param {string} props.selectedDefect - Selected defect ID
+ * @param {Object} props.selectedDefectDetail - Selected defect detailed information
+ * @param {function} props.onDefectSelect - Defect selection handler
+ * @param {function} props.onToolChange - Tool change handler
+ * @param {Object} props.toolTypes - Tool type constants
+ */
+const Sidebar = ({
+  dataInfo,
+  defects,
+  selectedDefect,
+  selectedDefectDetail,
+  onDefectSelect,
+  onToolChange,
+  toolTypes
+}) => {
+  // Select defect and activate hand tool
   const handleDefectSelect = (defectId) => {
     onDefectSelect(defectId);
     
-    // 결함 선택 시 자동으로 손바닥 도구 활성화
+    // Automatically activate hand tool when defect is selected
     if (onToolChange && toolTypes) {
       onToolChange(toolTypes.HAND);
     }
@@ -43,6 +38,7 @@ const Sidebar = ({ dataInfo, defects, selectedDefect, onDefectSelect, onToolChan
 
   return (
     <aside className="annotator-sidebar">
+      {/* Data Information Section */}
       <div className="annotator-data-info">
         <h2 className="section-title">Data Information</h2>
         
@@ -54,7 +50,9 @@ const Sidebar = ({ dataInfo, defects, selectedDefect, onDefectSelect, onToolChan
           
           <div className="info-row">
             <span className="info-label">Confidence Score</span>
-            <span className="info-value score">{dataInfo.confidenceScore.toFixed(2)}</span>
+            <span className="info-value score">
+              {dataInfo.confidenceScore ? dataInfo.confidenceScore.toFixed(2) : '-'}
+            </span>
           </div>
           
           <div className="info-row">
@@ -76,7 +74,7 @@ const Sidebar = ({ dataInfo, defects, selectedDefect, onDefectSelect, onToolChan
         </div>
       </div>
 
-      {/* 선택된 어노테이션 상세 정보 */}
+      {/* Selected Annotation Details */}
       {selectedDefectDetail && (
         <div className="annotator-defect-detail">
           <h2>Selected Annotation Details</h2>
@@ -110,8 +108,9 @@ const Sidebar = ({ dataInfo, defects, selectedDefect, onDefectSelect, onToolChan
         </div>
       )}
 
+      {/* Defect List Section */}
       <div className="annotator-defect-list-container">
-        <h2>Defect list</h2>
+        <h2>Defect List</h2>
         <ul className="annotator-defect-list">
           {defects.map((defect) => (
             <li 

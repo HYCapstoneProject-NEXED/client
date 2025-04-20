@@ -1,6 +1,24 @@
+/**
+ * 이미지 캔버스 컴포넌트
+ * 이미지 표시, 바운딩 박스 생성 및 편집, 확대/축소 등의 어노테이션 핵심 기능을 구현
+ */
 import React, { useState, useRef, useEffect } from 'react';
 import './ImageCanvas.css';
 
+/**
+ * 이미지 캔버스 컴포넌트
+ * @param {Object} props - 컴포넌트 속성
+ * @param {Array} props.defects - 결함 목록
+ * @param {string} props.selectedDefect - 선택된 결함 ID
+ * @param {function} props.onDefectSelect - 결함 선택 핸들러
+ * @param {function} props.onCoordinateChange - 좌표 변경 핸들러 (바운딩 박스 이동/리사이즈 시 호출)
+ * @param {function} props.onCanvasClick - 캔버스 클릭 핸들러 (빈 영역 클릭 시 호출)
+ * @param {function} props.onAddBox - 바운딩 박스 추가 핸들러
+ * @param {string} props.activeTool - 현재 활성화된 도구 ('hand' 또는 'rectangle')
+ * @param {Object} props.toolTypes - 도구 유형 상수
+ * @param {function} props.onToolChange - 도구 변경 핸들러
+ * @param {string} props.currentDefectType - 현재 선택된 결함 유형 (새 박스 생성 시 적용)
+ */
 const ImageCanvas = ({ 
   defects, 
   selectedDefect, 
@@ -13,64 +31,77 @@ const ImageCanvas = ({
   onToolChange,
   currentDefectType 
 }) => {
+  // 이미지 캔버스 요소 참조
   const canvasRef = useRef(null);
+  
+  // 캔버스 이동(pan) 관련 상태
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartPosition, setDragStartPosition] = useState({ x: 0, y: 0 });
+  
+  // 확대/축소(zoom) 관련 상태
   const [scale, setScale] = useState(1);
+  
+  // 캔버스 크기 상태
   const [canvasDimensions, setCanvasDimensions] = useState({ width: 0, height: 0 });
   
-  // 주석(바운딩 박스) 위치 상태 관리
+  // 바운딩 박스 위치 상태 관리
   const [boxPositions, setBoxPositions] = useState({});
+  
+  // 바운딩 박스 드래그 관련 상태
   const [isBoxDragging, setIsBoxDragging] = useState(false);
   const [boxDragInfo, setBoxDragInfo] = useState({ 
-    id: null, 
-    startX: 0, 
-    startY: 0, 
-    originalX: 0, 
-    originalY: 0,
-    currentX: 0,
-    currentY: 0
+    id: null,            // 드래그 중인 박스 ID
+    startX: 0,           // 드래그 시작 마우스 X 위치 
+    startY: 0,           // 드래그 시작 마우스 Y 위치
+    originalX: 0,        // 드래그 시작 시 박스 원래 X 위치
+    originalY: 0,        // 드래그 시작 시 박스 원래 Y 위치
+    currentX: 0,         // 현재 박스 X 위치
+    currentY: 0          // 현재 박스 Y 위치
   });
 
-  // 리사이즈 상태 관리
+  // 바운딩 박스 크기 조정(resize) 관련 상태
   const [isResizing, setIsResizing] = useState(false);
   const [resizeInfo, setResizeInfo] = useState({ 
-    id: null, 
-    handle: null, 
-    startX: 0, 
-    startY: 0, 
-    originalX: 0, 
-    originalY: 0, 
-    originalWidth: 0, 
-    originalHeight: 0,
-    currentX: 0,
-    currentY: 0,
-    currentWidth: 0,
-    currentHeight: 0,
-    isValid: true
+    id: null,            // 리사이즈 중인 박스 ID
+    handle: null,        // 현재 드래그 중인 핸들(모서리/변)
+    startX: 0,           // 리사이즈 시작 마우스 X 위치
+    startY: 0,           // 리사이즈 시작 마우스 Y 위치
+    originalX: 0,        // 리사이즈 시작 시 박스 원래 X 위치
+    originalY: 0,        // 리사이즈 시작 시 박스 원래 Y 위치
+    originalWidth: 0,    // 리사이즈 시작 시 박스 원래 너비
+    originalHeight: 0,   // 리사이즈 시작 시 박스 원래 높이
+    currentX: 0,         // 현재 박스 X 위치
+    currentY: 0,         // 현재 박스 Y 위치
+    currentWidth: 0,     // 현재 박스 너비
+    currentHeight: 0,    // 현재 박스 높이
+    isValid: true        // 현재 리사이즈가 유효한지 여부
   });
 
-  // 새 바운딩 박스 생성을 위한 상태
+  // 새 바운딩 박스 그리기 관련 상태
   const [isDrawingBox, setIsDrawingBox] = useState(false);
   const [drawStartPos, setDrawStartPos] = useState({ x: 0, y: 0 });
   const [currentDrawPos, setCurrentDrawPos] = useState({ x: 0, y: 0 });
 
-  // 핸들 종류 추가
+  // 리사이즈 핸들 상수 정의
   const RESIZE_HANDLES = {
-    TOP_LEFT: 'top-left',
-    TOP: 'top',
-    TOP_RIGHT: 'top-right',
-    RIGHT: 'right',
-    BOTTOM_RIGHT: 'bottom-right',
-    BOTTOM: 'bottom',
-    BOTTOM_LEFT: 'bottom-left',
-    LEFT: 'left',
+    TOP_LEFT: 'top-left',       // 좌상단 모서리
+    TOP: 'top',                 // 상단 변
+    TOP_RIGHT: 'top-right',     // 우상단 모서리
+    RIGHT: 'right',             // 우측 변
+    BOTTOM_RIGHT: 'bottom-right', // 우하단 모서리
+    BOTTOM: 'bottom',           // 하단 변
+    BOTTOM_LEFT: 'bottom-left', // 좌하단 모서리
+    LEFT: 'left',               // 좌측 변
   };
 
   // 캔버스 크기 측정
   useEffect(() => {
     if (canvasRef.current) {
+      /**
+       * 캔버스 크기를 업데이트하는 함수
+       * 윈도우 리사이즈 이벤트에 반응하여 캔버스 크기를 조정
+       */
       const updateDimensions = () => {
         setCanvasDimensions({
           width: canvasRef.current.clientWidth,
@@ -112,7 +143,16 @@ const ImageCanvas = ({
     // 여기서는 별도 로직이 필요 없음, 렌더링 시 getBoxClassName 함수로 defect.type에 따라 클래스명이 변경됨
   }, [defects]);
 
-  // 박스 위치를 이미지 영역 내로 제한하는 함수
+  /**
+   * 박스 위치를 이미지 영역 내로 제한하는 함수
+   * 바운딩 박스가 이미지 영역을 벗어나지 않도록 좌표 값을 조정
+   * 
+   * @param {number} x - 박스의 X 좌표
+   * @param {number} y - 박스의 Y 좌표
+   * @param {number} width - 박스의 너비
+   * @param {number} height - 박스의 높이
+   * @returns {Object} 제한된 x, y 좌표
+   */
   const constrainBoxPosition = (x, y, width, height) => {
     // 이미지 영역 경계 내로 제한
     const constrainedX = Math.max(0, Math.min(x, canvasDimensions.width - width));
@@ -121,7 +161,14 @@ const ImageCanvas = ({
     return { x: constrainedX, y: constrainedY };
   };
 
-  // 드래그 시작
+  /**
+   * 마우스 다운 이벤트 핸들러
+   * 도구 유형에 따라 다른 동작 수행:
+   * - 손 도구: 캔버스 드래그 시작
+   * - 사각형 도구: 바운딩 박스 그리기 시작
+   * 
+   * @param {MouseEvent} e - 마우스 이벤트 객체
+   */
   const handleMouseDown = (e) => {
     // 클릭한 요소가 이미지 영역 또는 플레이스홀더 텍스트인 경우에만 처리
     if (e.target === canvasRef.current || e.target.className === 'annotator-placeholder-text' || e.target.classList.contains('annotator-image-placeholder')) {
@@ -168,7 +215,16 @@ const ImageCanvas = ({
     }
   };
 
-  // 드래그 중
+  /**
+   * 마우스 이동 이벤트 핸들러
+   * 현재 상태에 따라 다른 동작 수행:
+   * - 캔버스 드래그 중: 캔버스 위치 업데이트
+   * - 박스 드래그 중: 선택된 박스 위치 업데이트
+   * - 박스 리사이즈 중: 선택된 박스 크기 업데이트
+   * - 박스 그리기 중: 새 박스 크기 업데이트
+   * 
+   * @param {MouseEvent} e - 마우스 이벤트 객체
+   */
   const handleMouseMove = (e) => {
     // 캔버스 드래그
     if (isDragging && activeTool === toolTypes.HAND) {
@@ -198,17 +254,11 @@ const ImageCanvas = ({
         );
         
         // 화면 표시용 위치 업데이트 (실제 defect 객체는 마우스 업 이벤트에서 업데이트)
-        setBoxPositions(prev => ({
+        setBoxDragInfo(prev => ({
           ...prev,
-          [boxDragInfo.id]: {
-            x: constrainedX,
-            y: constrainedY
-          }
+          currentX: constrainedX,
+          currentY: constrainedY
         }));
-        
-        // 현재 위치를 boxDragInfo에 저장 (마우스 업 이벤트에서 사용)
-        boxDragInfo.currentX = constrainedX;
-        boxDragInfo.currentY = constrainedY;
       }
     }
     
@@ -358,7 +408,12 @@ const ImageCanvas = ({
     }
   };
 
-  // 드래그 종료
+  /**
+   * 마우스 업 이벤트 핸들러
+   * 드래그, 리사이즈, 그리기 등의 작업 완료 처리
+   * 
+   * @param {MouseEvent} e - 마우스 이벤트 객체
+   */
   const handleMouseUp = (e) => {
     // 캔버스 드래그 종료
     if (isDragging) {
@@ -453,7 +508,12 @@ const ImageCanvas = ({
     setIsDrawingBox(false);
   };
 
-  // 휠 스크롤로 줌 인/아웃
+  /**
+   * 마우스 휠 이벤트 핸들러
+   * 이미지 확대/축소(줌) 처리
+   * 
+   * @param {WheelEvent} e - 휠 이벤트 객체
+   */
   const handleWheel = (e) => {
     e.preventDefault();
     e.stopPropagation(); // 이벤트 버블링 방지
@@ -463,7 +523,13 @@ const ImageCanvas = ({
     setScale(newScale);
   };
 
-  // 바운딩 박스 드래그 시작
+  /**
+   * 바운딩 박스 마우스 다운 이벤트 핸들러
+   * 박스 선택 및 드래그 시작 처리
+   * 
+   * @param {MouseEvent} e - 마우스 이벤트 객체
+   * @param {string} defectId - 선택한 결함 ID
+   */
   const handleBoxMouseDown = (e, defectId) => {
     e.stopPropagation();
     
@@ -492,7 +558,14 @@ const ImageCanvas = ({
     }
   };
 
-  // 리사이즈 핸들 드래그 시작
+  /**
+   * 리사이즈 핸들 마우스 다운 이벤트 핸들러
+   * 바운딩 박스 크기 조정 시작 처리
+   * 
+   * @param {MouseEvent} e - 마우스 이벤트 객체
+   * @param {string} defectId - 선택한 결함 ID
+   * @param {string} handle - 선택한 핸들 종류 (top, left, bottom-right 등)
+   */
   const handleResizeStart = (e, defectId, handle) => {
     e.stopPropagation();
     e.preventDefault();
@@ -556,7 +629,13 @@ const ImageCanvas = ({
     position
   ]);
 
-  // 박스 클래스명 반환 함수 추가 
+  /**
+   * 결함 유형에 따른 CSS 클래스 이름 반환
+   * 각 결함 유형별 다른 색상 스타일 적용
+   * 
+   * @param {string} defectType - 결함 유형
+   * @returns {string} CSS 클래스 이름
+   */
   const getBoxClassName = (defectType) => {
     switch(defectType) {
       case 'Defect_A':
@@ -572,7 +651,12 @@ const ImageCanvas = ({
     }
   };
 
-  // 현재 활성 도구에 따른 커서 스타일 계산
+  /**
+   * 현재 활성 도구에 따른 커서 스타일 계산
+   * 손 도구, 사각형 도구 등에 따라 다른 커서 스타일 적용
+   * 
+   * @returns {string} CSS 커서 스타일
+   */
   const getCanvasCursor = () => {
     if (isDragging) return 'grabbing';
     if (activeTool === toolTypes.HAND) return 'grab';
@@ -588,6 +672,14 @@ const ImageCanvas = ({
     return 0;
   });
 
+  // 그리는 중인 바운딩 박스 좌표 계산
+  const drawingBox = isDrawingBox ? {
+    x: Math.min(drawStartPos.x, currentDrawPos.x),
+    y: Math.min(drawStartPos.y, currentDrawPos.y),
+    width: Math.abs(currentDrawPos.x - drawStartPos.x),
+    height: Math.abs(currentDrawPos.y - drawStartPos.y)
+  } : null;
+
   return (
     <div 
       className="annotator-image-container"
@@ -599,7 +691,7 @@ const ImageCanvas = ({
         }
       }}
     >
-      {/* 이미지 플레이스홀더 */}
+      {/* 이미지 플레이스홀더 - 실제 프로젝트에서는 이미지 요소로 대체 */}
       <div 
         className="annotator-image-placeholder"
         ref={canvasRef}
@@ -612,9 +704,10 @@ const ImageCanvas = ({
         {/* 실제 프로젝트에서는 여기에 이미지를 로드하게 됨 */}
         <div className="annotator-placeholder-text">이미지 영역</div>
         
-        {/* 결함 바운딩 박스 */}
+        {/* 결함 바운딩 박스 렌더링 */}
         {sortedDefects.map((defect) => {
           const defectId = String(defect.id);
+          // 현재 드래그/리사이즈 중인 박스는 boxPositions에서, 아니면 원래 좌표 사용
           const boxPosition = boxPositions[defectId] || defect.coordinates;
           const isSelected = selectedDefect === defect.id;
           

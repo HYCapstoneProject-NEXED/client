@@ -1,5 +1,6 @@
 // annotation 관련 API 서비스
 import axios from 'axios';
+import { formatDateTime } from '../utils/annotationUtils';
 
 // 기본 API URL (실제 배포 환경에서는 환경 변수 사용 권장)
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
@@ -263,10 +264,9 @@ class AnnotationService {
             // 이미지 데이터 포맷팅
             const formattedData = {
               dataId: `IMG_${imageDetail.image_id}`,
-              fileName: imageDetail.file_name,
               confidenceScore: minConfidence,
-              captureDate: this.formatDateTime(imageDetail.capture_date),
-              lastModified: this.formatDateTime(imageDetail.last_modified),
+              captureDate: formatDateTime(imageDetail.capture_date),
+              lastModified: formatDateTime(imageDetail.last_modified),
               status: imageDetail.status,
               dimensions: {
                 width: imageDetail.width,
@@ -284,19 +284,6 @@ class AnnotationService {
       console.error(`Failed to fetch image detail for ID ${imageId}:`, error);
       throw error;
     }
-  }
-  
-  // 날짜 포맷팅 유틸리티 메서드
-  formatDateTime(isoDateString) {
-    const date = new Date(isoDateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-    
-    return `${year}.${month}.${day} ${hours}:${minutes}:${seconds}`;
   }
 }
 
