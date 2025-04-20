@@ -18,18 +18,16 @@
 }
 
 .annotator-tool-button {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   border: none;
   background: transparent;
-  margin: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
   cursor: pointer;
-  border-radius: 4px;
-  color: #313D4F;
-  font-size: 16px;
+  color: #232323;
 }
 
 .annotator-tool-button:hover {
@@ -38,9 +36,16 @@
 
 /* 활성화된 도구 버튼 스타일 */
 .annotator-tool-button.active {
-  background-color: rgba(72, 128, 255, 0.15);
-  color: #4880FF;
-  box-shadow: inset 0 0 0 1px rgba(72, 128, 255, 0.4);
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.annotator-tool-button.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.annotator-tool-button.disabled:hover {
+  background-color: transparent;
 }
 
 .annotator-divider {

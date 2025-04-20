@@ -11,51 +11,168 @@
   box-sizing: border-box;
 }
 
-.annotator-data-info {
-  margin-bottom: 30px;
-  margin-top: 15px;
-}
-
-.annotator-info-item {
-  margin-bottom: 20px;
-}
-
-.annotator-info-item h2 {
-  color: #202224;
+/* 섹션 타이틀 스타일 */
+.section-title {
+  color: #343C6A;
   font-size: 18px;
   font-weight: 700;
   font-family: 'Nunito Sans', sans-serif;
   margin-top: 0;
-  margin-bottom: 5px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e6e8eb;
+}
+
+/* 데이터 정보 섹션 */
+.annotator-data-info {
+  margin-bottom: 30px;
+  margin-top: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* 데이터 정보 그리드 */
+.data-info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 정보 행 스타일 */
+.info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* 레이블 스타일 */
+.info-label {
+  color: #606778;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* 값 스타일 */
+.info-value {
+  color: #202224;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* 점수 값 스타일 */
+.info-value.score {
+  color: #4880FF;
+}
+
+/* 타임스탬프 행 스타일 */
+.info-row.timestamp .info-value {
+  font-size: 14px;
+}
+
+/* 구분선 */
+.info-divider {
+  height: 1px;
+  background-color: #e6e8eb;
+  margin: 4px 0;
+}
+
+/* 어노테이션 상세 정보 스타일 */
+.annotator-defect-detail {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 25px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.annotator-defect-detail h2 {
+  color: #343C6A;
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-family: 'Nunito Sans', sans-serif;
+  border-bottom: 1px solid #e6e8eb;
+  padding-bottom: 8px;
+}
+
+.annotator-detail-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 14px;
+  align-items: center;
+}
+
+.detail-label {
+  color: #606778;
+  font-weight: 500;
+}
+
+.detail-value {
+  color: #202224;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.detail-value.confidence {
+  color: #4880FF;
+}
+
+.detail-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 6px;
+  display: inline-block;
+}
+
+.detail-value.status-completed {
+  color: #00B69B;
+}
+
+.detail-value.status-pending {
+  color: #FCAA0B;
 }
 
 .annotator-defect-list-container {
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .annotator-defect-list-container h2 {
-  color: #202224;
+  color: #343C6A;
   font-size: 16px;
   font-weight: 700;
   font-family: 'Nunito Sans', sans-serif;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e6e8eb;
 }
 
 .annotator-defect-list {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 .annotator-defect-item {
   display: flex;
   align-items: center;
   margin-bottom: 10px;
-  padding: 5px;
+  padding: 8px;
   cursor: pointer;
+  border-radius: 4px;
 }
 
 .annotator-defect-item.selected {
   background: rgba(72, 128, 255, 0.1);
+}
+
+.annotator-defect-item:hover {
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .annotator-defect-color {
