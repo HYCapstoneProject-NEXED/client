@@ -1,149 +1,117 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * 어노테이션 편집 페이지
+ * 이미지 로딩, 바운딩 박스 편집, 히스토리 관리 등 어노테이션의 핵심 기능을 포함
+ */
+import React, { useState } from 'react';
 import Header from '../../components/Annotator/Header';
 import Sidebar from '../../components/Annotator/Sidebar';
 import ImageCanvas from '../../components/Annotator/ImageCanvas';
 import AnnotationTools from '../../components/Annotator/AnnotationTools';
+import { TOOL_TYPES } from '../../constants/annotationConstants';
+import useAnnotationHistory from '../../hooks/useAnnotationHistory';
+import useAnnotationData from '../../hooks/useAnnotationData';
+import useAnnotationSelection from '../../hooks/useAnnotationSelection';
 import './AnnotationEditPage.css';
 
-// 샘플 데이터 - 실제 구현에서는 API 호출로 가져올 것
-const sampleDefects = [
-  { 
-    id: '1', 
-    type: 'Defect_A', 
-    confidence: 0.96,
-    coordinates: { x: 523.86, y: 328.36, width: 193.79, height: 212.49 }
-  },
-  { 
-    id: '2', 
-    type: 'Defect_A', 
-    confidence: 0.88,
-    coordinates: { x: 867.10, y: 472.65, width: 160.86, height: 207.25 }
-  },
-  { 
-    id: '3', 
-    type: 'Defect_B', 
-    confidence: 0.96,
-    coordinates: { x: 606.18, y: 626.12, width: 165.92, height: 106.25 }
-  },
-  { 
-    id: '4', 
-    type: 'Defect_B', 
-    confidence: 0.97,
-    coordinates: { x: 806.30, y: 275.90, width: 73.46, height: 127.23 }
-  }
-];
-
+/**
+ * 어노테이션 편집 페이지 컴포넌트
+ * 어노테이션 생성, 편집, 저장 기능 제공
+ */
 const AnnotationEditPage = () => {
-  // 결함 데이터 상태 관리
-  const [defects, setDefects] = useState(sampleDefects);
-  // 선택된 결함 ID
-  const [selectedDefect, setSelectedDefect] = useState(null);
-  const [dataInfo, setDataInfo] = useState({
-    dataId: 'IMG_03',
-    confidenceScore: 0,
-    state: 'Pending Task'
-  });
+  // 이미지 ID (URL 쿼리 파라미터 또는 기본값)
+  const [imageId] = useState(101); // 실제 구현에서는 URL 파라미터 등에서 가져옴
+  
+  // 어노테이션 히스토리 관리 훅 사용
+  const {
+    addToHistory,
+    handleUndo,
+    handleRedo,
+    canUndo,
+    canRedo
+  } = useAnnotationHistory(
+    (defects) => annotationData.setDefects(defects),
+    (selectedDefect) => selection.setSelectedDefect(selectedDefect)
+  );
 
-  // 컴포넌트 마운트 시 첫 번째 결함 선택
-  useEffect(() => {
-    if (defects.length > 0 && !selectedDefect) {
-      setSelectedDefect(defects[0].id);
-    }
-  }, [defects, selectedDefect]);
+  // 어노테이션 데이터 관리 훅 사용
+  const annotationData = useAnnotationData(imageId, addToHistory);
 
-  // defects의 confidence 값 중 최소값을 계산하여 dataInfo 업데이트
-  useEffect(() => {
-    if (defects.length > 0) {
-      // 모든 defect의 confidence 값 추출
-      const confidenceValues = defects.map(defect => defect.confidence);
-      // 최소값 찾기
-      const minConfidence = Math.min(...confidenceValues);
-      
-      setDataInfo(prev => ({
-        ...prev,
-        confidenceScore: minConfidence
-      }));
-    }
-  }, [defects]);
+  // 어노테이션 선택 관리 훅 사용
+  const selection = useAnnotationSelection(annotationData.defects);
 
-  // 결함 선택 핸들러
-  const handleDefectSelect = (defectId) => {
-    setSelectedDefect(defectId);
-
-    // 사이드바에서 선택된 항목으로 스크롤
-    const sidebarItem = document.querySelector(`[data-id="${defectId}"]`);
-    if (sidebarItem) {
-      sidebarItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  };
-
-  // 좌표 업데이트 핸들러
-  const handleCoordinateUpdate = (defectId, newCoordinates) => {
-    // 문자열 ID를 동일한 형식으로 처리
-    const defectIdStr = String(defectId);
-    
-    setDefects(currentDefects => 
-      currentDefects.map(defect => 
-        String(defect.id) === defectIdStr 
-          ? {
-              ...defect,
-              coordinates: {
-                ...defect.coordinates,
-                ...newCoordinates // 전달된 모든 좌표 정보 업데이트 (x, y, width, height)
-              }
-            }
-          : defect
-      )
-    );
-  };
-
-  // 결함 저장 핸들러
-  const handleSaveAnnotations = () => {
-    console.log('Saving annotations:', defects);
-    // 실제 구현에서는 API 호출로 서버에 저장
-    alert('Annotations saved successfully!');
-  };
-
-  // 클래스 선택 핸들러
+  /**
+   * 클래스 선택 핸들러
+   * @param {string} defectType - 결함 유형
+   */
   const handleClassSelect = (defectType) => {
-    if (selectedDefect) {
-      setDefects(currentDefects => 
-        currentDefects.map(defect => 
-          String(defect.id) === selectedDefect 
-            ? { ...defect, type: defectType }
-            : defect
-        )
-      );
-    }
+    selection.handleClassSelect(defectType, annotationData.updateDefectClass);
   };
+
+  /**
+   * 바운딩 박스 추가 핸들러
+   * @param {Object} coordinates - 좌표 정보
+   */
+  const handleAddBox = (coordinates) => {
+    const newId = annotationData.addBox(coordinates, selection.currentDefectType);
+    selection.setSelectedDefect(newId);
+  };
+
+  // 로딩 중일 때 표시할 내용
+  if (annotationData.isLoading) {
+    return (
+      <div className="annotator-annotation-edit-page">
+        <Header onSave={annotationData.saveAnnotations} />
+        <div className="annotator-loading">
+          <div className="loader"></div>
+          <p>어노테이션 데이터 로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="annotator-annotation-edit-page">
-      <Header onSave={handleSaveAnnotations} />
+      <Header onSave={annotationData.saveAnnotations} />
       <div className="annotator-body-container">
         <div className="annotator-sidebar-wrapper">
-          <Sidebar 
-            dataInfo={dataInfo} 
-            defects={defects} 
-            selectedDefect={selectedDefect}
-            onDefectSelect={handleDefectSelect}
+          <Sidebar
+            dataInfo={annotationData.dataInfo}
+            defects={annotationData.defects}
+            selectedDefect={selection.selectedDefect}
+            selectedDefectDetail={selection.selectedDefectDetail}
+            onDefectSelect={selection.handleDefectSelect}
+            onToolChange={selection.handleToolChange}
+            toolTypes={TOOL_TYPES}
           />
         </div>
         <div className="annotator-main-wrapper">
           <div className="annotator-tools-container">
-            <AnnotationTools 
+            <AnnotationTools
+              activeTool={selection.activeTool}
+              onToolChange={selection.handleToolChange}
+              selectedDefectType={selection.currentDefectType}
               onClassSelect={handleClassSelect}
-              selectedDefectType={defects.find(d => String(d.id) === selectedDefect)?.type}
+              onUndo={handleUndo}
+              onRedo={handleRedo}
+              canUndo={canUndo}
+              canRedo={canRedo}
+              onDelete={selection.selectedDefect ? 
+                () => annotationData.deleteDefect(selection.selectedDefect) : null}
             />
           </div>
-          <main className="annotator-edit-area">
-            <ImageCanvas 
-              defects={defects}
-              selectedDefect={selectedDefect}
-              onDefectSelect={handleDefectSelect}
-              onCoordinateUpdate={handleCoordinateUpdate}
+          <div className="annotator-canvas-wrapper">
+            <ImageCanvas
+              defects={annotationData.defects}
+              selectedDefect={selection.selectedDefect}
+              onDefectSelect={selection.handleDefectSelect}
+              activeTool={selection.activeTool}
+              toolTypes={TOOL_TYPES}
+              onCoordinateChange={annotationData.updateCoordinates}
+              onAddBox={handleAddBox}
+              onCanvasClick={selection.handleCanvasClick}
+              onToolChange={selection.handleToolChange}
             />
-          </main>
+          </div>
         </div>
       </div>
     </div>

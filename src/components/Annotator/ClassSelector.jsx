@@ -1,46 +1,35 @@
+/**
+ * 결함 클래스 선택기 컴포넌트
+ */
 import React from 'react';
+import { DEFECT_TYPES } from '../../constants/annotationConstants';
 import './ClassSelector.css';
 
+/**
+ * 결함 유형 선택 컴포넌트
+ * @param {Object} props - 컴포넌트 속성
+ * @param {function} props.onClassSelect - 클래스 선택 핸들러
+ */
 const ClassSelector = ({ onClassSelect }) => {
   return (
-<<<<<<< HEAD
     <div className="annotator-class-selection">
       <h3>Class</h3>
       <div className="annotator-class-options">
-        <div className="annotator-class-option" onClick={() => onClassSelect('Defect_A')}>
+        <div className="annotator-class-option" onClick={() => onClassSelect(DEFECT_TYPES.DEFECT_A)}>
           <div className="annotator-class-color annotator-defect-a-color"></div>
-          <span>Defect_A</span>
+          <span>{DEFECT_TYPES.DEFECT_A}</span>
         </div>
-        <div className="annotator-class-option" onClick={() => onClassSelect('Defect_B')}>
+        <div className="annotator-class-option" onClick={() => onClassSelect(DEFECT_TYPES.DEFECT_B)}>
           <div className="annotator-class-color annotator-defect-b-color"></div>
-          <span>Defect_B</span>
+          <span>{DEFECT_TYPES.DEFECT_B}</span>
         </div>
-        <div className="annotator-class-option" onClick={() => onClassSelect('Defect_C')}>
+        <div className="annotator-class-option" onClick={() => onClassSelect(DEFECT_TYPES.DEFECT_C)}>
           <div className="annotator-class-color annotator-defect-c-color"></div>
-          <span>Defect_C</span>
+          <span>{DEFECT_TYPES.DEFECT_C}</span>
         </div>
-        <div className="annotator-class-option" onClick={() => onClassSelect('Defect_D')}>
+        <div className="annotator-class-option" onClick={() => onClassSelect(DEFECT_TYPES.DEFECT_D)}>
           <div className="annotator-class-color annotator-defect-d-color"></div>
-=======
-    <div className="class-selection">
-      <h3>Class</h3>
-      <div className="class-options">
-        <div className="class-option" onClick={() => onClassSelect('Defect_A')}>
-          <div className="class-color defect-a-color"></div>
-          <span>Defect_A</span>
-        </div>
-        <div className="class-option" onClick={() => onClassSelect('Defect_B')}>
-          <div className="class-color defect-b-color"></div>
-          <span>Defect_B</span>
-        </div>
-        <div className="class-option" onClick={() => onClassSelect('Defect_C')}>
-          <div className="class-color defect-c-color"></div>
-          <span>Defect_C</span>
-        </div>
-        <div className="class-option" onClick={() => onClassSelect('Defect_D')}>
-          <div className="class-color defect-d-color"></div>
->>>>>>> origin/main
-          <span>Defect_D</span>
+          <span>{DEFECT_TYPES.DEFECT_D}</span>
         </div>
       </div>
     </div>
