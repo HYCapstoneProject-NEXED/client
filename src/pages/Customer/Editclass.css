@@ -1,0 +1,142 @@
+.editclass-container {
+    padding: 32px;
+}
+  
+.add-button {
+    background-color: #2c3efd;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    float: right;
+    margin-bottom: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+  
+
+.defect-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 16px;
+    table-layout: fixed; /* 🔥 핵심: width 강제 적용 */
+}
+  
+.defect-table th:nth-child(1),
+.defect-table td:nth-child(1) {
+  width: 40%;
+  padding-left: 24px;
+  text-align: left;
+}
+
+.defect-table th:nth-child(2),
+.defect-table td:nth-child(2) {
+  width: 30%;
+  text-align: center;
+}
+
+.defect-table th:nth-child(3),
+.defect-table td:nth-child(3) {
+  width: 30%;
+  text-align: center;
+}
+  
+.defect-row {
+    background-color: #ffffff;
+    border-radius: 12px;
+}
+  
+.td-type {
+    font-size: 16px;
+    padding: 20px;
+}
+
+.edit-name-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.edit-name-input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 150px;
+}
+
+.save-btn {
+    padding: 8px 16px;
+    background-color: #2c3efd;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+  
+.td-color {
+    text-align: center;
+}
+  
+.color-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    position: relative;
+}
+  
+.color-box {
+    width: 100px;
+    height: 50px;
+    border-radius: 9999px;
+    margin: auto;
+    cursor: pointer;
+}
+
+.color-picker {
+    position: absolute;
+    display: flex;
+    gap: 10px;
+    background-color: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.color-option {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+}
+  
+.td-setting {
+    text-align: center;
+}
+  
+.setting-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+  
+.setting-btn {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 6px;
+    background-color: white;
+    cursor: pointer;
+}
+
+.setting-btn:hover {
+    background-color: #f5f5f5;
+}
+  
