@@ -1,8 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import CustomerLayout from '../../components/Customer/CustomerLayout';
+import DeleteConfirmPopup from '../../components/Customer/Filter/DeleteConfirmPopup';
+import './Editclass.css'
+
+// 색상 선택지
+const colorOptions = [
+  { label: 'Blue', value: '#dbe4ff' },
+  { label: 'Pink', value: '#fde2e2' },
+  { label: 'Yellow', value: '#fff3b0' },
+  { label: 'Mint', value: '#cbf1f5' },
+];
 
 // 더미 데이터
-const defectData = [
+const initialDefectData = [
   { name: 'Scratch', color: '#dbe4ff' },
   { name: 'Burr', color: '#fde2e2' },
   { name: 'Crack', color: '#fff3b0' },
@@ -11,64 +21,147 @@ const defectData = [
 ]; 
 
 const Editclass = () => {
+  const [defectData, setDefectData] = useState(initialDefectData);
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editingName, setEditingName] = useState('');
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState(null);
+  const [isNewRow, setIsNewRow] = useState(false);
+
+  const handleEdit = (index) => {
+    setEditingIndex(index);
+    setEditingName(defectData[index].name);
+    setShowColorPicker(false);
+    setIsNewRow(false);
+  };
+
+  const handleNameSave = () => {
+    if (editingName.trim() === '') return;
+    
+    const newData = [...defectData];
+    newData[editingIndex] = {
+      ...newData[editingIndex],
+      name: editingName
+    };
+    setDefectData(newData);
+    
+    if (!isNewRow) {
+      setEditingIndex(null);
+    } else {
+      setShowColorPicker(true);
+    }
+  };
+
+  const handleColorChange = (color) => {
+    const newData = [...defectData];
+    newData[editingIndex] = {
+      ...newData[editingIndex],
+      color: color
+    };
+    setDefectData(newData);
+    setShowColorPicker(false);
+    setEditingIndex(null);
+    setIsNewRow(false);
+  };
+
+  const handleDelete = (index) => {
+    setDeleteIndex(index);
+  };
+
+  const handleDeleteConfirm = () => {
+    const newData = defectData.filter((_, index) => index !== deleteIndex);
+    setDefectData(newData);
+    setDeleteIndex(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteIndex(null);
+  };
+
+  const handleAddNewDefect = () => {
+    const newDefect = { name: '', color: '#dbe4ff' };
+    const newIndex = defectData.length;
+    setDefectData([...defectData, newDefect]);
+    setEditingIndex(newIndex);
+    setEditingName('');
+    setShowColorPicker(false);
+    setIsNewRow(true);
+  };
+
   return (
     <CustomerLayout>
-      <div style={{ padding: '32px' }}>
-        <button style={{
-          backgroundColor: '#2C3EFD',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          padding: '10px 20px',
-          float: 'right',
-          marginBottom: '16px'
-        }}>
-          Add New Detect
-        </button>
-        
-        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 16px' }}>
+      <div className="editclass-container">
+        <button className="add-button" onClick={handleAddNewDefect}>Add New Defect</button>
+
+        <table className="defect-table">
           <thead>
             <tr>
-              <th style={{ padding: '12px 100px', textAlign: 'left' }}>Defect Type</th>
-              <th style={{ textAlign: 'center' }}>Box Color</th>
-              <th style={{ textAlign: 'center' }}>Setting</th>
+              <th className="th-type">Defect Type</th>
+              <th>Box Color</th>
+              <th>Setting</th>
             </tr>
           </thead>
+          
           <tbody>
             {defectData.map((item, index) => (
-              <tr key={index} style={{ backgroundColor: '#ffffff', borderRadius: '12px' }}>
-                <td style={{ padding: '20px 100px', fontSize: '16px' }}>{item.name}</td>
-                <td style={{ textAlign: 'center' }}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: '100%', // td 높이에 맞게
-                    }}>
-                    <div style={{
-                      width: '100px',
-                      height: '50px',
-                      borderRadius: '9999px',
-                      backgroundColor: item.color,
-                    }}></div>
+              <tr key={index} className="defect-row">
+                <td className="td-type">
+                  {editingIndex === index ? (
+                    <div className="edit-name-container">
+                      <input
+                        type="text"
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        className="edit-name-input"
+                        placeholder="Enter defect type"
+                        autoFocus
+                      />
+                      <button onClick={handleNameSave} className="save-btn">저장</button>
+                    </div>
+                  ) : (
+                    item.name || '(이름 없음)'
+                  )}
+                </td>
+                <td className="td-color">
+                  <div className="color-wrapper">
+                    {editingIndex === index && showColorPicker ? (
+                      <div className="color-picker">
+                        {colorOptions.map((option) => (
+                          <div
+                            key={option.value}
+                            className="color-option"
+                            style={{ backgroundColor: option.value }}
+                            onClick={() => handleColorChange(option.value)}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div
+                        className="color-box"
+                        style={{ backgroundColor: item.color }}
+                        onClick={() => {
+                          if (editingIndex === index) {
+                            setShowColorPicker(true);
+                          }
+                        }}
+                      />
+                    )}
                   </div>
                 </td>
-                <td style={{ textAlign: 'center' }}>
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-                    <button style={{
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        padding: '6px',
-                        backgroundColor: 'white',
-                        cursor: 'pointer'
-                      }}>✏️</button>
-                      <button style={{
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        padding: '6px',
-                        backgroundColor: 'white',
-                        cursor: 'pointer'
-                      }}>🗑️</button>
+                <td className="td-setting">
+                  <div className="setting-buttons">
+                    <button 
+                      className="setting-btn"
+                      onClick={() => handleEdit(index)}
+                    >
+                      ✏️
+                    </button>
+                    <button 
+                      className="setting-btn"
+                      onClick={() => handleDelete(index)}
+                    >
+                      🗑️
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -76,6 +169,12 @@ const Editclass = () => {
           </tbody>
         </table>
 
+        <DeleteConfirmPopup
+          isOpen={deleteIndex !== null}
+          onClose={handleDeleteCancel}
+          onConfirm={handleDeleteConfirm}
+          itemName={deleteIndex !== null ? defectData[deleteIndex].name : ''}
+        />
       </div>
     </CustomerLayout>
   );
