@@ -10,7 +10,20 @@ import { DEFECT_COLOR_CLASSES } from '../constants/annotationConstants';
  * @returns {string} CSS 클래스명
  */
 export const getDefectColorClass = (defectType) => {
-  return DEFECT_COLOR_CLASSES[defectType] || DEFECT_COLOR_CLASSES['Defect_A'];
+  // 새 결함 유형 이름에 따른 매핑
+  switch(defectType) {
+    case 'Scratch':
+      return 'annotator-defect-a';
+    case 'Dent':
+      return 'annotator-defect-b';
+    case 'Discoloration':
+      return 'annotator-defect-c';
+    case 'Contamination':
+      return 'annotator-defect-d';
+    default:
+      // 기존 상수 사용 (역호환성 유지)
+      return DEFECT_COLOR_CLASSES[defectType] || 'annotator-defect-a';
+  }
 };
 
 /**

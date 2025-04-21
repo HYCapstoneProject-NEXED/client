@@ -638,6 +638,15 @@ const ImageCanvas = ({
    */
   const getBoxClassName = (defectType) => {
     switch(defectType) {
+      case 'Scratch':
+        return 'annotator-defect-a-box';
+      case 'Dent':
+        return 'annotator-defect-b-box';
+      case 'Discoloration':
+        return 'annotator-defect-c-box';
+      case 'Contamination':
+        return 'annotator-defect-d-box';
+      // 이전 유형 이름도 지원 (역호환성)
       case 'Defect_A':
         return 'annotator-defect-a-box';
       case 'Defect_B':
@@ -839,7 +848,7 @@ const ImageCanvas = ({
         {/* 현재 그리는 중인 바운딩 박스 */}
         {isDrawingBox && activeTool === toolTypes.RECTANGLE && (
           <div 
-            className={`annotator-bounding-box ${getBoxClassName(currentDefectType || 'Defect_A')}`}
+            className={`annotator-bounding-box ${getBoxClassName(currentDefectType || 'Scratch')}`}
             style={{
               left: `${Math.min(drawStartPos.x, currentDrawPos.x)}px`,
               top: `${Math.min(drawStartPos.y, currentDrawPos.y)}px`,
