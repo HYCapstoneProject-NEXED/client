@@ -37,7 +37,7 @@ const DUMMY_ANNOTATIONS = [
     bounding_box: JSON.stringify({ x: 523.86, y: 328.36, width: 193.79, height: 212.49 }),
     user_id: 1001,
     status: 'completed',
-    class_id: 'Defect_A'
+    class_id: 'Scratch'
   },
   { 
     annotation_id: 2,
@@ -47,7 +47,7 @@ const DUMMY_ANNOTATIONS = [
     bounding_box: JSON.stringify({ x: 867.10, y: 472.65, width: 160.86, height: 207.25 }),
     user_id: 1001,
     status: 'completed',
-    class_id: 'Defect_A'
+    class_id: 'Scratch'
   },
   { 
     annotation_id: 3,
@@ -57,7 +57,7 @@ const DUMMY_ANNOTATIONS = [
     bounding_box: JSON.stringify({ x: 606.18, y: 626.12, width: 165.92, height: 106.25 }),
     user_id: 1001,
     status: 'completed',
-    class_id: 'Defect_B'
+    class_id: 'Dent'
   },
   { 
     annotation_id: 4,
@@ -67,7 +67,7 @@ const DUMMY_ANNOTATIONS = [
     bounding_box: JSON.stringify({ x: 806.30, y: 275.90, width: 73.46, height: 127.23 }),
     user_id: 1001,
     status: 'completed',
-    class_id: 'Defect_B'
+    class_id: 'Dent'
   },
   {
     annotation_id: 5,
@@ -77,7 +77,7 @@ const DUMMY_ANNOTATIONS = [
     bounding_box: JSON.stringify({ x: 350.20, y: 420.15, width: 120.30, height: 180.50 }),
     user_id: 1002,
     status: 'completed',
-    class_id: 'Defect_C'
+    class_id: 'Discoloration'
   },
   {
     annotation_id: 6,
@@ -87,7 +87,7 @@ const DUMMY_ANNOTATIONS = [
     bounding_box: JSON.stringify({ x: 720.40, y: 180.30, width: 90.25, height: 150.75 }),
     user_id: 1002,
     status: 'pending',
-    class_id: 'Defect_D'
+    class_id: 'Contamination'
   }
 ];
 
