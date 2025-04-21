@@ -1,0 +1,53 @@
+.filter-popup {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 8px;
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+    min-width: 220px;
+  }
+  
+  .popup-input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-bottom: 12px;
+  }
+  
+  .button-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  
+  .popup-btn {
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    background: white;
+    cursor: pointer;
+  }
+  
+  .popup-btn.active {
+    background: #3B82F6;
+    color: white;
+    border-color: #3B82F6;
+  }
+  
+  .popup-apply-btn {
+    width: 100%;
+    background: #3B82F6;
+    border: none;
+    color: white;
+    padding: 8px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
