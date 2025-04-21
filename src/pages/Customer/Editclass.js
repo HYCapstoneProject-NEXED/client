@@ -26,11 +26,13 @@ const Editclass = () => {
   const [editingName, setEditingName] = useState('');
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
+  const [isNewRow, setIsNewRow] = useState(false);
 
   const handleEdit = (index) => {
     setEditingIndex(index);
     setEditingName(defectData[index].name);
     setShowColorPicker(false);
+    setIsNewRow(false);
   };
 
   const handleNameSave = () => {
@@ -42,7 +44,12 @@ const Editclass = () => {
       name: editingName
     };
     setDefectData(newData);
-    setEditingIndex(null);
+    
+    if (!isNewRow) {
+      setEditingIndex(null);
+    } else {
+      setShowColorPicker(true);
+    }
   };
 
   const handleColorChange = (color) => {
@@ -54,6 +61,7 @@ const Editclass = () => {
     setDefectData(newData);
     setShowColorPicker(false);
     setEditingIndex(null);
+    setIsNewRow(false);
   };
 
   const handleDelete = (index) => {
@@ -70,10 +78,20 @@ const Editclass = () => {
     setDeleteIndex(null);
   };
 
+  const handleAddNewDefect = () => {
+    const newDefect = { name: '', color: '#dbe4ff' };
+    const newIndex = defectData.length;
+    setDefectData([...defectData, newDefect]);
+    setEditingIndex(newIndex);
+    setEditingName('');
+    setShowColorPicker(false);
+    setIsNewRow(true);
+  };
+
   return (
     <CustomerLayout>
       <div className="editclass-container">
-        <button className="add-button">Add New Detect</button>
+        <button className="add-button" onClick={handleAddNewDefect}>Add New Defect</button>
 
         <table className="defect-table">
           <thead>
@@ -83,6 +101,7 @@ const Editclass = () => {
               <th>Setting</th>
             </tr>
           </thead>
+          
           <tbody>
             {defectData.map((item, index) => (
               <tr key={index} className="defect-row">
@@ -94,11 +113,13 @@ const Editclass = () => {
                         value={editingName}
                         onChange={(e) => setEditingName(e.target.value)}
                         className="edit-name-input"
+                        placeholder="Enter defect type"
+                        autoFocus
                       />
                       <button onClick={handleNameSave} className="save-btn">저장</button>
                     </div>
                   ) : (
-                    item.name
+                    item.name || '(이름 없음)'
                   )}
                 </td>
                 <td className="td-color">
