@@ -17,20 +17,12 @@ export const ACTION_TYPES = {
   DELETE_BOX: 'delete_box',
 };
 
-// Default defect type constants (used as fallback and for legacy purposes)
+// Standard defect type constants (for reference, actual values come from DB)
 export const DEFECT_TYPES = {
-  DEFECT_A: 'Scratch',
-  DEFECT_B: 'Dent',
-  DEFECT_C: 'Discoloration',
-  DEFECT_D: 'Contamination',
-};
-
-// Default color class mapping for each defect type (used as fallback)
-export const DEFECT_COLOR_CLASSES = {
-  [DEFECT_TYPES.DEFECT_A]: 'annotator-defect-a',
-  [DEFECT_TYPES.DEFECT_B]: 'annotator-defect-b',
-  [DEFECT_TYPES.DEFECT_C]: 'annotator-defect-c',
-  [DEFECT_TYPES.DEFECT_D]: 'annotator-defect-d',
+  SCRATCH: 'Scratch',
+  DENT: 'Dent',
+  DISCOLORATION: 'Discoloration',
+  CONTAMINATION: 'Contamination',
 };
 
 // DB에서 로드된 defect classes 저장용 변수

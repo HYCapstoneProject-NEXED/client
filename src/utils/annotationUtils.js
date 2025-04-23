@@ -2,7 +2,7 @@
  * 어노테이션 관련 유틸리티 함수
  */
 
-import { DEFECT_COLOR_CLASSES } from '../constants/annotationConstants';
+import { DEFECT_TYPES } from '../constants/annotationConstants';
 
 /**
  * 결함 유형에 해당하는 CSS 색상 클래스 반환
@@ -10,19 +10,18 @@ import { DEFECT_COLOR_CLASSES } from '../constants/annotationConstants';
  * @returns {string} CSS 클래스명
  */
 export const getDefectColorClass = (defectType) => {
-  // 새 결함 유형 이름에 따른 매핑
+  // 결함 유형에 따른 클래스 매핑 (DB와 일치하는 값으로 수정)
   switch(defectType) {
-    case 'Scratch':
-      return 'annotator-defect-a';
-    case 'Dent':
-      return 'annotator-defect-b';
-    case 'Discoloration':
-      return 'annotator-defect-c';
-    case 'Contamination':
-      return 'annotator-defect-d';
+    case DEFECT_TYPES.SCRATCH:
+      return 'annotator-defect-1';
+    case DEFECT_TYPES.DENT:
+      return 'annotator-defect-2';
+    case DEFECT_TYPES.DISCOLORATION:
+      return 'annotator-defect-3';
+    case DEFECT_TYPES.CONTAMINATION:
+      return 'annotator-defect-4';
     default:
-      // 기존 상수 사용 (역호환성 유지)
-      return DEFECT_COLOR_CLASSES[defectType] || 'annotator-defect-a';
+      return 'annotator-defect-1'; // 기본값은 Scratch
   }
 };
 

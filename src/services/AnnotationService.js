@@ -277,13 +277,13 @@ class AnnotationService {
     
     return {
       id: String(annotationData.annotation_id),
-      type: defectClass.class_name || 'Unknown',
-      typeId: annotationData.class_id,
-      confidence: annotationData.conf_score || 0.9,
+      type: defectClass.class_name || 'Scratch', // 기본값으로 Scratch 사용
+      typeId: annotationData.class_id || 1,
+      confidence: annotationData.conf_score, // null 값 유지
       coordinates: JSON.parse(annotationData.bounding_box),
       color: defectClass.class_color,
       date: annotationData.date,
-      status: annotationData.status,
+      status: annotationData.status || 'pending',
       userId: annotationData.user_id
     };
   }
@@ -335,11 +335,11 @@ class AnnotationService {
       annotation_id: null, // 새로 생성될 어노테이션이므로 ID 없음
       image_id: imageId,
       date: new Date().toISOString(),
-      conf_score: 0.9, // 기본값
+      conf_score: null, // 사용자가 생성한 바운딩 박스의 confidence 값은 null
       bounding_box: JSON.stringify(initialCoordinates),
       user_id: 1001, // 현재 사용자 ID (실제로는 인증 시스템에서 가져와야 함)
       status: 'pending',
-      class_id: classId // 기본 결함 타입
+      class_id: classId // 결함 타입 ID (1: Scratch가 기본값)
     };
   }
 }

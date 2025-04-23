@@ -82,27 +82,18 @@ const Sidebar = ({
       return `annotator-defect-${defectClass.class_id}`;
     }
 
-    // 이전 코드 로직 유지 (fallback)
+    // 기본값으로 fallback (DB에서 찾지 못한 경우)
     switch(defectType) {
       case 'Scratch':
-        return 'annotator-defect-a';
+        return 'annotator-defect-1';
       case 'Dent':
-        return 'annotator-defect-b';
+        return 'annotator-defect-2';
       case 'Discoloration':
-        return 'annotator-defect-c';
+        return 'annotator-defect-3';
       case 'Contamination':
-        return 'annotator-defect-d';
-      // 이전 유형 이름도 지원 (역호환성)
-      case 'Defect_A':
-        return 'annotator-defect-a';
-      case 'Defect_B':
-        return 'annotator-defect-b';
-      case 'Defect_C':
-        return 'annotator-defect-c';
-      case 'Defect_D':
-        return 'annotator-defect-d';
+        return 'annotator-defect-4';
       default:
-        return 'annotator-defect-a'; // 기본값
+        return 'annotator-defect-1'; // 기본값은 Scratch
     }
   };
 
