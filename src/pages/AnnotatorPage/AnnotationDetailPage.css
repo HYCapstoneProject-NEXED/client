@@ -1,0 +1,219 @@
+/* 전체 페이지 스타일 */
+.annotator-annotation-edit-page {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  overflow: hidden;
+  /* 브라우저 확대/축소 방지 (Chrome, Safari) */
+  touch-action: pan-x pan-y;
+}
+
+/* 헤더 스타일 - DetailPage 고유 스타일 유지 */
+.annotator-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 70px;
+  padding: 0 44px;
+  background-color: white;
+  border-bottom: 1px solid #E6EFF5;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  z-index: 10;
+  position: relative;
+}
+
+.annotator-detail-header h1 {
+  font-family: 'Inter', sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+  color: #343C6A;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* 페이지네이션 스타일 */
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pagination span {
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #202224;
+}
+
+.pagination-arrows {
+  display: flex;
+  gap: 8px;
+}
+
+.pagination-arrows button {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+  color: #000;
+}
+
+.pagination-arrows button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* 액션 버튼 스타일 */
+.start-annotating-btn {
+  width: 162px;
+  height: 45px;
+  background-color: #4880FF;
+  opacity: 0.9;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.start-annotating-btn:hover {
+  background-color: #3a70e8;
+}
+
+.delete-btn {
+  width: 162px;
+  height: 45px;
+  background-color: #E2EAF8;
+  opacity: 0.7;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #EF3826;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.delete-btn:hover {
+  background-color: #d9e1f1;
+}
+
+/* 본문 컨테이너 */
+.annotator-body-container {
+  display: flex;
+  height: calc(100vh - 70px);
+  width: 100vw;
+  background: #F5F7FA;
+  overflow: hidden;
+  /* 확대/축소 방지 */
+  touch-action: pan-x pan-y;
+  transition: all 0.3s ease;
+}
+
+/* 사이드바 래퍼 */
+.annotator-sidebar-wrapper {
+  width: 286px;
+  height: 100%;
+  flex-shrink: 0;
+  background: white;
+  border-right: 0.3px solid #B9B9B9;
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+/* 사이드바가 접혔을 때 사이드바 래퍼 숨기기 */
+.annotator-body-container.sidebar-collapsed .annotator-sidebar-wrapper {
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  border-right: none;
+  position: absolute;
+  left: -300px;
+}
+
+/* 사이드바가 접혔을 때 메인 영역 확장 */
+.annotator-body-container.sidebar-collapsed .annotator-main-wrapper {
+  width: 100%;
+}
+
+/* 메인 영역 래퍼 */
+.annotator-main-wrapper {
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #F5F7FA;
+  transition: all 0.3s ease;
+  width: calc(100% - 286px);
+  position: relative;
+  z-index: 1;
+}
+
+/* 캔버스 래퍼 스타일 */
+.annotator-canvas-wrapper {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 로딩 표시기 스타일 */
+.annotator-loading {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 70px);
+  width: 100%;
+  background: #f8f9fa;
+}
+
+.annotator-loading p {
+  color: #343C6A;
+  font-size: 16px;
+  margin-top: 20px;
+  font-family: 'Nunito Sans', sans-serif;
+}
+
+/* 로딩 애니메이션 */
+.loader {
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #4880FF;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+} 

@@ -15,7 +15,7 @@ const useAnnotationSelection = (defects) => {
   // 현재 선택된 도구 상태
   const [activeTool, setActiveTool] = useState(TOOL_TYPES.HAND);
   // 현재 선택된 결함 유형 (새 박스 생성에 사용)
-  const [currentDefectType, setCurrentDefectType] = useState('Defect_A');
+  const [currentDefectType, setCurrentDefectType] = useState('Scratch');
   // 선택된 결함의 상세 정보
   const [selectedDefectDetail, setSelectedDefectDetail] = useState(null);
 
@@ -76,18 +76,26 @@ const useAnnotationSelection = (defects) => {
    * @param {function} updateDefectClass - 결함 클래스 업데이트 함수
    */
   const handleClassSelect = useCallback((defectType, updateDefectClass) => {
+    console.log('handleClassSelect called in useAnnotationSelection with defectType:', defectType);
+    
     // 현재 선택된 결함 유형 업데이트 (새 박스 생성 시 사용)
     setCurrentDefectType(defectType);
+    console.log('Updated currentDefectType in useAnnotationSelection:', defectType);
     
     // 손 도구 모드에서는 선택된 박스의 클래스 변경
     if (activeTool === TOOL_TYPES.HAND && selectedDefect) {
+      console.log('HAND tool active with selected defect, updating class:', { selectedDefect, defectType });
       updateDefectClass(selectedDefect, defectType);
     } 
     // 선택된 바운딩 박스가 없는 경우, 사각형 도구로 자동 전환
     else if (!selectedDefect) {
+      console.log('No selected defect, switching to RECTANGLE tool');
       setActiveTool(TOOL_TYPES.RECTANGLE);
     }
     // 사각형 도구 모드에서는 다음에 생성될 박스의 클래스만 변경 (별도 처리 필요 없음)
+    else {
+      console.log('RECTANGLE tool active or other scenario:', { activeTool, selectedDefect });
+    }
   }, [activeTool, selectedDefect]);
 
   // 선택된 결함이 변경될 때 상세 정보 업데이트

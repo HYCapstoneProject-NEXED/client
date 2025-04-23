@@ -4,11 +4,83 @@
   background: white;
   border-right: 0.3px solid #B9B9B9;
   padding: 20px;
-  padding-top: 30px;
+  padding-top: 20px;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   box-sizing: border-box;
+  position: relative;
+  transition: all 0.3s ease;
+  transform: translateX(0);
+}
+
+/* 접힌 상태의 사이드바 스타일 */
+.annotator-sidebar.collapsed {
+  width: 0;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  border-right: none;
+  transform: translateX(-100%);
+  z-index: 1;
+}
+
+/* 사이드바 콘텐츠 컨테이너 */
+.sidebar-content {
+  width: 100%;
+  flex: 1;
+  transition: opacity 0.2s ease;
+}
+
+/* 접힌 상태에서 콘텐츠 숨기기 */
+.annotator-sidebar.collapsed .sidebar-content {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 토글 버튼 스타일 */
+.sidebar-toggle-btn {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 40px;
+  background-color: #4a90e2;
+  border-radius: 0 4px 4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 2000;
+  transition: all 0.3s ease;
+  border: none;
+  outline: none;
+}
+
+.sidebar-toggle-btn:hover {
+  background-color: #3a80d2;
+  width: 28px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+}
+
+.sidebar-toggle-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* 접힌 상태에서 토글 버튼 위치 */
+.annotator-sidebar.collapsed ~ .sidebar-toggle-btn {
+  left: 0;
+  border-radius: 0 4px 4px 0;
+}
+
+/* 펼쳐진 상태에서 토글 버튼 위치 */
+.annotator-sidebar:not(.collapsed) ~ .sidebar-toggle-btn {
+  left: 286px; /* 사이드바 너비와 동일하게 설정 */
+  border-radius: 0 4px 4px 0;
 }
 
 /* 섹션 타이틀 스타일 */
@@ -26,7 +98,7 @@
 /* 데이터 정보 섹션 */
 .annotator-data-info {
   margin-bottom: 30px;
-  margin-top: 15px;
+  margin-top: 0;
   background: #f8f9fa;
   border-radius: 8px;
   padding: 16px;
@@ -125,8 +197,8 @@
 .detail-color-dot {
   width: 12px;
   height: 12px;
-  border-radius: 50%;
-  margin-right: 6px;
+  border-radius: 2px;
+  margin-right: 5px;
   display: inline-block;
 }
 
@@ -161,14 +233,18 @@
 .annotator-defect-item {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
-  padding: 8px;
+  margin-bottom: 8px;
+  padding: 10px 12px;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 6px;
+  position: relative;
+  flex-wrap: wrap;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .annotator-defect-item.selected {
   background: rgba(72, 128, 255, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .annotator-defect-item:hover {
@@ -180,8 +256,10 @@
   height: 15px;
   margin-right: 10px;
   flex-shrink: 0;
+  border-radius: 3px;
 }
 
+/* Legacy color classes (for backward compatibility) */
 .annotator-defect-a {
   background: #00B69B;
 }
@@ -198,8 +276,158 @@
   background: #FCAA0B;
 }
 
-.annotator-confidence {
+/* New ID-based color classes (mapped to DB class_id) */
+.annotator-defect-1 {
+  background: #00B69B; /* Scratch */
+}
+
+.annotator-defect-2 {
+  background: #5A8CFF; /* Dent */
+}
+
+.annotator-defect-3 {
+  background: #EF3826; /* Discoloration */
+}
+
+.annotator-defect-4 {
+  background: #FCAA0B; /* Contamination */
+}
+
+/* 토글 표시기 스타일 */
+.annotator-defect-item .toggle-indicator {
   margin-left: auto;
+  font-size: 12px;
+  color: #606778;
+  transition: transform 0.3s ease, color 0.2s ease;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.annotator-defect-item:hover .toggle-indicator {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.annotator-defect-item.selected .toggle-indicator {
+  color: #4a90e2;
+  transform: rotate(180deg);
+}
+
+/* 인라인 상세 정보 컨테이너 */
+.defect-detail-inline {
+  width: 100%;
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  margin-top: 0;
+  opacity: 0;
+  background: rgba(248, 249, 250, 0.7);
+  border-radius: 6px;
+}
+
+.annotator-defect-item.selected .defect-detail-inline {
+  max-height: 500px; /* 충분히 큰 값으로 설정 */
+  margin-top: 10px;
+  margin-bottom: 5px;
+  padding: 12px;
+  border-top: 1px solid #e6e8eb;
+  opacity: 1;
+}
+
+/* 상세 정보 아이템 (인라인용) */
+.detail-item-inline {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 13px;
+  align-items: center;
+}
+
+.detail-item-inline:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label-inline {
+  color: #606778;
+  font-weight: 500;
+  flex: 1;
+}
+
+.detail-value-inline {
+  color: #202224;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  flex: 2;
+}
+
+.detail-value-inline.confidence {
+  color: #4880FF;
+}
+
+/* Confidence 위치 조정 */
+.annotator-confidence {
+  margin-left: 10px;
+  margin-right: 10px;
   color: #4880FF;
   font-weight: 700;
+}
+
+/* 별도의 defect 상세 섹션을 숨김 처리 */
+.annotator-defect-detail {
+  display: none;
+}
+
+/* 읽기 전용 모드의 사이드바 스타일 */
+.annotator-sidebar.read-only {
+  background: white;
+  border-right: 0.30px solid #B9B9B9;
+  border-radius: 14px 0 0 14px;
+}
+
+/* 읽기 전용 모드의 디펙트 아이템 스타일 */
+.annotator-defect-item.read-only {
+  cursor: default;
+}
+
+/* 마지막 수정 날짜 표시 영역 */
+.annotation-last-modified {
+  position: absolute;
+  bottom: 24px;
+  left: 35px;
+  color: #B6B6B6;
+  font-size: 14px;
+  font-family: 'Nunito Sans', sans-serif;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+/* 읽기 전용 모드의 토글 버튼 */
+.sidebar-toggle-btn.read-only {
+  background-color: #B9B9B9;
+}
+
+.sidebar-toggle-btn.read-only:hover {
+  background-color: #A0A0A0;
+}
+
+/* 결함 ID와 이름 관련 스타일 추가 */
+.annotator-defect-id {
+  font-weight: 600;
+  color: #343C6A;
+  padding-right: 8px;
+  margin-right: 8px;
+  border-right: 1px solid #e0e0e0;
+  display: inline-block;
+  min-width: 30px;
+  text-align: left;
+}
+
+.annotator-defect-name {
+  font-weight: 500;
+  color: #505050;
+  flex-grow: 1;
 } 

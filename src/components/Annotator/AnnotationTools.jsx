@@ -20,6 +20,7 @@ import './AnnotationTools.css';
  * @param {boolean} props.canUndo - 실행 취소 가능 여부
  * @param {boolean} props.canRedo - 다시 실행 가능 여부
  * @param {function} props.onDelete - 삭제 핸들러 (선택한 결함 삭제)
+ * @param {Array} props.defectClasses - DB에서 가져온 결함 클래스 목록
  */
 const AnnotationTools = ({ 
   onClassSelect, 
@@ -30,7 +31,8 @@ const AnnotationTools = ({
   onRedo,
   canUndo = false,
   canRedo = false,
-  onDelete
+  onDelete,
+  defectClasses = []
 }) => {
   // 클래스 선택 드롭다운 표시 여부
   const [showClassOptions, setShowClassOptions] = useState(false);
@@ -47,6 +49,7 @@ const AnnotationTools = ({
    * @param {string} className - 선택한 결함 클래스명
    */
   const handleClassSelect = (className) => {
+    console.log('Class selected in AnnotationTools:', className);
     onClassSelect(className);
     setShowClassOptions(false);
   };
@@ -66,17 +69,26 @@ const AnnotationTools = ({
    * @returns {string} 색상 코드 (HEX)
    */
   const getColorStyle = (defectType) => {
+    // DB에서 가져온 클래스 목록에서 현재 선택된 유형 찾기
+    const selectedClass = defectClasses.find(dc => dc.class_name === defectType);
+    
+    // DB에서 찾은 색상이 있으면 사용
+    if (selectedClass && selectedClass.class_color) {
+      return selectedClass.class_color;
+    }
+    
+    // 기본 색상 (fallback)
     switch(defectType) {
-      case DEFECT_TYPES.DEFECT_A:
+      case 'Scratch':
         return '#00B69B';
-      case DEFECT_TYPES.DEFECT_B:
+      case 'Dent':
         return '#5A8CFF';
-      case DEFECT_TYPES.DEFECT_C:
+      case 'Discoloration':
         return '#EF3826';
-      case DEFECT_TYPES.DEFECT_D:
+      case 'Contamination':
         return '#FCAA0B';
       default:
-        return '#00B69B'; // 기본 색상도 Defect_A 색상으로 통일
+        return '#00B69B';
     }
   };
 
@@ -129,6 +141,21 @@ const AnnotationTools = ({
     }
   }, []);
 
+  // DB에서 가져온 클래스 목록이 비어있을 경우 기본 클래스 목록 사용
+  const displayDefectClasses = defectClasses.length > 0 
+    ? defectClasses 
+    : [
+        { class_id: 1, class_name: 'Scratch', class_color: '#00B69B' },
+        { class_id: 2, class_name: 'Dent', class_color: '#5A8CFF' },
+        { class_id: 3, class_name: 'Discoloration', class_color: '#EF3826' },
+        { class_id: 4, class_name: 'Contamination', class_color: '#FCAA0B' }
+      ];
+
+  // 현재 선택된 클래스 정보 디버그 출력
+  useEffect(() => {
+    console.log('Current selected defect type in AnnotationTools:', selectedDefectType);
+  }, [selectedDefectType]);
+
   return (
     <div className="annotator-annotation-tools">
       {/* 도구 모음 */}
@@ -147,7 +174,7 @@ const AnnotationTools = ({
         <button 
           className={`annotator-tool-button annotator-square-button ${activeTool === TOOL_TYPES.RECTANGLE ? 'active' : ''}`}
           onClick={() => handleToolChange(TOOL_TYPES.RECTANGLE)}
-          title="사각형 그리기"
+          title="Draw Rectangle"
         >
           <FiSquare className="annotator-square-icon" />
         </button>
@@ -157,7 +184,7 @@ const AnnotationTools = ({
         <button 
           className={`annotator-tool-button annotator-hand-button ${activeTool === TOOL_TYPES.HAND ? 'active' : ''}`}
           onClick={() => handleToolChange(TOOL_TYPES.HAND)}
-          title="이동 및 선택"
+          title="Move and Select"
         >
           <FaRegHandPaper className="annotator-hand-icon" />
         </button>
@@ -166,7 +193,7 @@ const AnnotationTools = ({
         {/* 실행 취소 버튼 */}
         <button 
           className={`annotator-tool-button ${!canUndo ? 'disabled' : ''}`} 
-          title="실행 취소"
+          title="Undo"
           onClick={onUndo}
           disabled={!canUndo}
         >
@@ -177,51 +204,45 @@ const AnnotationTools = ({
         {/* 다시 실행 버튼 */}
         <button 
           className={`annotator-tool-button ${!canRedo ? 'disabled' : ''}`} 
-          title="다시 실행"
+          title="Redo"
           onClick={onRedo}
           disabled={!canRedo}
         >
           <FaRedo />
         </button>
         
-        {/* 삭제 버튼 (선택한 결함이 있을 때만 표시) */}
-        {onDelete && (
-          <>
-            <div className="annotator-divider"></div>
-            <button 
-              className="annotator-tool-button annotator-delete-button" 
-              onClick={onDelete}
-              title="선택한 결함 삭제"
-            >
-              삭제
-            </button>
-          </>
-        )}
+        {/* 삭제 버튼 (항상 표시) */}
+        <div className="annotator-divider"></div>
+        <button 
+          className={`annotator-tool-button annotator-delete-button ${!onDelete ? 'disabled' : ''}`} 
+          onClick={onDelete}
+          disabled={!onDelete}
+          title="Delete Selected Defect"
+        >
+          Delete
+        </button>
       </div>
       
       {/* 클래스 선택 드롭다운 패널 */}
       {showClassOptions && (
         <div className="annotator-class-options-panel" ref={classOptionsRef}>
           <div className="annotator-panel-header">
-            <span>Class</span>
+            <span>Defect Class</span>
           </div>
           <div className="annotator-class-list">
-            <div className="annotator-class-option" onClick={() => handleClassSelect(DEFECT_TYPES.DEFECT_A)}>
-              <div className="annotator-class-color annotator-defect-a-color"></div>
-              <span>{DEFECT_TYPES.DEFECT_A}</span>
-            </div>
-            <div className="annotator-class-option" onClick={() => handleClassSelect(DEFECT_TYPES.DEFECT_B)}>
-              <div className="annotator-class-color annotator-defect-b-color"></div>
-              <span>{DEFECT_TYPES.DEFECT_B}</span>
-            </div>
-            <div className="annotator-class-option" onClick={() => handleClassSelect(DEFECT_TYPES.DEFECT_C)}>
-              <div className="annotator-class-color annotator-defect-c-color"></div>
-              <span>{DEFECT_TYPES.DEFECT_C}</span>
-            </div>
-            <div className="annotator-class-option" onClick={() => handleClassSelect(DEFECT_TYPES.DEFECT_D)}>
-              <div className="annotator-class-color annotator-defect-d-color"></div>
-              <span>{DEFECT_TYPES.DEFECT_D}</span>
-            </div>
+            {displayDefectClasses.map(defectClass => (
+              <div 
+                key={defectClass.class_id} 
+                className={`annotator-class-option ${selectedDefectType === defectClass.class_name ? 'selected' : ''}`}
+                onClick={() => handleClassSelect(defectClass.class_name)}
+              >
+                <div 
+                  className="annotator-class-color" 
+                  style={{ backgroundColor: defectClass.class_color }}
+                ></div>
+                <span>{defectClass.class_name}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}

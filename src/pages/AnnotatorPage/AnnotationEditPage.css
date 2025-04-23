@@ -54,6 +54,7 @@
   overflow: hidden;
   /* 확대/축소 방지 */
   touch-action: pan-x pan-y;
+  transition: all 0.3s ease;
 }
 
 /* 사이드바 래퍼 */
@@ -63,6 +64,23 @@
   flex-shrink: 0;
   background: white;
   border-right: 0.3px solid #B9B9B9;
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+/* 사이드바가 접혔을 때 사이드바 래퍼 숨기기 */
+.annotator-body-container.sidebar-collapsed .annotator-sidebar-wrapper {
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  border-right: none;
+  position: absolute;
+  left: -300px;
+}
+
+/* 사이드바가 접혔을 때 메인 영역 확장 */
+.annotator-body-container.sidebar-collapsed .annotator-main-wrapper {
+  width: 100%;
 }
 
 /* 메인 영역 래퍼 */
@@ -73,12 +91,19 @@
   display: flex;
   flex-direction: column;
   background: #F5F7FA;
+  transition: all 0.3s ease;
+  width: calc(100% - 286px);
+  position: relative;
+  z-index: 1;
 }
 
 /* 어노테이션 툴바 컨테이너 */
 .annotator-tools-container {
-  padding: 20px;
-  padding-bottom: 10px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 20px 0 0 20px;
 }
 
 /* 캔버스 래퍼 스타일 */
@@ -88,6 +113,10 @@
   height: calc(100% - 100px);
   overflow: hidden;
   position: relative;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* 로딩 표시기 스타일 */
@@ -394,4 +423,10 @@
 
 .annotator-defect-d-color {
   background: #FCAA0B;
+}
+
+/* 사이드바가 접혔을 때 캔버스 래퍼 확장 */
+.annotator-body-container.sidebar-collapsed .annotator-canvas-wrapper {
+  width: 100%;
+  height: calc(100% - 100px);
 } 

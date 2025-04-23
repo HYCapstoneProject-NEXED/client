@@ -3,7 +3,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import AnnotationService from '../services/AnnotationService';
-import { ACTION_TYPES } from '../constants/annotationConstants';
+import { ACTION_TYPES, setLoadedDefectClasses } from '../constants/annotationConstants';
 import { formatDateTime } from '../utils/annotationUtils';
 
 /**
@@ -29,6 +29,27 @@ const useAnnotationData = (imageId, addToHistory) => {
   });
   // 로딩 상태
   const [isLoading, setIsLoading] = useState(true);
+  // DefectClasses 정보
+  const [defectClasses, setDefectClasses] = useState([]);
+
+  /**
+   * DefectClasses 데이터 불러오기
+   */
+  const loadDefectClasses = useCallback(async () => {
+    try {
+      // DefectClasses 가져오기
+      const classes = await AnnotationService.getDefectClasses();
+      setDefectClasses(classes);
+      
+      // 전역 상수에도 저장
+      setLoadedDefectClasses(classes);
+      
+      return classes;
+    } catch (error) {
+      console.error('Failed to load defect classes:', error);
+      return [];
+    }
+  }, []);
 
   /**
    * 어노테이션 데이터 불러오기
@@ -37,12 +58,15 @@ const useAnnotationData = (imageId, addToHistory) => {
     try {
       setIsLoading(true);
       
+      // DefectClasses 먼저 로드
+      const classes = await loadDefectClasses();
+      
       // 이미지 관련 어노테이션 데이터 가져오기
       const annotations = await AnnotationService.getAnnotationsByImageId(imageId);
       
-      // 백엔드 데이터를 프론트엔드 포맷으로 변환
+      // 백엔드 데이터를 프론트엔드 포맷으로 변환 (defectClasses 정보 활용)
       const transformedData = annotations.map(anno => 
-        AnnotationService.transformToFrontendModel(anno)
+        AnnotationService.transformToFrontendModel(anno, classes)
       );
       
       setDefects(transformedData);
@@ -50,11 +74,24 @@ const useAnnotationData = (imageId, addToHistory) => {
       // 이미지 상세 정보 가져오기
       const imageDetail = await AnnotationService.getImageDetailById(imageId);
       if (imageDetail) {
-        setDataInfo(prev => ({
-          ...prev,
-          ...imageDetail,
-          state: imageDetail.status // status를 state로 변환
-        }));
+        // 어노테이션 목록에서 이 이미지에 대한 어노테이션을 찾아 신뢰도 점수 계산
+        const confidenceScores = annotations.map(anno => anno.conf_score);
+        const minConfidence = confidenceScores.length > 0 
+          ? Math.min(...confidenceScores) 
+          : null;
+        
+        // 이미지 데이터 포맷팅
+        setDataInfo({
+          dataId: `IMG_${imageDetail.image_id}`,
+          confidenceScore: minConfidence,
+          captureDate: imageDetail.capture_date_formatted,
+          lastModified: imageDetail.last_modified_formatted,
+          state: imageDetail.status || 'pending',
+          dimensions: {
+            width: imageDetail.width,
+            height: imageDetail.height
+          }
+        });
       }
       
       setIsLoading(false);
@@ -62,7 +99,7 @@ const useAnnotationData = (imageId, addToHistory) => {
       console.error('Failed to load annotation data:', error);
       setIsLoading(false);
     }
-  }, [imageId]);
+  }, [imageId, loadDefectClasses]);
 
   /**
    * 어노테이션 저장
@@ -115,13 +152,19 @@ const useAnnotationData = (imageId, addToHistory) => {
     const maxId = Math.max(...defects.map(d => parseInt(d.id) || 0), 0);
     const newId = String(maxId + 1);
     
+    // defectType에 해당하는 defectClass 찾기
+    const defectClass = defectClasses.find(dc => dc.class_name === defectType);
+    const typeId = defectClass ? defectClass.class_id : 1; // 기본값은 Scratch (1)
+    
     // 새 defect 객체 생성
     const newDefect = {
       id: newId,
       type: defectType,
-      confidence: 0.9, // 사용자가 생성한 바운딩 박스의 confidence 값
+      typeId: typeId,
+      confidence: null, // 사용자가 생성한 바운딩 박스의 confidence 값 - null로 설정하여 '-'로 표시
       coordinates: coordinates,
       imageId: imageId,
+      color: defectClass ? defectClass.class_color : null,
       date: new Date().toISOString(),
       status: 'pending'
     };
@@ -151,7 +194,7 @@ const useAnnotationData = (imageId, addToHistory) => {
     saveAnnotation();
     
     return newId; // 새로 생성된 ID 반환
-  }, [defects, imageId, addToHistory]);
+  }, [defects, imageId, addToHistory, defectClasses]);
 
   /**
    * 결함 좌표 업데이트
@@ -215,23 +258,32 @@ const useAnnotationData = (imageId, addToHistory) => {
   /**
    * 결함 클래스 변경
    * @param {string} defectId - 결함 ID
-   * @param {string} defectType - 새 결함 유형
+   * @param {string} newType - 새 결함 유형
    */
-  const updateDefectClass = useCallback(async (defectId, defectType) => {
-    // 이전 타입 저장
-    const defect = defects.find(d => String(d.id) === defectId);
-    if (!defect) return;
+  const updateDefectClass = useCallback((defectId, newType) => {
+    // 아무 변화가 없으면 skip
+    const defectIdStr = String(defectId);
+    const defect = defects.find(d => String(d.id) === defectIdStr);
     
+    if (!defect || defect.type === newType) return;
+    
+    // 이전 타입 저장
     const prevType = defect.type;
     
-    // 이미 같은 타입이면 변경하지 않음
-    if (prevType === defectType) return;
+    // defectType에 해당하는 defectClass 찾기
+    const defectClass = defectClasses.find(dc => dc.class_name === newType);
+    const typeId = defectClass ? defectClass.class_id : 1; // 기본값은 Scratch (1)
     
     // defects 업데이트
     setDefects(currentDefects => 
       currentDefects.map(defect => 
-        String(defect.id) === defectId 
-          ? { ...defect, type: defectType }
+        String(defect.id) === defectIdStr
+          ? {
+              ...defect,
+              type: newType,
+              typeId: typeId,
+              color: defectClass ? defectClass.class_color : null
+            } 
           : defect
       )
     );
@@ -242,71 +294,58 @@ const useAnnotationData = (imageId, addToHistory) => {
       data: {
         defectId,
         prevType,
-        newType: defectType
+        newType
       }
     });
-    
-    // 서버에 클래스 변경 저장
-    try {
-      const updatedDefect = { ...defect, type: defectType };
-      const backendModel = AnnotationService.transformToBackendModel(updatedDefect);
-      await AnnotationService.updateAnnotation(parseInt(defectId), backendModel);
-      console.log(`Annotation ${defectId} class updated on server`);
-    } catch (error) {
-      console.error(`Failed to update annotation ${defectId} class:`, error);
-    }
-  }, [defects, addToHistory]);
+  }, [defects, addToHistory, defectClasses]);
 
-  /**
-   * 결함 삭제
-   * @param {string} defectId - 결함 ID
-   */
-  const deleteDefect = useCallback(async (defectId) => {
-    if (!defectId) return;
-    
-    // 삭제할 defect 객체 찾기
-    const defect = defects.find(d => d.id === defectId);
-    if (!defect) return;
-    
-    try {
-      // defects 업데이트
-      setDefects(prev => prev.filter(d => d.id !== defectId));
-      
-      // 히스토리에 작업 추가
-      addToHistory({
-        type: ACTION_TYPES.DELETE_BOX,
-        data: {
-          defect
-        }
-      });
-      
-      // 서버에서 어노테이션 삭제
-      await AnnotationService.deleteAnnotation(parseInt(defectId));
-      console.log(`Annotation ${defectId} deleted from server`);
-      return true;
-    } catch (error) {
-      console.error(`Failed to delete annotation ${defectId}:`, error);
-      return false;
-    }
-  }, [defects, addToHistory]);
-
-  // 컴포넌트 마운트 시 데이터 로드
+  // useEffect를 사용하여 페이지 로드 시 어노테이션 데이터 로드
   useEffect(() => {
     loadAnnotationData();
   }, [loadAnnotationData]);
 
   return {
     defects,
-    setDefects,
     dataInfo,
-    setDataInfo,
     isLoading,
-    loadAnnotationData,
-    saveAnnotations,
+    defectClasses,
+    setDefects,
     addBox,
     updateCoordinates,
     updateDefectClass,
-    deleteDefect
+    deleteDefect: useCallback((defectId) => {
+      // 기존 defect 찾기 (히스토리 저장용)
+      const defectIdStr = String(defectId);
+      const defectToDelete = defects.find(d => String(d.id) === defectIdStr);
+      
+      if (!defectToDelete) return;
+      
+      // defects 업데이트
+      setDefects(currentDefects => currentDefects.filter(d => String(d.id) !== defectIdStr));
+      
+      // 히스토리에 작업 추가
+      addToHistory({
+        type: ACTION_TYPES.DELETE_BOX,
+        data: {
+          defect: defectToDelete
+        }
+      });
+      
+      // 서버에 삭제 요청
+      const deleteFromServer = async () => {
+        try {
+          if (defectId && !isNaN(parseInt(defectId))) {
+            await AnnotationService.deleteAnnotation(parseInt(defectId));
+            console.log('Annotation deleted from server');
+          }
+        } catch (error) {
+          console.error('Failed to delete annotation from server:', error);
+        }
+      };
+      
+      deleteFromServer();
+    }, [defects, addToHistory]),
+    saveAnnotations
   };
 };
 
