@@ -223,9 +223,52 @@ const Sidebar = ({
                     </span>
                   )}
                   
+                  {/* Toggle indicator for read-only mode */}
+                  {readOnly && (
+                    <span className="toggle-indicator read-only">
+                      {selectedDefect === defect.id ? <FaChevronUp /> : <FaChevronDown />}
+                    </span>
+                  )}
+                  
                   {/* Inline detail information container */}
                   {selectedDefect === defect.id && selectedDefectDetail && !readOnly && (
                     <div className="defect-detail-inline">
+                      <div className="detail-item-inline">
+                        <span className="detail-label-inline">Annotation ID:</span>
+                        <span className="detail-value-inline">{selectedDefectDetail.id}</span>
+                      </div>
+                      <div className="detail-item-inline">
+                        <span className="detail-label-inline">Defect Type:</span>
+                        <span className="detail-value-inline">
+                          <span 
+                            className={`detail-color-dot ${getDefectColorClass(selectedDefectDetail.type)}`}
+                            style={{ backgroundColor: selectedDefectDetail.color || getDefectColor(selectedDefectDetail.type) }}
+                          ></span>
+                          {selectedDefectDetail.type}
+                        </span>
+                      </div>
+                      <div className="detail-item-inline">
+                        <span className="detail-label-inline">Confidence Score:</span>
+                        <span className="detail-value-inline confidence">{selectedDefectDetail.confidence === null || selectedDefectDetail.confidence === 0.9 ? '-' : selectedDefectDetail.confidence.toFixed(2)}</span>
+                      </div>
+                      <div className="detail-item-inline">
+                        <span className="detail-label-inline">Position:</span>
+                        <span className="detail-value-inline">
+                          {`(${Math.round(selectedDefectDetail.coordinates.x)}, ${Math.round(selectedDefectDetail.coordinates.y)})`}
+                        </span>
+                      </div>
+                      <div className="detail-item-inline">
+                        <span className="detail-label-inline">Size:</span>
+                        <span className="detail-value-inline">
+                          {`${Math.round(selectedDefectDetail.coordinates.width)} x ${Math.round(selectedDefectDetail.coordinates.height)}`}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Inline detail information container for read-only mode */}
+                  {selectedDefect === defect.id && selectedDefectDetail && readOnly && (
+                    <div className="defect-detail-inline read-only">
                       <div className="detail-item-inline">
                         <span className="detail-label-inline">Annotation ID:</span>
                         <span className="detail-value-inline">{selectedDefectDetail.id}</span>

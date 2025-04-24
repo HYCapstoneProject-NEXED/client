@@ -418,4 +418,32 @@
   font-weight: 500;
   color: #505050;
   flex-grow: 1;
+}
+
+/* 읽기 전용 모드의 토글 표시기 스타일 */
+.toggle-indicator.read-only {
+  color: #606778;
+}
+
+.annotator-defect-item.selected .toggle-indicator.read-only {
+  color: #4a90e2;
+  transform: rotate(180deg);
+}
+
+.annotator-defect-item:hover .toggle-indicator.read-only {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* 읽기 전용 모드의 상세 정보 스타일 */
+.defect-detail-inline.read-only {
+  background: rgba(248, 249, 250, 0.9);
+}
+
+.annotator-defect-item.selected.read-only .defect-detail-inline.read-only {
+  max-height: 500px;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  padding: 12px;
+  border-top: 1px solid #e6e8eb;
+  opacity: 1;
 } 

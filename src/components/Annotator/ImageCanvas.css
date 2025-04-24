@@ -55,12 +55,26 @@
 
 .bounding-box.selected {
   border-width: 3px;
-  box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.5);
+  animation: pulse-border 1.5s infinite ease-in-out;
 }
 
 /* 바운딩 박스 호버시 스타일 - 읽기전용 모드에서는 비활성화 */
 .bounding-box:not(.read-only):hover {
   box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
+/* 선택된 바운딩 박스 펄스 애니메이션 */
+@keyframes pulse-border {
+  0% {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+  }
 }
 
 /* 결함 타입별 색상 */

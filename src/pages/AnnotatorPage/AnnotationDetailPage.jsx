@@ -2,7 +2,7 @@
  * Annotation Detail Page
  * 어노테이션 상세 조회 페이지 - 편집 불가능, 확인만 가능
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ImageCanvas from '../../components/Annotator/ImageCanvas';
 import Sidebar from '../../components/Annotator/Sidebar';
