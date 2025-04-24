@@ -105,54 +105,28 @@ const ImageCanvas = ({
     if (canvasRef.current) {
       /**
        * 캔버스 크기를 업데이트하는 함수
-       * 윈도우 리사이즈 이벤트에 반응하여 캔버스 크기를 조정
+       * 기본 800x600 고정 크기로 설정
        */
       const updateDimensions = () => {
-        // 약간의 지연을 두어 DOM이 완전히 업데이트된 후 측정
-        setTimeout(() => {
-          if (canvasRef.current) {
-            const newWidth = canvasRef.current.clientWidth;
-            const newHeight = canvasRef.current.clientHeight;
-            
-            // 캔버스 크기가 초기화되지 않은 경우에만 설정 (처음 한 번만 설정)
-            if (canvasDimensions.width === 0 || canvasDimensions.height === 0) {
-              setCanvasDimensions({
-                width: newWidth,
-                height: newHeight
-              });
-              console.log('Canvas dimensions initialized:', {
-                width: newWidth,
-                height: newHeight
-              });
-            }
-            // 이미 크기가 설정되어 있다면 유지 (창 크기 변경에 반응하지 않음)
-          }
-        }, 300);
+        // 캔버스 크기를 절대 고정값으로 설정
+        setCanvasDimensions({
+          width: 800, // 고정 너비
+          height: 600 // 고정 높이
+        });
+        console.log('Canvas dimensions set to fixed size:', {
+          width: 800,
+          height: 600
+        });
       };
       
-      // 초기 크기 설정
+      // 초기 크기 설정 (한 번만 실행)
       updateDimensions();
       
-      // 사이드바 상태가 변경될 때 차원 업데이트를 위한 MutationObserver 설정
-      const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-          if (mutation.attributeName === 'class') {
-            updateDimensions();
-          }
-        });
-      });
-      
-      // 부모 요소의 클래스 변경 감지
-      const bodyContainer = document.querySelector('.annotator-body-container');
-      if (bodyContainer) {
-        observer.observe(bodyContainer, { attributes: true });
-      }
-      
-      return () => {
-        observer.disconnect();
-      };
+      // window resize 이벤트에 대응하지 않음 (무시)
+      // 화면 크기가 변해도 캔버스 크기는 고정됨
+      return () => {};
     }
-  }, [canvasRef, canvasDimensions.width, canvasDimensions.height]);
+  }, [canvasRef]); // 의존성 최소화
 
   // 컴포넌트 마운트 시 초기 박스 위치 설정 (defects가 변경될 때만 수행)
   useEffect(() => {
@@ -961,9 +935,7 @@ const ImageCanvas = ({
         ref={canvasRef}
         style={{
           transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-          cursor: getCanvasCursor(),
-          width: canvasDimensions.width > 0 ? `${canvasDimensions.width}px` : '90%', 
-          height: canvasDimensions.height > 0 ? `${canvasDimensions.height}px` : '90%'
+          cursor: getCanvasCursor()
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -1011,134 +983,6 @@ const ImageCanvas = ({
               >
                 ({defect.id}) {defect.confidence === null || defect.confidence === undefined || defect.confidence === 0.9 ? '-' : defect.confidence.toFixed(2)}
               </div>
-              
-              {/* 테두리 영역 명시적 추가 (커서 변경용) */}
-              <div 
-                className="top-left-corner" 
-                onMouseDown={(e) => {
-                  handleResizeStart(e, defect.id, RESIZE_HANDLES.TOP_LEFT);
-                  onDefectSelect(defect.id);
-                }}
-              ></div>
-              <div 
-                className="top-right-corner" 
-                onMouseDown={(e) => {
-                  handleResizeStart(e, defect.id, RESIZE_HANDLES.TOP_RIGHT);
-                  onDefectSelect(defect.id);
-                }}
-              ></div>
-              <div 
-                className="bottom-left-corner" 
-                onMouseDown={(e) => {
-                  handleResizeStart(e, defect.id, RESIZE_HANDLES.BOTTOM_LEFT);
-                  onDefectSelect(defect.id);
-                }}
-              ></div>
-              <div 
-                className="bottom-right-corner" 
-                onMouseDown={(e) => {
-                  handleResizeStart(e, defect.id, RESIZE_HANDLES.BOTTOM_RIGHT);
-                  onDefectSelect(defect.id);
-                }}
-              ></div>
-              <div 
-                className="left-border" 
-                onMouseDown={(e) => {
-                  handleResizeStart(e, defect.id, RESIZE_HANDLES.LEFT);
-                  onDefectSelect(defect.id);
-                }}
-              ></div>
-              <div 
-                className="top-border" 
-                onMouseDown={(e) => {
-                  handleResizeStart(e, defect.id, RESIZE_HANDLES.TOP);
-                  onDefectSelect(defect.id);
-                }}
-              ></div>
-              <div 
-                className="right-border" 
-                onMouseDown={(e) => {
-                  handleResizeStart(e, defect.id, RESIZE_HANDLES.RIGHT);
-                  onDefectSelect(defect.id);
-                }}
-              ></div>
-              <div 
-                className="bottom-border" 
-                onMouseDown={(e) => {
-                  handleResizeStart(e, defect.id, RESIZE_HANDLES.BOTTOM);
-                  onDefectSelect(defect.id);
-                }}
-              ></div>
-              
-              {/* 리사이즈 핸들 - 선택된 바운딩 박스에만 표시 */}
-              {isSelected && !readOnly && (
-                <>
-                  <div 
-                    className={`resize-handle top-left ${getBoxClassName(defect.type)}`}
-                    style={{ borderColor: boxColor }}
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                      handleResizeStart(e, defect.id, RESIZE_HANDLES.TOP_LEFT);
-                    }}
-                  ></div>
-                  <div 
-                    className={`resize-handle top ${getBoxClassName(defect.type)}`}
-                    style={{ borderColor: boxColor }}
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                      handleResizeStart(e, defect.id, RESIZE_HANDLES.TOP);
-                    }}
-                  ></div>
-                  <div 
-                    className={`resize-handle top-right ${getBoxClassName(defect.type)}`}
-                    style={{ borderColor: boxColor }}
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                      handleResizeStart(e, defect.id, RESIZE_HANDLES.TOP_RIGHT);
-                    }}
-                  ></div>
-                  <div 
-                    className={`resize-handle right ${getBoxClassName(defect.type)}`}
-                    style={{ borderColor: boxColor }}
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                      handleResizeStart(e, defect.id, RESIZE_HANDLES.RIGHT);
-                    }}
-                  ></div>
-                  <div 
-                    className={`resize-handle bottom-right ${getBoxClassName(defect.type)}`}
-                    style={{ borderColor: boxColor }}
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                      handleResizeStart(e, defect.id, RESIZE_HANDLES.BOTTOM_RIGHT);
-                    }}
-                  ></div>
-                  <div 
-                    className={`resize-handle bottom ${getBoxClassName(defect.type)}`}
-                    style={{ borderColor: boxColor }}
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                      handleResizeStart(e, defect.id, RESIZE_HANDLES.BOTTOM);
-                    }}
-                  ></div>
-                  <div 
-                    className={`resize-handle bottom-left ${getBoxClassName(defect.type)}`}
-                    style={{ borderColor: boxColor }}
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                      handleResizeStart(e, defect.id, RESIZE_HANDLES.BOTTOM_LEFT);
-                    }}
-                  ></div>
-                  <div 
-                    className={`resize-handle left ${getBoxClassName(defect.type)}`}
-                    style={{ borderColor: boxColor }}
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                      handleResizeStart(e, defect.id, RESIZE_HANDLES.LEFT);
-                    }}
-                  ></div>
-                </>
-              )}
             </div>
           );
         })}
