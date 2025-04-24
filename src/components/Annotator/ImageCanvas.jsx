@@ -100,7 +100,7 @@ const ImageCanvas = ({
     LEFT: 'left',               // 좌측 변
   };
 
-  // 캔버스 크기 측정
+  // 캔버스 크기 측정 및 바운딩 박스 비율 유지를 위한 업데이트
   useEffect(() => {
     if (canvasRef.current) {
       /**
@@ -111,20 +111,27 @@ const ImageCanvas = ({
         // 약간의 지연을 두어 DOM이 완전히 업데이트된 후 측정
         setTimeout(() => {
           if (canvasRef.current) {
-            setCanvasDimensions({
-              width: canvasRef.current.clientWidth,
-              height: canvasRef.current.clientHeight
-            });
-            console.log('Canvas dimensions updated:', {
-              width: canvasRef.current.clientWidth,
-              height: canvasRef.current.clientHeight
-            });
+            const newWidth = canvasRef.current.clientWidth;
+            const newHeight = canvasRef.current.clientHeight;
+            
+            // 캔버스 크기가 초기화되지 않은 경우에만 설정 (처음 한 번만 설정)
+            if (canvasDimensions.width === 0 || canvasDimensions.height === 0) {
+              setCanvasDimensions({
+                width: newWidth,
+                height: newHeight
+              });
+              console.log('Canvas dimensions initialized:', {
+                width: newWidth,
+                height: newHeight
+              });
+            }
+            // 이미 크기가 설정되어 있다면 유지 (창 크기 변경에 반응하지 않음)
           }
         }, 300);
       };
       
+      // 초기 크기 설정
       updateDimensions();
-      window.addEventListener('resize', updateDimensions);
       
       // 사이드바 상태가 변경될 때 차원 업데이트를 위한 MutationObserver 설정
       const observer = new MutationObserver((mutations) => {
@@ -142,11 +149,10 @@ const ImageCanvas = ({
       }
       
       return () => {
-        window.removeEventListener('resize', updateDimensions);
         observer.disconnect();
       };
     }
-  }, [canvasRef]);
+  }, [canvasRef, canvasDimensions.width, canvasDimensions.height]);
 
   // 컴포넌트 마운트 시 초기 박스 위치 설정 (defects가 변경될 때만 수행)
   useEffect(() => {
@@ -908,7 +914,7 @@ const ImageCanvas = ({
     return 0;
   });
 
-  // 그리는 중인 바운딩 박스 좌표 계산
+  // 현재 그리기 중인 바운딩 박스 계산 (가상 DOM 요소)
   const drawingBox = isDrawingBox ? (() => {
     // 원래 마우스 위치를 그대로 사용 (정확한 마우스 드래그 반영)
     const x = Math.min(drawStartPos.x, currentDrawPos.x);
@@ -928,6 +934,16 @@ const ImageCanvas = ({
     };
   };
 
+  /**
+   * 바운딩 박스 클릭 이벤트 핸들러
+   * @param {string|number} defectId - 선택된 결함 ID
+   */
+  const handleBoxClick = (defectId) => {
+    if (onDefectSelect) {
+      onDefectSelect(defectId);
+    }
+  };
+
   return (
     <div 
       className={`image-canvas ${activeTool === toolTypes.RECTANGLE ? 'drawing-mode' : ''} ${readOnly ? 'read-only' : ''}`}
@@ -945,7 +961,9 @@ const ImageCanvas = ({
         ref={canvasRef}
         style={{
           transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-          cursor: getCanvasCursor()
+          cursor: getCanvasCursor(),
+          width: canvasDimensions.width > 0 ? `${canvasDimensions.width}px` : '90%', 
+          height: canvasDimensions.height > 0 ? `${canvasDimensions.height}px` : '90%'
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -993,7 +1011,7 @@ const ImageCanvas = ({
               >
                 ({defect.id}) {defect.confidence === null || defect.confidence === undefined || defect.confidence === 0.9 ? '-' : defect.confidence.toFixed(2)}
               </div>
-
+              
               {/* 테두리 영역 명시적 추가 (커서 변경용) */}
               <div 
                 className="top-left-corner" 

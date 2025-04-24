@@ -13,8 +13,12 @@
 }
 
 .image-container {
-  width: 90%;
-  height: 90%;
+  /* 상대적 크기에서 픽셀 값을 기반으로 하는 고정 크기로 변경됨 
+     JavaScript에서 동적으로 설정된 크기로 덮어씌워짐 */
+  width: 800px;  /* 기본 고정 크기 - JS에서 덮어씌워질 수 있음 */
+  height: 600px; /* 기본 고정 크기 - JS에서 덮어씌워질 수 있음 */
+  min-width: 600px;
+  min-height: 400px;
   background: #F0F0F0;
   border-radius: 0;
   position: relative;
