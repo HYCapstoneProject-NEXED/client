@@ -30,33 +30,45 @@
   font-weight: 600;
   color: #343C6A;
   margin: 0;
+  width: 250px;
 }
 
-.header-actions {
+/* 페이지네이션 컨테이너 */
+.pagination-container {
+  flex: 1;
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 20px;
-}
-
-/* 페이지네이션 스타일 */
-.pagination {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  pointer-events: none;
 }
 
 .pagination-arrows {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+  position: relative;
+  width: 140px;
+  pointer-events: auto;
 }
 
-.pagination-arrows span {
+.pagination-arrows .page-indicator {
   font-family: 'Nunito Sans', sans-serif;
   font-size: 20px;
   font-weight: 700;
   color: #202224;
-  margin: 0 8px;
+  margin: 0;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 0 8px;
+  border-radius: 4px;
+  z-index: 0;
 }
 
 .pagination-arrows button {
@@ -70,6 +82,17 @@
   font-size: 15px;
   cursor: pointer;
   color: #000;
+  z-index: 1;
+}
+
+.pagination-arrows button.prev-arrow {
+  position: absolute;
+  left: 0;
+}
+
+.pagination-arrows button.next-arrow {
+  position: absolute;
+  right: 0;
 }
 
 .pagination-arrows button:disabled {
@@ -77,12 +100,21 @@
   cursor: not-allowed;
 }
 
+/* 액션 버튼 컨테이너 */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: 250px;
+  justify-content: flex-end;
+}
+
 /* 액션 버튼 스타일 */
 .start-annotating-btn {
-  width: 162px;
+  min-width: 120px;
   height: 45px;
   background-color: #4880FF;
-  opacity: 0.9;
+  opacity: 1;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -90,21 +122,27 @@
   color: white;
   font-family: 'Nunito Sans', sans-serif;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   border: none;
   cursor: pointer;
   transition: background-color 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 0 20px;
 }
 
 .start-annotating-btn:hover {
   background-color: #3a70e8;
 }
 
+.start-annotating-btn svg {
+  margin-right: 8px;
+}
+
 .delete-btn {
-  width: 162px;
+  min-width: 120px;
   height: 45px;
-  background-color: #E2EAF8;
-  opacity: 0.7;
+  background-color: #fde8e8;
+  opacity: 1;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -112,14 +150,20 @@
   color: #EF3826;
   font-family: 'Nunito Sans', sans-serif;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   border: none;
   cursor: pointer;
   transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 0 20px;
 }
 
 .delete-btn:hover {
-  background-color: #d9e1f1;
+  background-color: #fadada;
+}
+
+.delete-btn svg {
+  margin-right: 8px;
 }
 
 /* 본문 컨테이너 */

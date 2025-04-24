@@ -4,6 +4,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { FaChevronLeft, FaChevronRight, FaTrash, FaPen } from 'react-icons/fa';
 import ImageCanvas from '../../components/Annotator/ImageCanvas';
 import Sidebar from '../../components/Annotator/Sidebar';
 import { TOOL_TYPES } from '../../constants/annotationConstants';
@@ -58,14 +59,16 @@ const AnnotationDetailPage = () => {
         <div className="annotator-detail-header">
           <h1>Annotation Details</h1>
           
-          <div className="header-actions">
-            <div className="pagination">
-              <div className="pagination-arrows">
-                <button className="prev-arrow" disabled>◀</button>
-                <span>1 / 1</span>
-                <button className="next-arrow" disabled>▶</button>
-              </div>
+          <div className="pagination-container">
+            <div className="pagination-arrows">
+              <button className="prev-arrow" disabled>◀</button>
+              <span className="page-indicator">1 / 1</span>
+              <button className="next-arrow" disabled>▶</button>
             </div>
+          </div>
+
+          <div className="header-actions">
+            {/* 로딩 중에는 버튼 표시하지 않음 */}
           </div>
         </div>
         <div className="annotator-loading">
@@ -82,27 +85,33 @@ const AnnotationDetailPage = () => {
       <div className="annotator-detail-header">
         <h1>Annotation Details</h1>
         
-        <div className="header-actions">
-          <div className="pagination">
-            <div className="pagination-arrows">
-              <button className="prev-arrow" disabled>◀</button>
-              <span>1 / 1</span>
-              <button className="next-arrow" disabled>▶</button>
-            </div>
+        <div className="pagination-container">
+          <div className="pagination-arrows">
+            <button className="prev-arrow" disabled>◀</button>
+            <span className="page-indicator">1 / 1</span>
+            <button className="next-arrow" disabled>▶</button>
           </div>
-          
+        </div>
+        
+        <div className="header-actions">
           <button 
             className="start-annotating-btn"
             onClick={startAnnotating}
+            title="Edit Annotation"
+            style={{ width: 'auto', padding: '0 15px' }}
           >
-            Start Annotating
+            <FaPen size={16} style={{ marginRight: '5px' }} /> Annotate
           </button>
           
           <button 
             className="delete-btn"
             onClick={handleDelete}
+            title="Delete Annotation"
+            style={{ width: 'auto', padding: '0 15px' }}
           >
-            Delete
+            <span style={{ fontSize: '14px', display: 'flex', alignItems: 'center' }}>
+              <FaTrash size={16} style={{ marginRight: '5px' }} /> Delete
+            </span>
           </button>
         </div>
       </div>
