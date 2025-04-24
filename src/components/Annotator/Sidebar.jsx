@@ -157,18 +157,6 @@ const Sidebar = ({
                 <span className="info-label">State</span>
                 <span className="info-value">{dataInfo.state}</span>
               </div>
-              
-              <div className="info-divider"></div>
-              
-              <div className="info-row timestamp">
-                <span className="info-label">Data Capture Timestamp</span>
-                <span className="info-value">{dataInfo.captureDate || '-'}</span>
-              </div>
-              
-              <div className="info-row timestamp">
-                <span className="info-label">Last Modified</span>
-                <span className="info-value">{dataInfo.lastModified || '-'}</span>
-              </div>
             </div>
           </div>
 
@@ -211,7 +199,7 @@ const Sidebar = ({
 
           {/* Defect List Section */}
           <div className="annotator-defect-list-container">
-            <h2>Defect List</h2>
+            <h2>Defects List</h2>
             <ul className="annotator-defect-list">
               {defects.map((defect) => (
                 <li 
@@ -274,13 +262,6 @@ const Sidebar = ({
               ))}
             </ul>
           </div>
-          
-          {/* Last Modified information (only shown in read-only mode) */}
-          {readOnly && (
-            <div className="annotation-last-modified">
-              Annotation Last Modified: {dataInfo.lastModified || '2024.12.12'}
-            </div>
-          )}
         </div>
       </aside>
       

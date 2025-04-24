@@ -45,16 +45,18 @@
   gap: 10px;
 }
 
-.pagination span {
+.pagination-arrows {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-arrows span {
   font-family: 'Nunito Sans', sans-serif;
   font-size: 20px;
   font-weight: 700;
   color: #202224;
-}
-
-.pagination-arrows {
-  display: flex;
-  gap: 8px;
+  margin: 0 8px;
 }
 
 .pagination-arrows button {

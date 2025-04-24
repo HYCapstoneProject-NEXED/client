@@ -60,9 +60,9 @@ const AnnotationDetailPage = () => {
           
           <div className="header-actions">
             <div className="pagination">
-              <span>1 / 1</span>
               <div className="pagination-arrows">
                 <button className="prev-arrow" disabled>◀</button>
+                <span>1 / 1</span>
                 <button className="next-arrow" disabled>▶</button>
               </div>
             </div>
@@ -84,9 +84,9 @@ const AnnotationDetailPage = () => {
         
         <div className="header-actions">
           <div className="pagination">
-            <span>1 / 1</span>
             <div className="pagination-arrows">
               <button className="prev-arrow" disabled>◀</button>
+              <span>1 / 1</span>
               <button className="next-arrow" disabled>▶</button>
             </div>
           </div>

@@ -393,18 +393,6 @@
   cursor: default;
 }
 
-/* 마지막 수정 날짜 표시 영역 */
-.annotation-last-modified {
-  position: absolute;
-  bottom: 24px;
-  left: 35px;
-  color: #B6B6B6;
-  font-size: 14px;
-  font-family: 'Nunito Sans', sans-serif;
-  font-weight: 700;
-  line-height: 20px;
-}
-
 /* 읽기 전용 모드의 토글 버튼 */
 .sidebar-toggle-btn.read-only {
   background-color: #B9B9B9;
