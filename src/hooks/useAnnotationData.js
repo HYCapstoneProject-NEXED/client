@@ -307,9 +307,9 @@ const useAnnotationData = (imageId, addToHistory) => {
   return {
     defects,
     dataInfo,
+    setDataInfo,
     isLoading,
     defectClasses,
-    setDefects,
     addBox,
     updateCoordinates,
     updateDefectClass,

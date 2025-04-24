@@ -3,7 +3,7 @@
  * Displays data information and defect list.
  */
 import React, { useState, useEffect } from 'react';
-import { FaChevronLeft, FaChevronRight, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaChevronDown, FaChevronUp, FaCheck, FaClock } from 'react-icons/fa';
 import './Sidebar.css';
 import { DEFECT_TYPES, DEFECT_COLOR_CLASSES, LOADED_DEFECT_CLASSES } from '../../constants/annotationConstants';
 
@@ -21,6 +21,7 @@ import { DEFECT_TYPES, DEFECT_COLOR_CLASSES, LOADED_DEFECT_CLASSES } from '../..
  * @param {function} props.onToggle - Sidebar toggle handler
  * @param {boolean} props.readOnly - Whether sidebar is in read-only mode
  * @param {Array} props.defectClasses - Available defect classes from DB
+ * @param {function} props.onStatusChange - Status change handler
  */
 const Sidebar = ({
   dataInfo,
@@ -33,10 +34,13 @@ const Sidebar = ({
   isCollapsed,
   onToggle,
   readOnly = false,
-  defectClasses = []
+  defectClasses = [],
+  onStatusChange
 }) => {
   // 사이드바 접힘/펼침 상태 - 외부에서 관리하도록 수정
   const [localIsCollapsed, setLocalIsCollapsed] = useState(isCollapsed || false);
+  // 상태 변경 드롭다운 표시 여부
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
   // props에서 isCollapsed가 변경되면 로컬 상태도 업데이트
   useEffect(() => {
@@ -131,6 +135,21 @@ const Sidebar = ({
     }
   };
 
+  // State 태그 클릭 핸들러
+  const handleStateClick = () => {
+    if (!readOnly && onStatusChange) {
+      setShowStatusDropdown(!showStatusDropdown);
+    }
+  };
+
+  // 상태 변경 핸들러
+  const handleStatusChange = (newStatus) => {
+    if (onStatusChange) {
+      onStatusChange(newStatus);
+      setShowStatusDropdown(false);
+    }
+  };
+
   return (
     <>
       <aside className={`annotator-sidebar ${localIsCollapsed ? 'collapsed' : ''} ${readOnly ? 'read-only' : ''}`}>
@@ -155,7 +174,103 @@ const Sidebar = ({
               
               <div className="info-row">
                 <span className="info-label">State</span>
-                <span className="info-value">{dataInfo.state}</span>
+                <span className="info-value">
+                  {(() => {
+                    const state = dataInfo.state;
+                    let backgroundColor = "#E0E0E0";
+                    let textColor = "#555555";
+                    let icon = null;
+                    
+                    if (state === "Completed" || state === "completed") {
+                      backgroundColor = "#E0F2F1";
+                      textColor = "#00B69B";
+                      icon = <FaCheck size={10} style={{ marginRight: '4px' }} />;
+                    } else {
+                      // Default is Pending
+                      backgroundColor = "#FFF8E1";
+                      textColor = "#FCAA0B";
+                      icon = <FaClock size={10} style={{ marginRight: '4px' }} />;
+                    }
+                    
+                    return (
+                      <div
+                        style={{
+                          position: "relative",
+                          display: "inline-block"
+                        }}
+                      >
+                        <div 
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            padding: "4px 8px",
+                            borderRadius: "4px",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            backgroundColor: backgroundColor,
+                            color: textColor,
+                            cursor: !readOnly && onStatusChange ? "pointer" : "default"
+                          }}
+                          onClick={handleStateClick}
+                          title={!readOnly ? "Click to change status" : undefined}
+                        >
+                          {icon}
+                          {typeof state === 'string' ? (
+                            state.charAt(0).toUpperCase() + state.slice(1).toLowerCase()
+                          ) : state}
+                        </div>
+                        
+                        {/* 상태 변경 드롭다운 메뉴 */}
+                        {!readOnly && showStatusDropdown && (
+                          <div style={{
+                            position: "absolute",
+                            top: "100%",
+                            left: 0,
+                            marginTop: "5px",
+                            backgroundColor: "white",
+                            borderRadius: "4px",
+                            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.15)",
+                            zIndex: 100,
+                            width: "120px",
+                            overflow: "hidden"
+                          }}>
+                            <div 
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                padding: "8px 10px",
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                backgroundColor: "#FFF8E1",
+                                color: "#FCAA0B",
+                                cursor: "pointer",
+                                borderBottom: "1px solid rgba(0,0,0,0.05)"
+                              }}
+                              onClick={() => handleStatusChange('pending')}
+                            >
+                              <FaClock size={10} style={{ marginRight: '5px' }} /> Pending
+                            </div>
+                            <div 
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                padding: "8px 10px",
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                backgroundColor: "#E0F2F1",
+                                color: "#00B69B",
+                                cursor: "pointer"
+                              }}
+                              onClick={() => handleStatusChange('completed')}
+                            >
+                              <FaCheck size={10} style={{ marginRight: '5px' }} /> Completed
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </span>
               </div>
             </div>
           </div>

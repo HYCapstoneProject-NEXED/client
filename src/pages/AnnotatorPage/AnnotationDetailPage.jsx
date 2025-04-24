@@ -4,12 +4,13 @@
  */
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FaChevronLeft, FaChevronRight, FaTrash, FaPen } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaTrash, FaPen, FaCheck, FaClock } from 'react-icons/fa';
 import ImageCanvas from '../../components/Annotator/ImageCanvas';
 import Sidebar from '../../components/Annotator/Sidebar';
 import { TOOL_TYPES } from '../../constants/annotationConstants';
 import useAnnotationData from '../../hooks/useAnnotationData';
 import useAnnotationSelection from '../../hooks/useAnnotationSelection';
+import AnnotationService from '../../services/AnnotationService';
 import './AnnotationDetailPage.css';
 
 /**
@@ -32,6 +33,9 @@ const AnnotationDetailPage = () => {
   // 어노테이션 선택 관리
   const selection = useAnnotationSelection(annotationData.defects);
   
+  // 상태 변경 드롭다운 표시 여부
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  
   // 사이드바 토글 핸들러
   const handleSidebarToggle = (collapsed) => {
     setIsSidebarCollapsed(collapsed);
@@ -52,6 +56,71 @@ const AnnotationDetailPage = () => {
     }
   };
   
+  // 상태 변경 함수
+  const updateStatus = async (newStatus) => {
+    try {
+      // 서버에 상태 업데이트 요청
+      await AnnotationService.updateImageStatus(imageId, newStatus);
+      
+      // 상태 업데이트 성공 시 UI 업데이트
+      annotationData.setDataInfo(prev => ({
+        ...prev,
+        state: newStatus
+      }));
+      
+      // 드롭다운 닫기
+      setShowStatusDropdown(false);
+      
+      console.log(`Status updated to: ${newStatus}`);
+    } catch (error) {
+      console.error('Failed to update status:', error);
+      alert('상태 업데이트에 실패했습니다.');
+    }
+  };
+  
+  // 상태에 따라 아이콘과 색상 반환
+  const getStatusInfo = () => {
+    const state = annotationData.dataInfo.state;
+    let backgroundColor, textColor, icon, label;
+    
+    switch(state.toLowerCase()) {
+      case 'completed':
+        backgroundColor = "#E0F2F1";
+        textColor = "#00B69B";
+        icon = <FaCheck />;
+        label = 'Completed';
+        break;
+      case 'in progress':
+        backgroundColor = "#E3F2FD";
+        textColor = "#4880FF";
+        icon = <FaClock />;
+        label = 'In Progress';
+        break;
+      case 'rejected':
+        backgroundColor = "#FFEBEE";
+        textColor = "#EF3826";
+        icon = <FaTrash />;
+        label = 'Rejected';
+        break;
+      case 'pending':
+      default:
+        backgroundColor = "#FFF8E1";
+        textColor = "#FCAA0B";
+        icon = <FaClock />;
+        label = state.charAt(0).toUpperCase() + state.slice(1);
+        break;
+    }
+    
+    return {
+      icon,
+      label,
+      backgroundColor,
+      textColor
+    };
+  };
+  
+  const statusInfo = getStatusInfo();
+
   // 로딩 중일 때 표시할 내용
   if (annotationData.isLoading) {
     return (
@@ -94,6 +163,8 @@ const AnnotationDetailPage = () => {
         </div>
         
         <div className="header-actions">
+          {/* 상태 표시 및 변경 버튼 제거 */}
+          
           <button 
             className="start-annotating-btn"
             onClick={startAnnotating}
@@ -128,7 +199,8 @@ const AnnotationDetailPage = () => {
             toolTypes={TOOL_TYPES}
             isCollapsed={isSidebarCollapsed}
             onToggle={handleSidebarToggle}
-            readOnly={true}
+            readOnly={false} // 상태 변경을 위해 readOnly를 false로 설정
+            onStatusChange={updateStatus} // 상태 변경 핸들러 전달
           />
         </div>
         <div className="annotator-main-wrapper">

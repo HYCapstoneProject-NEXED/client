@@ -31,6 +31,28 @@
   color: #343C6A;
   margin: 0;
   width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 1280px) {
+  .annotator-detail-header h1 {
+    width: auto;
+    max-width: 300px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .annotator-detail-header h1 {
+    max-width: 400px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .annotator-detail-header h1 {
+    max-width: none;
+  }
 }
 
 /* 페이지네이션 컨테이너 */
@@ -105,8 +127,87 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  width: 250px;
+  width: 320px;
   justify-content: flex-end;
+}
+
+/* 상태 드롭다운 컨테이너 */
+.status-dropdown-container {
+  position: relative;
+}
+
+/* 상태 버튼 */
+.status-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 8px;
+  height: 45px;
+  padding: 0 15px;
+  border: none;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 120px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+}
+
+.status-btn svg {
+  font-size: 16px;
+}
+
+/* 상태별 스타일 */
+.status-completed {
+  background-color: #e6ffed;
+  color: #28a745;
+}
+
+.status-completed:hover {
+  background-color: #d1f2d7;
+}
+
+.status-pending {
+  background-color: #fff8e6;
+  color: #f0ad4e;
+}
+
+.status-pending:hover {
+  background-color: #ffe8b8;
+}
+
+/* 상태 드롭다운 메뉴 */
+.status-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 5px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  overflow: hidden;
+}
+
+/* 상태 옵션 */
+.status-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 15px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.status-option:hover {
+  background-color: #f4f5f7;
+}
+
+.status-option svg {
+  font-size: 16px;
 }
 
 /* 액션 버튼 스타일 */

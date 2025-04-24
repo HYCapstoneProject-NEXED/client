@@ -342,6 +342,44 @@ class AnnotationService {
       class_id: classId // 결함 타입 ID (1: Scratch가 기본값)
     };
   }
+
+  // 이미지 상태 업데이트 (pending/completed)
+  async updateImageStatus(imageId, newStatus) {
+    try {
+      // 실제 API 요청 코드 (현재는 주석 처리)
+      // const response = await axios.put(`${API_URL}/images/${imageId}/status`, { status: newStatus });
+      // return response.data;
+      
+      // 더미 구현
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          const imageIndex = DUMMY_IMAGES.findIndex(img => img.image_id === imageId);
+          if (imageIndex !== -1) {
+            // 이미지 상태 업데이트
+            DUMMY_IMAGES[imageIndex].status = newStatus;
+            // 이미지에 연결된 모든 어노테이션 상태도 업데이트
+            DUMMY_ANNOTATIONS.forEach(annotation => {
+              if (annotation.image_id === imageId) {
+                annotation.status = newStatus;
+              }
+            });
+            resolve({
+              success: true,
+              message: `Status updated to ${newStatus} for image ID: ${imageId}`
+            });
+          } else {
+            resolve({
+              success: false,
+              message: `Image with ID: ${imageId} not found`
+            });
+          }
+        }, 300);
+      });
+    } catch (error) {
+      console.error(`Failed to update status for image ${imageId}:`, error);
+      throw error;
+    }
+  }
 }
 
 export default new AnnotationService(); 
