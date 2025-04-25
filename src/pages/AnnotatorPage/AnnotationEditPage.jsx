@@ -87,12 +87,22 @@ const AnnotationEditPage = () => {
       alert('저장에 실패했습니다. 다시 시도해 주세요.');
     }
   };
+  
+  /**
+   * 뒤로가기 함수 - 무조건 디테일 페이지로 이동
+   */
+  const handleGoBack = () => {
+    const confirmed = window.confirm('변경 사항이 저장되지 않을 수 있습니다. 계속 진행하시겠습니까?');
+    if (confirmed) {
+      navigate(`/annotator/detail/${imageId}`);
+    }
+  };
 
   // 로딩 중일 때 표시할 내용
   if (annotationData.isLoading) {
     return (
       <div className="annotator-annotation-edit-page">
-        <Header onSave={handleSaveAndNavigate} />
+        <Header onSave={handleSaveAndNavigate} onGoBack={handleGoBack} />
         <div className="annotator-loading">
           <div className="loader"></div>
           <p>어노테이션 데이터 로딩 중...</p>
@@ -103,7 +113,7 @@ const AnnotationEditPage = () => {
 
   return (
     <div className="annotator-annotation-edit-page">
-      <Header onSave={handleSaveAndNavigate} />
+      <Header onSave={handleSaveAndNavigate} onGoBack={handleGoBack} />
       <div className={`annotator-body-container ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         <div className="annotator-sidebar-wrapper">
           <Sidebar 

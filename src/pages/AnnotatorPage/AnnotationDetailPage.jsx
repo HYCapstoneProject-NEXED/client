@@ -4,7 +4,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FaChevronLeft, FaChevronRight, FaTrash, FaPen, FaCheck, FaClock } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaTrash, FaPen, FaCheck, FaClock, FaArrowLeft } from 'react-icons/fa';
 import ImageCanvas from '../../components/Annotator/ImageCanvas';
 import Sidebar from '../../components/Annotator/Sidebar';
 import { TOOL_TYPES } from '../../constants/annotationConstants';
@@ -51,9 +51,15 @@ const AnnotationDetailPage = () => {
     // 실제 구현에서는 서버에 삭제 요청을 보내야 함
     if (window.confirm('정말로 이 어노테이션을 삭제하시겠습니까?')) {
       console.log('Deleting annotation with ID:', imageId);
-      // 삭제 후 목록 페이지로 이동
-      navigate('/annotator/list');
+      // 삭제 후 항상 대시보드 페이지로 이동
+      navigate('/annotator/dashboard');
     }
+  };
+  
+  // 뒤로가기 함수 추가
+  const handleGoBack = () => {
+    // 항상 대시보드 페이지로 이동
+    navigate('/annotator/dashboard');
   };
   
   // 상태 변경 함수
@@ -130,9 +136,13 @@ const AnnotationDetailPage = () => {
           
           <div className="pagination-container">
             <div className="pagination-arrows">
-              <button className="prev-arrow" disabled>◀</button>
-              <span className="page-indicator">1 / 1</span>
-              <button className="next-arrow" disabled>▶</button>
+              <button 
+                className="back-btn"
+                onClick={handleGoBack}
+                title="Back to Dashboard"
+              >
+                <FaArrowLeft size={16} style={{ marginRight: '5px' }} /> Back
+              </button>
             </div>
           </div>
 
@@ -156,9 +166,13 @@ const AnnotationDetailPage = () => {
         
         <div className="pagination-container">
           <div className="pagination-arrows">
-            <button className="prev-arrow" disabled>◀</button>
-            <span className="page-indicator">1 / 1</span>
-            <button className="next-arrow" disabled>▶</button>
+            <button 
+              className="back-btn"
+              onClick={handleGoBack}
+              title="Back to Dashboard"
+            >
+              <FaArrowLeft size={16} style={{ marginRight: '5px' }} /> Back
+            </button>
           </div>
         </div>
         

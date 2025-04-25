@@ -145,6 +145,27 @@ const AnnotatorDashboard = () => {
                 </div>
               </div>
             </div>
+            
+            {/* 진행률 현황 바 */}
+            <div className="progress-section">
+              <div className="progress-bar-container">
+                <div 
+                  className="progress-bar-completed" 
+                  style={{ 
+                    width: `${stats.total ? (stats.completed / stats.total) * 100 : 0}%` 
+                  }}
+                ></div>
+                <div 
+                  className="progress-bar-pending" 
+                  style={{ 
+                    width: `${stats.total ? (stats.pending / stats.total) * 100 : 0}%` 
+                  }}
+                ></div>
+              </div>
+              <div className="progress-percentage">
+                {stats.total ? Math.round((stats.completed / stats.total) * 100) : 0}% completed
+              </div>
+            </div>
           </div>
           
           {/* Filters */}

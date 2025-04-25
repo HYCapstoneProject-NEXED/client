@@ -20,13 +20,14 @@
   font-weight: 400;
   text-align: left;
   padding: 15px 0 15px 44px;
-  margin-bottom: 40px;
+  margin-bottom: 0;
 }
 
 .sidebar-menu {
   display: flex;
   flex-direction: column;
   padding-left: 44px;
+  padding-top: 5px; /* 헤더(100px) + 콘텐츠 패딩(30px) + 섹션 제목까지의 간격을 맞춤 */
 }
 
 .menu-item {

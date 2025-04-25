@@ -17,6 +17,8 @@
   font-weight: 600;
   font-family: 'Inter', sans-serif;
   margin: 0;
+  flex: 1;
+  text-align: center;
 }
 
 .annotator-save-button {
@@ -30,4 +32,19 @@
   font-weight: 700;
   font-family: 'Nunito Sans', sans-serif;
   cursor: pointer;
+}
+
+.annotator-back-button {
+  height: 59px;
+  background: transparent;
+  border: 1px solid #4880FF;
+  border-radius: 8px;
+  color: #4880FF;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Nunito Sans', sans-serif;
+  cursor: pointer;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
 } 

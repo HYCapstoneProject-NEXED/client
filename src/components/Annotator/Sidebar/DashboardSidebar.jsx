@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaHome, FaClock, FaSignOutAlt } from 'react-icons/fa';
 import './DashboardSidebar.css';
 
 /**
@@ -35,21 +36,21 @@ const DashboardSidebar = ({ activeMenu = 'dashboard' }) => {
           className={`menu-item ${activeMenu === 'dashboard' ? 'active' : ''}`}
           onClick={() => handleMenuClick('dashboard')}
         >
-          <div className="menu-icon dashboard-icon"></div>
+          <FaHome className="menu-icon" size={18} />
           <span className="menu-text">Dashboard</span>
         </div>
         <div
           className={`menu-item ${activeMenu === 'history' ? 'active' : ''}`}
           onClick={() => handleMenuClick('history')}
         >
-          <div className="menu-icon history-icon"></div>
+          <FaClock className="menu-icon" size={18} />
           <span className="menu-text">History</span>
         </div>
         <div
           className="menu-item logout"
           onClick={() => handleMenuClick('logout')}
         >
-          <div className="menu-icon logout-icon"></div>
+          <FaSignOutAlt className="menu-icon" size={18} />
           <span className="menu-text">Logout</span>
         </div>
       </div>
