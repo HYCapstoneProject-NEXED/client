@@ -1,0 +1,311 @@
+/**
+ * Annotation Grid Styles (Thumbnail View)
+ */
+
+/* Grid Container */
+.annotation-grid-container {
+  width: 100% !important;
+  background: white;
+  border-radius: 14px;
+  border: 0.3px solid #D5D5D5;
+  overflow: hidden;
+  margin-bottom: 20px;
+  padding: 12px;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  flex: 1;
+}
+
+/* Grid Actions */
+.grid-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 0 5px;
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: white;
+}
+
+.select-all-control {
+  display: flex;
+  align-items: center;
+}
+
+.select-all-label {
+  margin-left: 10px;
+  font-size: 14px;
+  color: #718EBF;
+  font-weight: 500;
+}
+
+.grid-info {
+  color: #718EBF;
+  font-size: 14px;
+}
+
+/* Grid 콘텐츠 영역 */
+.grid-content {
+  flex: 1;
+  overflow-y: auto;
+  max-height: calc(100vh - 350px);
+  padding-right: 5px; /* 스크롤바 공간 확보 */
+  padding-top: 5px; /* 상단 패딩 추가 */
+  padding-left: 5px; /* 왼쪽 패딩 추가 */
+}
+
+/* Grid Layout */
+.annotation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  width: 100% !important;
+}
+
+/* 반응형 그리드 */
+@media (max-width: 1400px) {
+  .annotation-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+}
+
+@media (max-width: 992px) {
+  .annotation-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+}
+
+@media (min-width: 1800px) {
+  .annotation-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+}
+
+/* Annotation Card */
+.annotation-card {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.annotation-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.15);
+}
+
+.annotation-card.selected {
+  border: 1.5px solid #4880FF;
+  box-shadow: 0 0 0 1px rgba(72, 128, 255, 0.2);
+}
+
+.annotation-card.selected::before {
+  display: none; /* 선택 시 그라데이션 효과 제거 */
+}
+
+.annotation-card.selected .card-header {
+  background: rgba(72, 128, 255, 0.08);
+  border-bottom: 1px solid #4880FF;
+}
+
+.annotation-card.selected .card-id {
+  color: #4880FF;
+}
+
+.annotation-card.selected .grid-checkbox-wrapper input[type="checkbox"] {
+  border-color: #4880FF;
+}
+
+/* Card Header */
+.card-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  background: #F8F9FB;
+  border-bottom: 1px solid #EFF0F6;
+}
+
+/* 체크박스 스타일 개선 */
+.grid-checkbox-wrapper {
+  margin-right: 10px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+}
+
+.grid-checkbox-wrapper input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1.5px solid #CBD5E1;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: white;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.grid-checkbox-wrapper input[type="checkbox"]:hover {
+  border-color: #4880FF;
+}
+
+.grid-checkbox-wrapper input[type="checkbox"]:checked {
+  background-color: #4880FF;
+  border-color: #4880FF;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  background-size: 12px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* 이전 체크 표시 제거 */
+.grid-checkbox-wrapper input[type="checkbox"].checked::after,
+.grid-checkbox-wrapper input[type="checkbox"]:checked::after {
+  display: none;
+}
+
+.checkbox-ripple {
+  display: none;
+}
+
+.card-id {
+  font-size: 13px;
+  font-weight: 600;
+  color: #202224;
+}
+
+/* Card Thumbnail */
+.card-thumbnail {
+  width: 100%;
+  height: 110px; /* 썸네일 높이 줄임 */
+  background: #F5F7FA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.thumbnail-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #F5F7FA 0%, #EBEEF2 100%);
+  color: #8FA3C0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Card Content */
+.card-content {
+  padding: 10px;
+}
+
+/* Card Info */
+.card-info {
+  margin-bottom: 8px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.info-label {
+  color: #718EBF;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.info-value {
+  color: #202224;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Card Footer */
+.card-footer {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 6px;
+}
+
+/* Status Tag */
+.grid-status-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* No Data Message */
+.no-data-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 0;
+  color: #718EBF;
+  font-style: italic;
+  font-size: 14px;
+}
+
+.annotation-card-header {
+  padding: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.annotation-title {
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.annotation-card-image-container {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #f5f5f5;
+}
+
+.annotation-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.annotation-card-footer {
+  padding: 6px 8px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  font-size: 12px;
+} 

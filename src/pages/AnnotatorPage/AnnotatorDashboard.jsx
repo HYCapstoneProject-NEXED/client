@@ -2,9 +2,9 @@
  * Annotator Dashboard Page
  * Displays overview of annotation tasks and their status
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaChevronDown, FaTrash, FaEye } from 'react-icons/fa';
+import { FaChevronDown, FaTrash, FaEye, FaThList, FaTh } from 'react-icons/fa';
 import useAnnotatorDashboard from '../../hooks/useAnnotatorDashboard';
 import { 
   FILTER_TYPES, 
@@ -16,11 +16,15 @@ import { extractNumericId } from '../../utils/annotatorDashboardUtils';
 import DashboardSidebar from '../../components/Annotator/Sidebar/DashboardSidebar';
 import DashboardHeader from '../../components/Annotator/Header/DashboardHeader';
 import AnnotationTable from '../../components/Annotator/Table/AnnotationTable';
+import AnnotationGrid from '../../components/Annotator/Grid/AnnotationGrid';
 import './AnnotatorDashboard.css';
 
 const AnnotatorDashboard = () => {
   const navigate = useNavigate();
   const [selectedItems, setSelectedItems] = useState({});
+  const [viewMode, setViewMode] = useState('list'); // 'list' 또는 'thumbnail' 모드
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const dashboardRef = useRef(null);
   const { 
     annotations,
     isLoading,
@@ -32,6 +36,45 @@ const AnnotatorDashboard = () => {
     refreshData
   } = useAnnotatorDashboard();
   
+  // 페이지 레이아웃 일관성 유지
+  useEffect(() => {
+    const ensureLayout = () => {
+      // 대시보드 요소가 항상 꽉 차도록 스타일 적용
+      const dashboard = dashboardRef.current;
+      if (dashboard) {
+        const content = dashboard.querySelector('.dashboard-content');
+        const viewContainer = dashboard.querySelector('.view-container');
+        const gridOrTable = viewContainer?.firstElementChild;
+        
+        if (content) {
+          content.style.width = '100%';
+        }
+        
+        if (viewContainer) {
+          viewContainer.style.width = '100%';
+          viewContainer.style.flex = '1';
+        }
+        
+        if (gridOrTable) {
+          gridOrTable.style.width = '100%';
+        }
+      }
+    };
+
+    ensureLayout();
+    window.addEventListener('resize', ensureLayout);
+    
+    // 초기 로드 및 뷰 모드 변경 후 추가 레이아웃 고정
+    const fixLayoutTimer = setTimeout(ensureLayout, 300);
+    const secondFixTimer = setTimeout(ensureLayout, 1000);
+
+    return () => {
+      window.removeEventListener('resize', ensureLayout);
+      clearTimeout(fixLayoutTimer);
+      clearTimeout(secondFixTimer);
+    };
+  }, [viewMode, isLoading, error]);
+
   const handleViewDetails = (id) => {
     // Extract numeric ID from formatted ID (e.g., IMG_001 -> 1)
     const numericId = extractNumericId(id);
@@ -70,21 +113,33 @@ const AnnotatorDashboard = () => {
       setSelectedItems({});
     }
   };
+
+  // 뷰 모드 전환 함수
+  const toggleViewMode = (mode) => {
+    if (mode === viewMode) return;
+    
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setViewMode(mode);
+      setSelectedItems({});
+      
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 100);
+    }, 150);
+  };
   
   if (isLoading) {
     return (
-      <div className="annotator-dashboard-page">
+      <div className="annotator-dashboard-page" ref={dashboardRef}>
         <DashboardSidebar activeMenu="dashboard" />
         
         <div className="main-content">
           <DashboardHeader title="Annotator" />
           
-          <div className="dashboard-content">
-            <h2 className="section-title">Current Task</h2>
-            <div className="loading-container">
-              <div className="loader"></div>
-              <p>Loading annotation data...</p>
-            </div>
+          <div className="dashboard-loading">
+            <div className="loader"></div>
+            <p>Loading dashboard data...</p>
           </div>
         </div>
       </div>
@@ -93,18 +148,15 @@ const AnnotatorDashboard = () => {
   
   if (error) {
     return (
-      <div className="annotator-dashboard-page">
+      <div className="annotator-dashboard-page" ref={dashboardRef}>
         <DashboardSidebar activeMenu="dashboard" />
         
         <div className="main-content">
           <DashboardHeader title="Annotator" />
           
-          <div className="dashboard-content">
-            <h2 className="section-title">Current Task</h2>
-            <div className="error-container">
-              <p className="error-message">{error}</p>
-              <button className="retry-btn" onClick={refreshData}>Retry</button>
-            </div>
+          <div className="dashboard-error">
+            <p className="error-message">{error}</p>
+            <button className="retry-btn" onClick={refreshData}>Retry</button>
           </div>
         </div>
       </div>
@@ -112,7 +164,7 @@ const AnnotatorDashboard = () => {
   }
   
   return (
-    <div className="annotator-dashboard-page">
+    <div className="annotator-dashboard-page" ref={dashboardRef}>
       <DashboardSidebar activeMenu="dashboard" />
       
       <div className="main-content">
@@ -182,7 +234,7 @@ const AnnotatorDashboard = () => {
                 }}
               >
                 <span>Defect Type</span>
-                <FaChevronDown />
+                <FaChevronDown size={14} />
               </div>
             </div>
             
@@ -198,7 +250,7 @@ const AnnotatorDashboard = () => {
                 }}
               >
                 <span>Status</span>
-                <FaChevronDown />
+                <FaChevronDown size={14} />
               </div>
             </div>
             
@@ -214,8 +266,26 @@ const AnnotatorDashboard = () => {
                 }}
               >
                 <span>Confidence Score</span>
-                <FaChevronDown />
+                <FaChevronDown size={14} />
               </div>
+            </div>
+            
+            {/* 뷰 모드 전환 버튼 */}
+            <div className="view-mode-buttons">
+              <button 
+                className={`view-mode-btn ${viewMode === 'list' ? 'active' : ''}`}
+                onClick={() => toggleViewMode('list')}
+                title="List View"
+              >
+                <FaThList size={18} />
+              </button>
+              <button 
+                className={`view-mode-btn ${viewMode === 'thumbnail' ? 'active' : ''}`}
+                onClick={() => toggleViewMode('thumbnail')}
+                title="Thumbnail View"
+              >
+                <FaTh size={18} />
+              </button>
             </div>
             
             <div className="filter-actions">
@@ -230,14 +300,26 @@ const AnnotatorDashboard = () => {
             </div>
           </div>
           
-          {/* Annotation Table */}
-          <AnnotationTable 
-            annotations={annotations}
-            onViewDetails={handleViewDetails}
-            onDelete={handleDelete}
-            selectedItems={selectedItems}
-            setSelectedItems={setSelectedItems}
-          />
+          {/* 뷰 모드에 따라 다른 컴포넌트 렌더링 */}
+          <div className={`view-container ${isTransitioning ? 'transitioning' : ''}`}>
+            {viewMode === 'list' ? (
+              <AnnotationTable 
+                annotations={annotations}
+                onViewDetails={handleViewDetails}
+                onDelete={handleDelete}
+                selectedItems={selectedItems}
+                setSelectedItems={setSelectedItems}
+              />
+            ) : (
+              <AnnotationGrid 
+                annotations={annotations}
+                onViewDetails={handleViewDetails}
+                onDelete={handleDelete}
+                selectedItems={selectedItems}
+                setSelectedItems={setSelectedItems}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>

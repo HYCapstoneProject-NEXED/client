@@ -2,14 +2,21 @@
  * Annotator Dashboard Page Styles
  */
 
+/* 전역 설정 */
+* {
+  box-sizing: border-box;
+}
+
 /* Main Layout */
 .annotator-dashboard-page {
   display: flex;
-  width: 100%;
+  width: 100vw;
   height: 100vh;
   position: relative;
   background: white;
   overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 /* Main Content */
@@ -18,12 +25,19 @@
   display: flex;
   flex-direction: column;
   background: #F5F7FA;
+  width: 100%;
+  min-width: 0; /* flex 아이템 축소 방지 */
+  overflow: hidden;
 }
 
 /* Dashboard Content */
 .dashboard-content {
   padding: 30px;
   overflow-y: auto;
+  height: calc(100vh - 80px);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .section-title {
@@ -31,26 +45,38 @@
   font-size: 22px;
   font-family: 'Inter', sans-serif;
   font-weight: 600;
-  margin-bottom: 15px;
+  margin-bottom: 0;
 }
 
 /* Loading State */
-.loading-container {
+.loading-container,
+.error-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 400px;
+  min-height: 300px;
+  width: 80%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 14px;
+  padding: 40px 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  z-index: 10;
 }
 
+/* 로딩 컨테이너 */
 .loader {
-  border: 5px solid #f3f3f3;
-  border-top: 5px solid #2D60FF;
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #4880FF;
   border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20px;
+  width: 60px;
+  height: 60px;
+  animation: spin 1.2s linear infinite;
+  margin-bottom: 30px;
 }
 
 @keyframes spin {
@@ -60,41 +86,38 @@
 
 .loading-container p {
   color: #343C6A;
-  font-size: 16px;
+  font-size: 18px;
   font-family: 'Inter', sans-serif;
+  text-align: center;
+  font-weight: 500;
 }
 
 /* Error State */
-.error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 400px;
-}
-
 .error-message {
   color: #EF3826;
-  font-size: 16px;
+  font-size: 18px;
   font-family: 'Inter', sans-serif;
   font-weight: 500;
   margin-bottom: 20px;
+  text-align: center;
 }
 
 .retry-btn {
-  padding: 10px 20px;
+  padding: 12px 30px;
   background-color: #4880FF;
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 16px;
   font-family: 'Nunito Sans', sans-serif;
   font-weight: 700;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .retry-btn:hover {
   background-color: #3a68cc;
+  transform: translateY(-2px);
 }
 
 /* Task Statistics Card */
@@ -103,7 +126,7 @@
   background: white;
   border-radius: 25px;
   padding: 30px;
-  margin-bottom: 30px;
+  margin-bottom: -5px;
 }
 
 .stats-item {
@@ -172,18 +195,34 @@
   gap: 15px;
   margin-bottom: 20px;
   margin-top: 30px;
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap;
 }
 
+/* 공통 버튼 스타일 */
+.view-details-btn,
+.delete-btn,
+.view-mode-btn,
+.filter-dropdown {
+  font-size: 14px;
+  font-family: 'Nunito Sans', sans-serif;
+  font-weight: 700;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  border: 1px solid #EFF0F6;
+  height: 43px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+/* 필터 드롭다운 */
 .filter-dropdown {
   width: 200px;
-  height: 49px;
   background: white;
-  border-radius: 20px;
-  border: 1px solid #EFF0F6;
   display: flex;
   align-items: center;
   padding: 0 15px;
-  cursor: pointer;
 }
 
 .filter-input {
@@ -192,9 +231,6 @@
   align-items: center;
   justify-content: space-between;
   color: rgba(0, 0, 0, 0.7);
-  font-size: 16px;
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
 }
 
 .filter-actions {
@@ -203,40 +239,84 @@
   gap: 10px;
 }
 
-/* 공통 버튼 스타일 */
-.view-details-btn,
-.delete-btn {
-  height: 43px;
-  border-radius: 8px;
+/* View Details 버튼 스타일 */
+.view-details-btn {
+  background: #4880FF;
+  opacity: 0.9;
   border: none;
   color: white;
-  font-size: 14px;
-  font-family: 'Nunito Sans', sans-serif;
-  font-weight: 700;
-  cursor: pointer;
   padding: 0 15px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-}
-
-/* View Details 버튼 스타일 */
-.view-details-btn {
-  background: #4880FF;
 }
 
 .view-details-btn:hover {
-  background-color: #3a68cc;
+  background-color: #4880FF;
+  opacity: 1;
 }
 
 /* Delete 버튼 스타일 */
 .delete-btn {
-  background-color: #e74c3c;
+  background-color: #e64c4c;
+  opacity: 0.95;
+  border: none;
+  color: white;
+  padding: 0 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .delete-btn:hover {
-  background-color: #c0392b;
+  background-color: #d83c3c;
+  opacity: 1;
+}
+
+/* View Mode Buttons */
+.view-mode-buttons {
+  display: flex;
+  align-items: stretch;
+  background-color: #fff;
+  overflow: hidden;
+  border: 1px solid #EFF0F6;
+  margin-left: 10px;
+  padding: 0;
+  border-radius: 8px;
+  height: 43px;
+}
+
+.view-mode-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 43px;
+  height: 100%;
+  background: none;
+  border: none;
+  color: #718EBF;
+  padding: 0;
+  margin: 0;
+  outline: none;
+}
+
+.view-mode-btn:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+.view-mode-btn:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+.view-mode-btn:hover {
+  background-color: #f9f9f9;
+  color: #4880FF;
+}
+
+.view-mode-btn.active {
+  background-color: #4880FF;
+  opacity: 0.9;
+  color: white;
 }
 
 /* 진행률 섹션 */
@@ -275,4 +355,106 @@
   font-weight: 500;
   margin-top: 8px;
   text-align: left;
+}
+
+/* 뷰 컨테이너 */
+.view-container {
+  width: 100%;
+  position: relative;
+  transition: opacity 0.25s ease;
+  opacity: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+}
+
+.view-container.transitioning {
+  opacity: 0;
+}
+
+/* 테이블/그리드 래퍼가 항상 가능한 최대 너비를 사용하도록 */
+.view-container > div {
+  width: 100% !important;
+  flex: 1;
+}
+
+/* 카드 내부 로딩/에러 컨테이너 스타일 */
+.task-stats-card .loading-container,
+.task-stats-card .error-container,
+.view-container .loading-container,
+.view-container .error-container {
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: none;
+  margin: 0;
+  padding: 20px;
+  z-index: 5;
+}
+
+/* 로더 스타일 조정 */
+.task-stats-card .loader,
+.view-container .loader {
+  width: 40px;
+  height: 40px;
+  border-width: 4px;
+  margin-bottom: 15px;
+}
+
+/* 카드 내부 텍스트 스타일 조정 */
+.task-stats-card .loading-container p,
+.task-stats-card .error-container p,
+.view-container .loading-container p,
+.view-container .error-container p {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+/* 카드 내부 버튼 스타일 조정 */
+.task-stats-card .retry-btn,
+.view-container .retry-btn {
+  padding: 8px 20px;
+  font-size: 14px;
+}
+
+/* 로딩 및 에러 상태 */
+.dashboard-loading,
+.dashboard-error {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 80px);
+  width: 100%;
+  background: #f8f9fa;
+}
+
+.dashboard-loading p,
+.dashboard-error p {
+  color: #343C6A;
+  font-size: 16px;
+  margin-top: 20px;
+  font-family: 'Nunito Sans', sans-serif;
+  text-align: center;
+}
+
+.dashboard-error .error-message {
+  color: #EF3826;
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 20px;
+}
+
+.dashboard-error .retry-btn {
+  padding: 10px 25px;
+  background-color: #4880FF;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dashboard-error .retry-btn:hover {
+  background-color: #3a70e8;
 } 

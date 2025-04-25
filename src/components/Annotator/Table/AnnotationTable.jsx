@@ -156,53 +156,87 @@ const AnnotationTable = ({
 
   return (
     <div className="annotation-table-container">
-      <table className="annotation-table">
+      {/* 고정된 테이블 헤더 */}
+      <table className="annotation-table header-table">
+        <colgroup>
+          <col className="checkbox-col" />
+          <col className="camera-id-col" />
+          <col className="data-id-col" />
+          <col className="confidence-col" />
+          <col className="count-col" />
+          <col className="status-col" />
+        </colgroup>
         <thead>
           <tr>
             <th className="checkbox-col">
-              <CheckboxCell 
-                checked={selectAll}
-                onChange={handleSelectAll}
-              />
+              <div className="select-control">
+                <CheckboxCell 
+                  checked={selectAll}
+                  onChange={handleSelectAll}
+                />
+              </div>
             </th>
             <th>CAMERA ID</th>
             <th>DATA ID</th>
             <th>CONFIDENCE SCORE(MIN)</th>
             <th>COUNT</th>
-            <th>STATUS</th>
+            <th className="status-selection-col">
+              <div className="header-content">
+                <span>STATUS</span>
+                <span className="selection-info">
+                  {annotations.length > 0 && 
+                    `${Object.keys(effectiveSelectedItems).filter(id => effectiveSelectedItems[id]).length} of ${annotations.length} selected`
+                  }
+                </span>
+              </div>
+            </th>
           </tr>
         </thead>
-        <tbody>
-          {annotations.map((annotation) => (
-            <tr 
-              key={annotation.id} 
-              onClick={() => onViewDetails(annotation.id)}
-              className={effectiveSelectedItems[annotation.id] ? 'selected-row' : ''}
-            >
-              <td className="checkbox-col">
-                <CheckboxCell 
-                  checked={!!effectiveSelectedItems[annotation.id]} 
-                  onChange={(e) => handleSelectItem(e, annotation.id)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </td>
-              <td>{annotation.cameraId}</td>
-              <td>{annotation.id}</td>
-              <td>{formatConfidenceScore(annotation.confidenceScore)}</td>
-              <td>{annotation.defectCount}</td>
-              <td>{renderStatusTag(annotation.status)}</td>
-            </tr>
-          ))}
-          
-          {annotations.length === 0 && (
-            <tr>
-              <td colSpan="6" className="no-data-message">
-                No data available
-              </td>
-            </tr>
-          )}
-        </tbody>
       </table>
+      
+      {/* 스크롤 가능한 테이블 본문 */}
+      <div className="table-body-container">
+        <table className="annotation-table body-table">
+          <colgroup>
+            <col className="checkbox-col" />
+            <col className="camera-id-col" />
+            <col className="data-id-col" />
+            <col className="confidence-col" />
+            <col className="count-col" />
+            <col className="status-col" />
+          </colgroup>
+          <tbody>
+            {annotations.map((annotation) => (
+              <tr 
+                key={annotation.id} 
+                onClick={() => onViewDetails(annotation.id)}
+                className={effectiveSelectedItems[annotation.id] ? 'selected-row' : ''}
+              >
+                <td className="checkbox-col">
+                  <CheckboxCell 
+                    checked={!!effectiveSelectedItems[annotation.id]} 
+                    onChange={(e) => handleSelectItem(e, annotation.id)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </td>
+                <td>{annotation.cameraId}</td>
+                <td>{annotation.id}</td>
+                <td>{formatConfidenceScore(annotation.confidenceScore)}</td>
+                <td>{annotation.defectCount}</td>
+                <td>{renderStatusTag(annotation.status)}</td>
+              </tr>
+            ))}
+            
+            {annotations.length === 0 && (
+              <tr>
+                <td colSpan="6" className="no-data-message">
+                  No data available
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

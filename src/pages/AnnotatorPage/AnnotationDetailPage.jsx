@@ -134,18 +134,6 @@ const AnnotationDetailPage = () => {
         <div className="annotator-detail-header">
           <h1>Annotation Details</h1>
           
-          <div className="pagination-container">
-            <div className="pagination-arrows">
-              <button 
-                className="back-btn"
-                onClick={handleGoBack}
-                title="Back to Dashboard"
-              >
-                <FaArrowLeft size={16} style={{ marginRight: '5px' }} /> Back
-              </button>
-            </div>
-          </div>
-
           <div className="header-actions">
             {/* 로딩 중에는 버튼 표시하지 않음 */}
           </div>
@@ -164,21 +152,7 @@ const AnnotationDetailPage = () => {
       <div className="annotator-detail-header">
         <h1>Annotation Details</h1>
         
-        <div className="pagination-container">
-          <div className="pagination-arrows">
-            <button 
-              className="back-btn"
-              onClick={handleGoBack}
-              title="Back to Dashboard"
-            >
-              <FaArrowLeft size={16} style={{ marginRight: '5px' }} /> Back
-            </button>
-          </div>
-        </div>
-        
         <div className="header-actions">
-          {/* 상태 표시 및 변경 버튼 제거 */}
-          
           <button 
             className="start-annotating-btn"
             onClick={startAnnotating}
