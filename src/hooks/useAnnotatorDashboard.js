@@ -1,178 +1,166 @@
+/**
+ * Custom hook for Annotator Dashboard
+ * Handles loading data, filtering, statistics, and pagination
+ */
 import { useState, useEffect, useCallback } from 'react';
 import AnnotationService from '../services/AnnotationService';
 import { FILTER_TYPES } from '../constants/annotatorDashboardConstants';
+import { calculateDashboardStats } from '../utils/annotatorDashboardUtils';
 
-/**
- * 어노테이터 대시보드 데이터 및 필터링 관리 커스텀 훅
- * - 어노테이션 데이터 로딩
- * - 필터링 기능
- * - 통계 계산
- * - 페이지네이션
- */
 const useAnnotatorDashboard = () => {
-  // 데이터 상태
+  // State for annotations
   const [annotations, setAnnotations] = useState([]);
   const [filteredAnnotations, setFilteredAnnotations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // 통계 상태
+  // Statistics
   const [stats, setStats] = useState({
     total: 0,
     completed: 0,
     pending: 0
   });
   
-  // 필터 상태
+  // Filters
   const [filters, setFilters] = useState({
     [FILTER_TYPES.DEFECT_TYPE]: 'all',
     [FILTER_TYPES.STATUS]: 'all',
     [FILTER_TYPES.CONFIDENCE_SCORE]: 'all'
   });
   
-  // 페이지네이션 상태
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   
-  // 데이터 로딩 함수
-  const loadAnnotations = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  /**
+   * Applies filters to the annotation data
+   */
+  const applyFilters = useCallback((data, currentFilters) => {
+    return data.filter(annotation => {
+      // Filter by defect type
+      if (currentFilters[FILTER_TYPES.DEFECT_TYPE] !== 'all') {
+        const defectType = currentFilters[FILTER_TYPES.DEFECT_TYPE];
+        if (!annotation.defects.some(defect => defect.type === defectType)) {
+          return false;
+        }
+      }
       
+      // Filter by status
+      if (currentFilters[FILTER_TYPES.STATUS] !== 'all') {
+        if (annotation.status !== currentFilters[FILTER_TYPES.STATUS]) {
+          return false;
+        }
+      }
+      
+      // Filter by confidence score
+      if (currentFilters[FILTER_TYPES.CONFIDENCE_SCORE] !== 'all') {
+        const score = annotation.confidenceScore;
+        const confidenceFilter = currentFilters[FILTER_TYPES.CONFIDENCE_SCORE];
+        
+        if (confidenceFilter === 'high' && score < 0.7) return false;
+        if (confidenceFilter === 'medium' && (score < 0.4 || score >= 0.7)) return false;
+        if (confidenceFilter === 'low' && score >= 0.4) return false;
+      }
+      
+      return true;
+    });
+  }, []);
+  
+  /**
+   * Calculate statistics from annotation data
+   */
+  const calculateStats = useCallback((data) => {
+    return calculateDashboardStats(data);
+  }, []);
+  
+  /**
+   * Load annotations from the API
+   */
+  const loadAnnotations = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Fetch annotations from service
       const data = await AnnotationService.getAllAnnotationSummaries();
       setAnnotations(data);
       
-      // 필터링 적용
-      applyFilters(data);
+      // Apply filters
+      const filtered = applyFilters(data, filters);
+      setFilteredAnnotations(filtered);
       
-      // 통계 계산
-      calculateStats(data);
+      // Calculate statistics
+      const newStats = calculateStats(data);
+      setStats(newStats);
       
       setIsLoading(false);
     } catch (err) {
-      setError('데이터를 불러오는 중 오류가 발생했습니다.');
       console.error('Error loading annotations:', err);
+      setError('Error loading data. Please try again.');
       setIsLoading(false);
     }
-  }, []);
+  }, [filters, applyFilters, calculateStats]);
   
-  // 초기 데이터 로드
+  /**
+   * Initial data loading
+   */
   useEffect(() => {
     loadAnnotations();
   }, [loadAnnotations]);
   
-  // 필터 변경 시 필터링 적용
-  useEffect(() => {
-    applyFilters(annotations);
-  }, [filters, annotations]);
-  
-  // 필터링 적용 함수
-  const applyFilters = (data) => {
-    let filtered = [...data];
-    
-    // 결함 유형 필터링 (추후 구현)
-    // if (filters[FILTER_TYPES.DEFECT_TYPE] !== 'all') {
-    //   filtered = filtered.filter(...);
-    // }
-    
-    // 상태 필터링
-    if (filters[FILTER_TYPES.STATUS] !== 'all') {
-      filtered = filtered.filter(item => item.status === filters[FILTER_TYPES.STATUS]);
-    }
-    
-    // 신뢰도 점수 필터링
-    if (filters[FILTER_TYPES.CONFIDENCE_SCORE] !== 'all') {
-      const scoreFilter = filters[FILTER_TYPES.CONFIDENCE_SCORE];
-      
-      switch (scoreFilter) {
-        case 'high':
-          filtered = filtered.filter(item => item.confidenceScore >= 0.8);
-          break;
-        case 'medium':
-          filtered = filtered.filter(item => item.confidenceScore >= 0.5 && item.confidenceScore < 0.8);
-          break;
-        case 'low':
-          filtered = filtered.filter(item => item.confidenceScore !== null && item.confidenceScore < 0.5);
-          break;
-        default:
-          break;
-      }
-    }
-    
-    setFilteredAnnotations(filtered);
-    setCurrentPage(1); // 필터 변경 시 첫 페이지로 이동
-  };
-  
-  // 통계 계산 함수
-  const calculateStats = (data) => {
-    const completed = data.filter(item => item.status === 'completed').length;
-    
-    setStats({
-      total: data.length,
-      completed,
-      pending: data.length - completed
-    });
-  };
-  
-  // 필터 변경 핸들러
+  /**
+   * Handle filter change
+   */
   const handleFilterChange = (filterType, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [filterType]: value
-    }));
+    const newFilters = { ...filters, [filterType]: value };
+    setFilters(newFilters);
+    
+    // Apply new filters to annotations
+    const filtered = applyFilters(annotations, newFilters);
+    setFilteredAnnotations(filtered);
+    setCurrentPage(1); // Reset to first page when filters change
   };
   
-  // 페이지 변경 핸들러
+  /**
+   * Handle page change
+   */
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
   
-  // 현재 페이지의 데이터 계산
-  const getCurrentPageItems = () => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredAnnotations.slice(startIndex, endIndex);
-  };
-  
-  // 어노테이션 삭제 핸들러
+  /**
+   * Handle deleting an annotation
+   */
   const handleDelete = async (id) => {
-    if (window.confirm(`정말로 ${id} 어노테이션을 삭제하시겠습니까?`)) {
+    if (window.confirm('Are you sure you want to delete this annotation?')) {
       try {
-        // 실제 구현 시에는 서비스를 통한 삭제 요청 필요
-        // await AnnotationService.deleteAnnotation(id);
+        // Implement actual deletion logic
+        await AnnotationService.deleteAnnotation(id);
         
-        // 임시로 로컬 상태에서만 삭제
-        const updatedAnnotations = annotations.filter(anno => anno.id !== id);
-        setAnnotations(updatedAnnotations);
-        
-        // 상태 업데이트
-        calculateStats(updatedAnnotations);
-        
-        return true;
+        // Refresh data after deletion
+        loadAnnotations();
       } catch (err) {
-        console.error('Failed to delete annotation:', err);
-        return false;
+        console.error('Error deleting annotation:', err);
+        setError('Error deleting annotation. Please try again.');
       }
     }
-    return false;
   };
   
-  // 데이터 리로드 함수
+  /**
+   * Refresh data
+   */
   const refreshData = () => {
     loadAnnotations();
   };
   
   return {
-    annotations: getCurrentPageItems(),
-    allAnnotations: filteredAnnotations,
+    annotations: filteredAnnotations,
     isLoading,
     error,
     stats,
     filters,
     currentPage,
     itemsPerPage,
-    totalPages: Math.ceil(filteredAnnotations.length / itemsPerPage),
     handleFilterChange,
     handlePageChange,
     handleDelete,

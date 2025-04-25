@@ -1,24 +1,24 @@
 /**
- * 어노테이터 대시보드 관련 유틸리티 함수
+ * Annotator Dashboard Utility Functions
  */
 
 /**
- * 신뢰도 점수를 포맷팅하는 함수
- * @param {number|null} score - 신뢰도 점수
- * @param {string} fallback - 값이 없을 때 표시할 문자열
- * @returns {string} 포맷팅된 신뢰도 점수
+ * Format confidence score for display
+ * @param {number} score - The confidence score (0-1)
+ * @param {string} fallback - Fallback text when score is missing
+ * @returns {string} Formatted score as percentage with 2 decimal places
  */
-export const formatConfidenceScore = (score, fallback = '-') => {
+export const formatConfidenceScore = (score, fallback = 'N/A') => {
   if (score === null || score === undefined) {
     return fallback;
   }
-  return score.toFixed(2);
+  return `${(score * 100).toFixed(2)}%`;
 };
 
 /**
- * 상태값에 따른 스타일 객체를 반환하는 함수
- * @param {string} status - 상태값 ('completed', 'pending' 등)
- * @returns {Object} 스타일 객체
+ * Get status style object based on status value
+ * @param {string} status - Status value ('completed', 'pending', etc.)
+ * @returns {Object} Style object with color, backgroundColor and text
  */
 export const getStatusStyles = (status) => {
   const statusMap = {
@@ -44,7 +44,7 @@ export const getStatusStyles = (status) => {
     }
   };
 
-  // 상태값이 정의되지 않은 경우 기본값 반환
+  // Return default for undefined status
   if (!statusMap[status]) {
     return {
       color: '#555555',
@@ -57,16 +57,16 @@ export const getStatusStyles = (status) => {
 };
 
 /**
- * 데이터 ID를 포맷팅하는 함수 (예: 1 -> IMG_001)
- * @param {number|string} id - 데이터 ID
- * @returns {string} 포맷팅된 ID
+ * Format data ID (e.g., 1 -> IMG_001)
+ * @param {number|string} id - Data ID
+ * @returns {string} Formatted ID
  */
 export const formatDataId = (id) => {
   if (typeof id === 'number') {
     return `IMG_${id.toString().padStart(3, '0')}`;
   }
   
-  // 이미 문자열 형태인 경우
+  // If already in string format
   if (typeof id === 'string' && id.startsWith('IMG_')) {
     return id;
   }
@@ -75,9 +75,9 @@ export const formatDataId = (id) => {
 };
 
 /**
- * 문자열 형태의 데이터 ID에서 숫자 ID를 추출하는 함수 (예: IMG_001 -> 1)
- * @param {string} formattedId - 포맷팅된 ID (IMG_001 형식)
- * @returns {number} 숫자 ID
+ * Extract numeric ID from formatted ID (e.g., IMG_001 -> 1)
+ * @param {string} formattedId - Formatted ID (IMG_001 format)
+ * @returns {number} Numeric ID
  */
 export const extractNumericId = (formattedId) => {
   if (typeof formattedId !== 'string') {
@@ -93,25 +93,34 @@ export const extractNumericId = (formattedId) => {
 };
 
 /**
- * 데이터 목록에서 통계 정보를 계산하는 함수
- * @param {Array} data - 어노테이션 데이터 배열
- * @returns {Object} 통계 정보
+ * Calculate dashboard statistics from annotation data
+ * @param {Array} annotations - The annotation data array
+ * @returns {Object} Statistics object with total, completed, and pending counts
  */
-export const calculateDashboardStats = (data) => {
-  if (!data || !Array.isArray(data)) {
-    return {
-      total: 0,
-      completed: 0,
-      pending: 0
-    };
+export const calculateDashboardStats = (annotations) => {
+  if (!annotations || !Array.isArray(annotations)) {
+    return { total: 0, completed: 0, pending: 0 };
   }
   
-  const total = data.length;
-  const completed = data.filter(item => item.status === 'completed').length;
+  const total = annotations.length;
+  const completed = annotations.filter(item => item.status === 'completed').length;
   
   return {
     total,
     completed,
     pending: total - completed
   };
+};
+
+/**
+ * Get page data from array based on pagination settings
+ * @param {Array} data - The full data array
+ * @param {number} currentPage - The current page number (1-based)
+ * @param {number} itemsPerPage - The number of items per page
+ * @returns {Array} The paginated data for the current page
+ */
+export const getPaginatedData = (data, currentPage, itemsPerPage) => {
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  return data.slice(startIndex, endIndex);
 }; 

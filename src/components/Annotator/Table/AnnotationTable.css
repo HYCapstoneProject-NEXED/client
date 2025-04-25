@@ -2,6 +2,56 @@
  * Annotation Table Styles
  */
 
+/* Table Wrapper */
+.annotation-table-wrapper {
+  width: 100%;
+}
+
+/* Table Actions */
+.table-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.selected-count {
+  color: #718EBF;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.delete-selected-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background-color: #E2EAF8;
+  color: #EF3826;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0.9;
+}
+
+.delete-selected-btn:hover {
+  opacity: 1;
+  background-color: #D9E4F7;
+}
+
+.delete-selected-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Table Container */
 .annotation-table-container {
   width: 100%;
@@ -16,6 +66,7 @@
 .annotation-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 /* Table Header */
@@ -35,6 +86,20 @@
   opacity: 0.9;
 }
 
+/* 체크박스 열 스타일 */
+.checkbox-col {
+  width: 40px;
+  max-width: 40px;
+  min-width: 40px;
+  padding-right: 0;
+}
+
+/* 데이터 열 너비 설정 */
+th:not(.checkbox-col),
+td:not(.checkbox-col) {
+  width: calc((100% - 40px) / 5); /* 체크박스 열을 제외하고 5개 열에 균등 분배 */
+}
+
 /* Table Body */
 .annotation-table tbody tr {
   height: 76px;
@@ -47,6 +112,15 @@
   background: #f9f9f9;
 }
 
+/* Selected Row Style */
+.annotation-table tbody tr.selected-row {
+  background: rgba(72, 128, 255, 0.05);
+}
+
+.annotation-table tbody tr.selected-row:hover {
+  background: rgba(72, 128, 255, 0.1);
+}
+
 .annotation-table td {
   padding: 15px;
   color: #202224;
@@ -54,49 +128,40 @@
   font-family: 'Nunito Sans', sans-serif;
   font-weight: 600;
   opacity: 0.9;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Status Tag */
 .status-tag {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
-  border-radius: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
   font-size: 12px;
   font-weight: 600;
 }
 
-/* Checkbox Column */
-.checkbox-col {
-  width: 40px;
+/* Status Tag Completed */
+.status-tag.completed {
+  background-color: #E0F2F1;
+  color: #00B69B;
 }
 
+/* Status Tag Pending */
+.status-tag.pending {
+  background-color: #FFF8E1;
+  color: #FCAA0B;
+}
+
+/* Checkbox Input */
 .annotation-table input[type="checkbox"] {
   width: 15.55px;
   height: 16px;
   border-radius: 3px;
   border: 1.2px solid #B3B3B3;
   cursor: pointer;
-}
-
-/* Delete Button */
-.delete-btn {
-  width: 138px;
-  height: 37px;
-  background: #E2EAF8;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  color: #EF3826;
-  font-size: 14px;
-  font-family: 'Nunito Sans', sans-serif;
-  font-weight: 700;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-}
-
-.delete-btn:hover {
-  opacity: 1;
 }
 
 /* Empty State */

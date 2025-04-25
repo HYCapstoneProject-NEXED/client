@@ -60,6 +60,42 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'pending'
+  },
+  {
+    image_id: 103,
+    file_name: 'sample_image_03.jpg',
+    capture_date: '2023-05-16T09:45:30Z',
+    last_modified: '2023-05-17T15:22:15Z',
+    width: 1920,
+    height: 1080,
+    status: 'pending'
+  },
+  {
+    image_id: 104,
+    file_name: 'sample_image_04.jpg',
+    capture_date: '2023-05-16T11:30:30Z',
+    last_modified: '2023-05-17T16:42:15Z',
+    width: 1920,
+    height: 1080,
+    status: 'completed'
+  },
+  {
+    image_id: 105,
+    file_name: 'sample_image_05.jpg',
+    capture_date: '2023-05-17T08:15:30Z',
+    last_modified: '2023-05-18T10:12:15Z',
+    width: 1920,
+    height: 1080,
+    status: 'pending'
+  },
+  {
+    image_id: 106,
+    file_name: 'sample_image_06.jpg',
+    capture_date: '2023-05-17T12:25:30Z',
+    last_modified: '2023-05-18T14:32:15Z',
+    width: 1920,
+    height: 1080,
+    status: 'pending'
   }
 ];
 
@@ -164,6 +200,51 @@ class AnnotationService {
       });
     } catch (error) {
       console.error('Failed to fetch annotations:', error);
+      throw error;
+    }
+  }
+
+  // 대시보드용 모든 어노테이션 요약 정보 가져오기
+  async getAllAnnotationSummaries() {
+    try {
+      // 실제 API 요청 코드 (현재는 주석 처리)
+      // const response = await axios.get(`${API_URL}/annotations/summaries`);
+      // return response.data;
+      
+      // 더미 데이터를 사용하여 대시보드 표시 데이터 생성
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          const summaries = DUMMY_IMAGES.map(image => {
+            // 이미지에 연결된 어노테이션 수 계산
+            const imageAnnotations = DUMMY_ANNOTATIONS.filter(anno => anno.image_id === image.image_id);
+            
+            // 해당 이미지의 최소 신뢰도 점수 찾기
+            let minConfScore = null;
+            if (imageAnnotations.length > 0) {
+              // null이 아닌 신뢰도 점수만 필터링
+              const confScores = imageAnnotations
+                .map(anno => anno.conf_score)
+                .filter(score => score !== null);
+              
+              if (confScores.length > 0) {
+                minConfScore = Math.min(...confScores);
+              }
+            }
+            
+            return {
+              id: `IMG_${image.image_id.toString().padStart(3, '0')}`, // IMG_001 형식으로 포맷팅
+              cameraId: `IMG_${image.image_id.toString().padStart(3, '0')}`,
+              confidenceScore: minConfScore,
+              defectCount: imageAnnotations.length > 0 ? imageAnnotations.length : 0,
+              status: image.status
+            };
+          });
+          
+          resolve(summaries);
+        }, 300);
+      });
+    } catch (error) {
+      console.error('Failed to fetch annotation summaries:', error);
       throw error;
     }
   }

@@ -99,8 +99,7 @@
 
 /* Task Statistics Card */
 .task-stats-card {
-  width: 1109px;
-  height: 224px;
+  width: 100%;
   background: white;
   border-radius: 25px;
   padding: 30px;
@@ -198,10 +197,16 @@
   font-weight: 500;
 }
 
-.view-details-btn {
-  width: 187px;
+.filter-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
+}
+
+/* 공통 버튼 스타일 */
+.view-details-btn,
+.delete-btn {
   height: 43px;
-  background: #4880FF;
   border-radius: 8px;
   border: none;
   color: white;
@@ -209,9 +214,27 @@
   font-family: 'Nunito Sans', sans-serif;
   font-weight: 700;
   cursor: pointer;
-  margin-left: auto;
+  padding: 0 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+/* View Details 버튼 스타일 */
+.view-details-btn {
+  background: #4880FF;
 }
 
 .view-details-btn:hover {
   background-color: #3a68cc;
+}
+
+/* Delete 버튼 스타일 */
+.delete-btn {
+  background-color: #e74c3c;
+}
+
+.delete-btn:hover {
+  background-color: #c0392b;
 } 

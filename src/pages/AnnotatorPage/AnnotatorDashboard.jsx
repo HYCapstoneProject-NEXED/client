@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaChevronDown } from 'react-icons/fa';
+import { FaChevronDown, FaTrash } from 'react-icons/fa';
 import useAnnotatorDashboard from '../../hooks/useAnnotatorDashboard';
 import { 
   FILTER_TYPES, 
@@ -39,6 +39,11 @@ const AnnotatorDashboard = () => {
     } else {
       console.error(`Invalid ID format: ${id}`);
     }
+  };
+
+  const handleDeleteSelected = () => {
+    // 체크박스로 선택된 항목들을 삭제하는 기능
+    // 이 기능은 AnnotationTable 컴포넌트에서 자체적으로 구현됨
   };
   
   if (isLoading) {
@@ -167,7 +172,15 @@ const AnnotatorDashboard = () => {
               </div>
             </div>
             
-            <button className="view-details-btn" onClick={refreshData}>View Details</button>
+            <div className="filter-actions">
+              <button className="view-details-btn" onClick={refreshData}>
+                View Details
+              </button>
+              <button className="delete-btn" onClick={handleDeleteSelected}>
+                <FaTrash size={14} style={{ marginRight: '5px' }} />
+                Delete Selected
+              </button>
+            </div>
           </div>
           
           {/* Annotation Table */}
