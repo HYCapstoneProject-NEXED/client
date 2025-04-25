@@ -1,0 +1,94 @@
+/**
+ * 대시보드 사이드바 스타일
+ */
+
+/* Left Sidebar */
+.left-sidebar {
+  width: 250px;
+  height: 100%;
+  border-right: 1px solid #E6EFF5;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.logo {
+  color: #343C6A;
+  font-size: 36px;
+  font-family: 'Lalezar', cursive;
+  font-weight: 400;
+  padding: 27px 0 0 49px;
+  margin-bottom: 50px;
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  padding-left: 44px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  padding: 10px 0;
+  cursor: pointer;
+  position: relative;
+}
+
+.menu-item.active {
+  color: #2D60FF;
+}
+
+.menu-item.active:before {
+  content: '';
+  position: absolute;
+  left: -44px;
+  top: 0;
+  width: 6px;
+  height: 60px;
+  background: #2D60FF;
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.menu-icon {
+  width: 25px;
+  height: 25px;
+  background: #B6B6B6;
+}
+
+.menu-item.active .menu-icon {
+  background: #2D60FF;
+}
+
+.menu-text {
+  font-size: 18px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  color: #B1B1B1;
+}
+
+.menu-item.active .menu-text {
+  color: #2D60FF;
+}
+
+.menu-item.logout {
+  margin-top: auto;
+  position: absolute;
+  bottom: 30px;
+}
+
+/* Dashboard Icon (임시, 실제 프로젝트에서는 아이콘 이미지나 SVG 사용 권장) */
+.dashboard-icon {
+  background: #B6B6B6;
+}
+
+.history-icon {
+  background: #B6B6B6;
+}
+
+.logout-icon {
+  background: #B6B6B6;
+} 

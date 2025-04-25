@@ -1,0 +1,30 @@
+/**
+ * 대시보드 헤더 스타일
+ */
+
+.main-header {
+  height: 100px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 50px;
+  border-bottom: 1px solid #E6EFF5;
+}
+
+.header-title {
+  color: black;
+  font-size: 24px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  margin-right: auto;
+  margin-left: 864px;
+}
+
+.user-profile {
+  width: 60px;
+  height: 60px;
+  background: #C4C4C4;
+  border-radius: 9999px;
+  margin-right: 30px;
+} 
