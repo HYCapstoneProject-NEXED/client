@@ -98,6 +98,7 @@ const Dashboard = () => {
       </div>
       
       <p>Real-time Check </p>
+      
     </CustomerLayout>
   );
 };

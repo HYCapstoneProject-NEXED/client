@@ -9,12 +9,41 @@ import DateFilterPopup from '../../components/Customer/Filter/DateFilterPopup';
 import DefectFilterPopup from '../../components/Customer/Filter/DefectFilterPopup';
 import CameraFilterPopup from '../../components/Customer/Filter/CameraFilterPopup';
 
+// 더미데이터 정의
+const dummyDefectData = [
+  {
+    id: 1,
+    image: '/circle-placeholder.png',
+    line: 'Line-A',
+    cameraId: 1,
+    timestamp: '2025-04-19T10:00:00',
+    type: 'Crack'
+  },
+  {
+    id: 2,
+    image: '/circle-placeholder.png',
+    line: 'Line-B',
+    cameraId: 2,
+    timestamp: '2025-04-19T10:05:00',
+    type: 'Scratch'
+  },
+  {
+    id: 3,
+    image: '/circle-placeholder.png',
+    line: 'Line-A',
+    cameraId: 3,
+    timestamp: '2025-04-19T10:10:00',
+    type: 'Burr'
+  }
+];
+
 const Defectdata = () => {
   const [classList, setClassList] = useState([]);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedDefects, setSelectedDefects] = useState([]);
   const [selectedCameras, setSelectedCameras] = useState([]);
-  const [openFilter, setOpenFilter] = useState(null); // 'date', 'defect', 'camera'
+  const [openFilter, setOpenFilter] = useState(null);
+  const [defectData, setDefectData] = useState(dummyDefectData);
 
   useEffect(() => {
     const dummyClassData = [
@@ -58,14 +87,16 @@ const Defectdata = () => {
         </div>
 
         {/* 필터 바 + 팝업 */}
-        <div className="filter-bar" style={{ position: 'relative' }}>
+        <div className="filter-bar">
           <div className="filter-btn-wrapper">
             <button
               className="filter-btn"
               onClick={() => setOpenFilter('date')}
               style={{ position: 'relative' }}
             >
-              📅 Select Date ⌄
+              <span>📅</span>
+              Select Date
+              <span style={{ fontSize: '12px', marginLeft: '4px' }}>⌄</span>
             </button>
             {openFilter === 'date' && (
               <DateFilterPopup
@@ -80,7 +111,9 @@ const Defectdata = () => {
 
           <div className="filter-btn-wrapper">
             <button className="filter-btn" onClick={() => setOpenFilter('defect')}>
-              🧪 Defect Type ⌄
+              <span>🔍</span>
+              Defect Type
+              <span style={{ fontSize: '12px', marginLeft: '4px' }}>⌄</span>
             </button>
             {openFilter === 'defect' && (
               <DefectFilterPopup
@@ -96,7 +129,9 @@ const Defectdata = () => {
 
           <div className="filter-btn-wrapper">
             <button className="filter-btn" onClick={() => setOpenFilter('camera')}>
-              📸 Camera ID ⌄
+              <span>📸</span>
+              Camera ID
+              <span style={{ fontSize: '12px', marginLeft: '4px' }}>⌄</span>
             </button>
             {openFilter === 'camera' && (
               <CameraFilterPopup
@@ -111,12 +146,53 @@ const Defectdata = () => {
           </div>
           
           <button className="reset-btn" onClick={handleReset}>
-             ↻ Reset Filter 
+            <span>↺</span>
+            Reset Filter
           </button>
         </div>
 
 
+
         {/* 테이블 영역 */}
+        <div className="table-container">
+          <table className="defect-table">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Line</th>
+                <th>Camera ID</th>
+                <th>Time</th>
+                <th>Type</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {defectData.map((defect) => (
+                <tr key={defect.id}>
+                  <td>
+                    <img 
+                      src={defect.image}
+                      alt={`defect-${defect.id}`}
+                      className="table-image"
+                    />
+                  </td>
+                  <td>{defect.line}</td>
+                  <td>{defect.cameraId}</td>
+                  <td>{new Date(defect.timestamp).toLocaleString('ko-KR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                  })}</td>
+                  <td>{defect.type}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </CustomerLayout>
   );
