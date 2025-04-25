@@ -1,5 +1,6 @@
 import React from 'react';
 import CustomerLayout from '../../components/Customer/CustomerLayout';
+import './Dashboard.css';
 
 //더미데이터
 const defectStats = [
@@ -20,6 +21,34 @@ const defectStats = [
     class_color: '#D4F7F4',
     count: 3,
     change: 0
+  }
+];
+
+// 테이블용 더미데이터
+const dummyDefectData = [
+  {
+    id: 1,
+    image: '/circle-placeholder.png',
+    line: 'Line-A',
+    cameraId: 1,
+    timestamp: '2025-04-19T10:00:00',
+    type: 'Crack'
+  },
+  {
+    id: 2,
+    image: '/circle-placeholder.png',
+    line: 'Line-B',
+    cameraId: 2,
+    timestamp: '2025-04-19T10:05:00',
+    type: 'Scratch'
+  },
+  {
+    id: 3,
+    image: '/circle-placeholder.png',
+    line: 'Line-A',
+    cameraId: 3,
+    timestamp: '2025-04-19T10:10:00',
+    type: 'Particle'
   }
 ];
 
@@ -93,12 +122,51 @@ const Dashboard = () => {
                 </div>
             ))}
           </div>
+        </div>
 
+        {/* 테이블 영역 */}
+        <div style={{ marginTop: '32px' }}>
+          <h3 style={{ marginBottom: '16px' }}>Real-time Check</h3>
+          <div className="table-container">
+            <table className="defect-table">
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>Line</th>
+                  <th>Camera ID</th>
+                  <th>Time</th>
+                  <th>Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dummyDefectData.map((defect) => (
+                  <tr key={defect.id}>
+                    <td>
+                      <img 
+                        src={defect.image}
+                        alt={`defect-${defect.id}`}
+                        className="table-image"
+                      />
+                    </td>
+                    <td>{defect.line}</td>
+                    <td>{defect.cameraId}</td>
+                    <td>{new Date(defect.timestamp).toLocaleString('ko-KR', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                      hour12: false
+                    })}</td>
+                    <td>{defect.type}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-      
-      <p>Real-time Check </p>
-      
     </CustomerLayout>
   );
 };
