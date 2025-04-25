@@ -1,4 +1,4 @@
-.annotator-image-container {
+.image-canvas {
   flex: 1;
   display: flex;
   justify-content: center;
@@ -6,15 +6,19 @@
   margin-bottom: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow: auto; /* 화면이 작아져도 스크롤 가능하도록 변경 */
   position: relative;
-  /* 스크롤 금지 */
-  overscroll-behavior: none;
+  /* 스크롤 금지 제거 */
 }
 
-.annotator-image-placeholder {
-  width: 100%;
-  height: 100%;
+.image-container {
+  /* 절대 고정 크기 설정 */
+  width: 800px !important;
+  height: 600px !important;
+  min-width: 800px !important; /* 최소 크기도 고정 */
+  min-height: 600px !important;
+  max-width: 800px !important;
+  max-height: 600px !important;
   background: #F0F0F0;
   border-radius: 0;
   position: relative;
@@ -26,191 +30,113 @@
   will-change: transform;
   /* 마우스 기본 동작 방지 */
   touch-action: none;
+  overflow: visible; /* 라벨이 이미지 영역 밖으로 나갈 수 있도록 변경 */
+  /* 박스 그림자 추가 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  /* 크기가 줄어들지 않도록 설정 */
+  flex-shrink: 0;
 }
 
-.annotator-placeholder-text {
-  color: #888;
-  font-size: 24px;
-  user-select: none;
+.annotation-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 
 /* 결함 바운딩 박스 스타일 */
-.annotator-bounding-box {
+.bounding-box {
   position: absolute;
   border: 2px solid;
   box-sizing: border-box;
   cursor: move; /* 내부 영역에서만 move 커서 */
   transition: border-width 0.2s ease, box-shadow 0.2s ease;
+  background: transparent !important; /* 모든 바운딩 박스의 배경을 강제로 투명하게 설정 */
 }
 
-.annotator-bounding-box.selected {
+.bounding-box.read-only {
+  cursor: default;
+}
+
+.bounding-box.selected {
   border-width: 3px;
+  box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.5);
+  animation: pulse-border 1.5s infinite ease-in-out;
+}
+
+/* 바운딩 박스 호버시 스타일 - 읽기전용 모드에서는 비활성화 */
+.bounding-box:not(.read-only):hover {
   box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.3);
 }
 
-/* 바운딩 박스 테두리에 호버시 커서 변경 */
-.annotator-bounding-box:hover {
-  box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.3);
+/* 선택된 바운딩 박스 펄스 애니메이션 */
+@keyframes pulse-border {
+  0% {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+  }
 }
 
-/* 테두리 영역별 커서 표시 (각 방향마다 다른 리사이즈 커서) */
-/* 상단 테두리 */
-.annotator-bounding-box:hover::before {
-  content: '';
-  position: absolute;
-  top: -10px;
-  left: 10px;
-  right: 10px;
-  height: 10px;
-  cursor: n-resize;
-}
-
-/* 우측 테두리 */
-.annotator-bounding-box:hover::after {
-  content: '';
-  position: absolute;
-  top: 10px;
-  right: -10px;
-  bottom: 10px;
-  width: 10px;
-  cursor: e-resize;
-}
-
-/* 상단 테두리 */
-.annotator-bounding-box > .top-border {
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  top: -10px;
-  height: 10px;
-  cursor: n-resize;
-  z-index: 100;
-}
-
-/* 우측 테두리 */
-.annotator-bounding-box > .right-border {
-  position: absolute;
-  top: 10px;
-  right: -10px;
-  bottom: 10px;
-  width: 10px;
-  cursor: e-resize;
-  z-index: 100;
-}
-
-/* 하단 테두리 */
-.annotator-bounding-box > .bottom-border {
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: -10px;
-  height: 10px;
-  cursor: s-resize;
-  z-index: 100;
-}
-
-/* 좌측 테두리 */
-.annotator-bounding-box > .left-border {
-  position: absolute;
-  top: 10px;
-  left: -10px;
-  bottom: 10px;
-  width: 10px;
-  cursor: w-resize;
-  z-index: 100;
-}
-
-/* 우상단 모서리 */
-.annotator-bounding-box > .top-right-corner {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  width: 20px;
-  height: 20px;
-  cursor: ne-resize;
-  z-index: 101;
-}
-
-/* 우하단 모서리 */
-.annotator-bounding-box > .bottom-right-corner {
-  position: absolute;
-  bottom: -10px;
-  right: -10px;
-  width: 20px;
-  height: 20px;
-  cursor: se-resize;
-  z-index: 101;
-}
-
-/* 좌상단 모서리 */
-.annotator-bounding-box > .top-left-corner {
-  position: absolute;
-  top: -10px;
-  left: -10px;
-  width: 20px;
-  height: 20px;
-  cursor: nw-resize;
-  z-index: 101;
-}
-
-/* 좌하단 모서리 */
-.annotator-bounding-box > .bottom-left-corner {
-  position: absolute;
-  bottom: -10px;
-  left: -10px;
-  width: 20px;
-  height: 20px;
-  cursor: sw-resize;
-  z-index: 101;
-}
-
-.annotator-defect-a-box {
+/* 결함 타입별 색상 */
+.annotator-defect-a {
   border-color: #00B69B;
+  background: transparent;
 }
 
-.annotator-defect-a-box .annotator-box-label {
+.annotator-defect-a .annotator-box-label {
   background: #00B69B;
 }
 
-.annotator-defect-b-box {
+.annotator-defect-b {
   border-color: #5A8CFF;
+  background: transparent;
 }
 
-.annotator-defect-b-box .annotator-box-label {
+.annotator-defect-b .annotator-box-label {
   background: #5A8CFF;
 }
 
-.annotator-defect-c-box {
+.annotator-defect-c {
   border-color: #EF3826;
+  background: transparent;
 }
 
-.annotator-defect-c-box .annotator-box-label {
+.annotator-defect-c .annotator-box-label {
   background: #EF3826;
 }
 
-.annotator-defect-d-box {
+.annotator-defect-d {
   border-color: #FCAA0B;
+  background: transparent;
 }
 
-.annotator-defect-d-box .annotator-box-label {
+.annotator-defect-d .annotator-box-label {
   background: #FCAA0B;
 }
 
+/* 결함 ID와 신뢰도 표시 - 모든 박스에 적용되는 공통 스타일 */
 .annotator-box-label {
   position: absolute;
   top: -25px;
   left: 0;
-  padding: 2px 8px;
+  padding: 3px 10px;
   color: white;
   font-size: 14px;
   font-weight: 700;
   font-family: 'Nunito Sans', sans-serif;
   white-space: nowrap;
   user-select: none;
+  z-index: 1000; /* 높은 z-index로 다른 요소 위에 표시 */
+  pointer-events: auto; /* 라벨 클릭 가능하도록 변경 */
 }
 
 /* 리사이즈 핸들 스타일 */
-.annotator-resize-handle {
+.resize-handle {
   width: 10px;
   height: 10px;
   background: white;
@@ -221,72 +147,208 @@
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
 }
 
-.annotator-defect-a-box .annotator-resize-handle {
+.annotator-defect-a .resize-handle {
   border-color: #00B69B;
 }
 
-.annotator-defect-b-box .annotator-resize-handle {
+.annotator-defect-b .resize-handle {
   border-color: #5A8CFF;
 }
 
-.annotator-defect-c-box .annotator-resize-handle {
+.annotator-defect-c .resize-handle {
   border-color: #EF3826;
 }
 
-.annotator-defect-d-box .annotator-resize-handle {
+.annotator-defect-d .resize-handle {
   border-color: #FCAA0B;
 }
 
-/* 모서리 핸들 */
-.annotator-top-left {
+/* 모서리 핸들 위치 */
+.top-left {
   top: -5px;
   left: -5px;
   cursor: nw-resize;
 }
 
-.annotator-top-right {
+.top-right {
   top: -5px;
   right: -5px;
   cursor: ne-resize;
 }
 
-.annotator-bottom-left {
+.bottom-left {
   bottom: -5px;
   left: -5px;
   cursor: sw-resize;
 }
 
-.annotator-bottom-right {
+.bottom-right {
   bottom: -5px;
   right: -5px;
   cursor: se-resize;
 }
 
-/* 가장자리 핸들 */
-.annotator-top {
+/* 변 핸들 위치 */
+.top {
   top: -5px;
   left: 50%;
   transform: translateX(-50%);
   cursor: n-resize;
 }
 
-.annotator-right {
+.right {
   top: 50%;
   right: -5px;
   transform: translateY(-50%);
   cursor: e-resize;
 }
 
-.annotator-bottom {
+.bottom {
   bottom: -5px;
   left: 50%;
   transform: translateX(-50%);
   cursor: s-resize;
 }
 
-.annotator-left {
+.left {
   top: 50%;
   left: -5px;
   transform: translateY(-50%);
   cursor: w-resize;
+}
+
+/* 읽기 전용 모드 스타일 */
+.image-canvas.read-only {
+  background: #F5F7FA;
+}
+
+/* 그리기 모드 */
+.image-canvas.drawing-mode {
+  cursor: crosshair;
+}
+
+/* 그리는 중인 박스 */
+.bounding-box.drawing {
+  border-style: dashed !important;
+  pointer-events: none;
+  background: transparent !important;
+  border-width: 2px !important;
+  z-index: 1000 !important;
+}
+
+.annotator-placeholder-text {
+  color: #888;
+  font-size: 24px;
+  user-select: none;
+}
+
+/* 테두리 영역별 커서 표시 (각 방향마다 다른 리사이즈 커서) */
+/* 상단 테두리 */
+.bounding-box:hover::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  right: 10px;
+  height: 10px;
+  cursor: n-resize;
+}
+
+/* 우측 테두리 */
+.bounding-box:hover::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  right: -10px;
+  bottom: 10px;
+  width: 10px;
+  cursor: e-resize;
+}
+
+/* 상단 테두리 */
+.bounding-box > .top-border {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: -10px;
+  height: 10px;
+  cursor: n-resize;
+  z-index: 100;
+}
+
+/* 우측 테두리 */
+.bounding-box > .right-border {
+  position: absolute;
+  top: 10px;
+  right: -10px;
+  bottom: 10px;
+  width: 10px;
+  cursor: e-resize;
+  z-index: 100;
+}
+
+/* 하단 테두리 */
+.bounding-box > .bottom-border {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: -10px;
+  height: 10px;
+  cursor: s-resize;
+  z-index: 100;
+}
+
+/* 좌측 테두리 */
+.bounding-box > .left-border {
+  position: absolute;
+  top: 10px;
+  left: -10px;
+  bottom: 10px;
+  width: 10px;
+  cursor: w-resize;
+  z-index: 100;
+}
+
+/* 우상단 모서리 */
+.bounding-box > .top-right-corner {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 20px;
+  height: 20px;
+  cursor: ne-resize;
+  z-index: 101;
+}
+
+/* 우하단 모서리 */
+.bounding-box > .bottom-right-corner {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  width: 20px;
+  height: 20px;
+  cursor: se-resize;
+  z-index: 101;
+}
+
+/* 좌상단 모서리 */
+.bounding-box > .top-left-corner {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 20px;
+  height: 20px;
+  cursor: nw-resize;
+  z-index: 101;
+}
+
+/* 좌하단 모서리 */
+.bounding-box > .bottom-left-corner {
+  position: absolute;
+  bottom: -10px;
+  left: -10px;
+  width: 20px;
+  height: 20px;
+  cursor: sw-resize;
+  z-index: 101;
 } 

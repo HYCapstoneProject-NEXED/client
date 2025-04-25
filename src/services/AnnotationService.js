@@ -5,6 +5,42 @@ import { formatDateTime } from '../utils/annotationUtils';
 // 기본 API URL (실제 배포 환경에서는 환경 변수 사용 권장)
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 
+// 더미 데이터: DefectClasses 테이블 (DB 스키마와 일치)
+const DUMMY_DEFECT_CLASSES = [
+  {
+    class_id: 1,
+    class_name: 'Scratch',
+    class_color: '#00B69B',
+    created_at: '2023-04-10T08:00:00Z',
+    updated_at: '2023-04-10T08:00:00Z',
+    is_active: true
+  },
+  {
+    class_id: 2,
+    class_name: 'Dent',
+    class_color: '#5A8CFF',
+    created_at: '2023-04-10T08:10:00Z',
+    updated_at: '2023-04-10T08:10:00Z',
+    is_active: true
+  },
+  {
+    class_id: 3,
+    class_name: 'Discoloration',
+    class_color: '#EF3826',
+    created_at: '2023-04-10T08:20:00Z',
+    updated_at: '2023-04-10T08:20:00Z',
+    is_active: true
+  },
+  {
+    class_id: 4,
+    class_name: 'Contamination',
+    class_color: '#FCAA0B',
+    created_at: '2023-04-10T08:30:00Z',
+    updated_at: '2023-04-10T08:30:00Z',
+    is_active: true
+  }
+];
+
 // 더미 이미지 데이터
 const DUMMY_IMAGES = [
   {
@@ -27,7 +63,7 @@ const DUMMY_IMAGES = [
   }
 ];
 
-// 더미 데이터 - 실제 API 연동 전까지 사용
+// 더미 데이터 - 실제 API 연동 전까지 사용 (class_id가 이제 숫자 ID로 변경됨)
 const DUMMY_ANNOTATIONS = [
   { 
     annotation_id: 1,
@@ -37,7 +73,7 @@ const DUMMY_ANNOTATIONS = [
     bounding_box: JSON.stringify({ x: 523.86, y: 328.36, width: 193.79, height: 212.49 }),
     user_id: 1001,
     status: 'completed',
-    class_id: 'Scratch'
+    class_id: 1  // Scratch
   },
   { 
     annotation_id: 2,
@@ -47,7 +83,7 @@ const DUMMY_ANNOTATIONS = [
     bounding_box: JSON.stringify({ x: 867.10, y: 472.65, width: 160.86, height: 207.25 }),
     user_id: 1001,
     status: 'completed',
-    class_id: 'Scratch'
+    class_id: 1  // Scratch
   },
   { 
     annotation_id: 3,
@@ -57,7 +93,7 @@ const DUMMY_ANNOTATIONS = [
     bounding_box: JSON.stringify({ x: 606.18, y: 626.12, width: 165.92, height: 106.25 }),
     user_id: 1001,
     status: 'completed',
-    class_id: 'Dent'
+    class_id: 2  // Dent
   },
   { 
     annotation_id: 4,
@@ -67,7 +103,7 @@ const DUMMY_ANNOTATIONS = [
     bounding_box: JSON.stringify({ x: 806.30, y: 275.90, width: 73.46, height: 127.23 }),
     user_id: 1001,
     status: 'completed',
-    class_id: 'Dent'
+    class_id: 2  // Dent
   },
   {
     annotation_id: 5,
@@ -77,7 +113,7 @@ const DUMMY_ANNOTATIONS = [
     bounding_box: JSON.stringify({ x: 350.20, y: 420.15, width: 120.30, height: 180.50 }),
     user_id: 1002,
     status: 'completed',
-    class_id: 'Discoloration'
+    class_id: 3  // Discoloration
   },
   {
     annotation_id: 6,
@@ -87,11 +123,30 @@ const DUMMY_ANNOTATIONS = [
     bounding_box: JSON.stringify({ x: 720.40, y: 180.30, width: 90.25, height: 150.75 }),
     user_id: 1002,
     status: 'pending',
-    class_id: 'Contamination'
+    class_id: 4  // Contamination
   }
 ];
 
 class AnnotationService {
+  // DefectClasses 목록 가져오기
+  async getDefectClasses() {
+    try {
+      // 실제 API 요청 코드 (현재는 주석 처리)
+      // const response = await axios.get(`${API_URL}/defect-classes`);
+      // return response.data;
+      
+      // 더미 데이터 사용
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(DUMMY_DEFECT_CLASSES);
+        }, 200);
+      });
+    } catch (error) {
+      console.error('Failed to fetch defect classes:', error);
+      throw error;
+    }
+  }
+
   // 이미지 ID에 해당하는 어노테이션 목록 가져오기
   async getAnnotationsByImageId(imageId) {
     try {
@@ -215,15 +270,20 @@ class AnnotationService {
     }
   }
 
-  // 프론트엔드 모델에 맞게 어노테이션 데이터 변환
-  transformToFrontendModel(annotationData) {
+  // 프론트엔드 모델에 맞게 어노테이션 데이터 변환 (defectClasses 정보 활용)
+  transformToFrontendModel(annotationData, defectClasses) {
+    // defectClasses에서 해당 class_id의 defect 정보 찾기
+    const defectClass = defectClasses.find(dc => dc.class_id === annotationData.class_id) || {};
+    
     return {
       id: String(annotationData.annotation_id),
-      type: annotationData.class_id,
-      confidence: annotationData.conf_score || 0.9,
+      type: defectClass.class_name || 'Scratch', // 기본값으로 Scratch 사용
+      typeId: annotationData.class_id || 1,
+      confidence: annotationData.conf_score, // null 값 유지
       coordinates: JSON.parse(annotationData.bounding_box),
+      color: defectClass.class_color,
       date: annotationData.date,
-      status: annotationData.status,
+      status: annotationData.status || 'pending',
       userId: annotationData.user_id
     };
   }
@@ -235,7 +295,7 @@ class AnnotationService {
       image_id: frontendData.imageId,
       conf_score: frontendData.confidence,
       bounding_box: JSON.stringify(frontendData.coordinates),
-      class_id: frontendData.type,
+      class_id: frontendData.typeId, // class_id를 정수로 사용
       status: frontendData.status || 'pending',
       user_id: frontendData.userId || null
     };
@@ -251,30 +311,13 @@ class AnnotationService {
       // 더미 데이터 사용
       return new Promise((resolve) => {
         setTimeout(() => {
-          const imageDetail = DUMMY_IMAGES.find(img => img.image_id === imageId);
-          
-          if (imageDetail) {
-            // 어노테이션 목록에서 이 이미지에 대한 어노테이션을 찾아 신뢰도 점수 계산
-            const annotations = DUMMY_ANNOTATIONS.filter(anno => anno.image_id === imageId);
-            const confidenceScores = annotations.map(anno => anno.conf_score);
-            const minConfidence = confidenceScores.length > 0 
-              ? Math.min(...confidenceScores) 
-              : null;
-            
-            // 이미지 데이터 포맷팅
-            const formattedData = {
-              dataId: `IMG_${imageDetail.image_id}`,
-              confidenceScore: minConfidence,
-              captureDate: formatDateTime(imageDetail.capture_date),
-              lastModified: formatDateTime(imageDetail.last_modified),
-              status: imageDetail.status,
-              dimensions: {
-                width: imageDetail.width,
-                height: imageDetail.height
-              }
-            };
-            
-            resolve(formattedData);
+          const image = DUMMY_IMAGES.find(img => img.image_id === imageId);
+          if (image) {
+            resolve({
+              ...image,
+              capture_date_formatted: formatDateTime(image.capture_date),
+              last_modified_formatted: formatDateTime(image.last_modified)
+            });
           } else {
             resolve(null);
           }
@@ -282,6 +325,58 @@ class AnnotationService {
       });
     } catch (error) {
       console.error(`Failed to fetch image detail for ID ${imageId}:`, error);
+      throw error;
+    }
+  }
+
+  // 다음에 사용할 빈 어노테이션 데이터 생성 (새로운 바운딩 박스용)
+  createEmptyAnnotation(imageId, initialCoordinates, classId = 1) {
+    return {
+      annotation_id: null, // 새로 생성될 어노테이션이므로 ID 없음
+      image_id: imageId,
+      date: new Date().toISOString(),
+      conf_score: null, // 사용자가 생성한 바운딩 박스의 confidence 값은 null
+      bounding_box: JSON.stringify(initialCoordinates),
+      user_id: 1001, // 현재 사용자 ID (실제로는 인증 시스템에서 가져와야 함)
+      status: 'pending',
+      class_id: classId // 결함 타입 ID (1: Scratch가 기본값)
+    };
+  }
+
+  // 이미지 상태 업데이트 (pending/completed)
+  async updateImageStatus(imageId, newStatus) {
+    try {
+      // 실제 API 요청 코드 (현재는 주석 처리)
+      // const response = await axios.put(`${API_URL}/images/${imageId}/status`, { status: newStatus });
+      // return response.data;
+      
+      // 더미 구현
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          const imageIndex = DUMMY_IMAGES.findIndex(img => img.image_id === imageId);
+          if (imageIndex !== -1) {
+            // 이미지 상태 업데이트
+            DUMMY_IMAGES[imageIndex].status = newStatus;
+            // 이미지에 연결된 모든 어노테이션 상태도 업데이트
+            DUMMY_ANNOTATIONS.forEach(annotation => {
+              if (annotation.image_id === imageId) {
+                annotation.status = newStatus;
+              }
+            });
+            resolve({
+              success: true,
+              message: `Status updated to ${newStatus} for image ID: ${imageId}`
+            });
+          } else {
+            resolve({
+              success: false,
+              message: `Image with ID: ${imageId} not found`
+            });
+          }
+        }, 300);
+      });
+    } catch (error) {
+      console.error(`Failed to update status for image ${imageId}:`, error);
       throw error;
     }
   }

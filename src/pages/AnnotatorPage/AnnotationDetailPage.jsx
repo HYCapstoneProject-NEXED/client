@@ -1,0 +1,224 @@
+/**
+ * Annotation Detail Page
+ * 어노테이션 상세 조회 페이지 - 편집 불가능, 확인만 가능
+ */
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { FaChevronLeft, FaChevronRight, FaTrash, FaPen, FaCheck, FaClock } from 'react-icons/fa';
+import ImageCanvas from '../../components/Annotator/ImageCanvas';
+import Sidebar from '../../components/Annotator/Sidebar';
+import { TOOL_TYPES } from '../../constants/annotationConstants';
+import useAnnotationData from '../../hooks/useAnnotationData';
+import useAnnotationSelection from '../../hooks/useAnnotationSelection';
+import AnnotationService from '../../services/AnnotationService';
+import './AnnotationDetailPage.css';
+
+/**
+ * 어노테이션 상세 페이지 컴포넌트
+ * 어노테이션 데이터 조회만 가능 (편집 불가)
+ */
+const AnnotationDetailPage = () => {
+  const navigate = useNavigate();
+  const { imageId: imageIdParam } = useParams();
+  
+  // URL에서 이미지 ID를 가져오거나 기본값 사용 (문자열을 숫자로 변환)
+  const [imageId] = useState(parseInt(imageIdParam) || 101);
+  
+  // 사이드바 접힘/펼침 상태
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  
+  // 어노테이션 데이터 로드 (편집 기능 비활성화)
+  const annotationData = useAnnotationData(imageId, () => {});
+  
+  // 어노테이션 선택 관리
+  const selection = useAnnotationSelection(annotationData.defects);
+  
+  // 상태 변경 드롭다운 표시 여부
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  
+  // 사이드바 토글 핸들러
+  const handleSidebarToggle = (collapsed) => {
+    setIsSidebarCollapsed(collapsed);
+  };
+  
+  // 편집 페이지로 이동하는 함수
+  const startAnnotating = () => {
+    navigate(`/annotator/edit/${imageId}`);
+  };
+  
+  // 데이터 삭제 함수
+  const handleDelete = () => {
+    // 실제 구현에서는 서버에 삭제 요청을 보내야 함
+    if (window.confirm('정말로 이 어노테이션을 삭제하시겠습니까?')) {
+      console.log('Deleting annotation with ID:', imageId);
+      // 삭제 후 목록 페이지로 이동
+      navigate('/annotator/list');
+    }
+  };
+  
+  // 상태 변경 함수
+  const updateStatus = async (newStatus) => {
+    try {
+      // 서버에 상태 업데이트 요청
+      await AnnotationService.updateImageStatus(imageId, newStatus);
+      
+      // 상태 업데이트 성공 시 UI 업데이트
+      annotationData.setDataInfo(prev => ({
+        ...prev,
+        state: newStatus
+      }));
+      
+      // 드롭다운 닫기
+      setShowStatusDropdown(false);
+      
+      console.log(`Status updated to: ${newStatus}`);
+    } catch (error) {
+      console.error('Failed to update status:', error);
+      alert('상태 업데이트에 실패했습니다.');
+    }
+  };
+  
+  // 상태에 따라 아이콘과 색상 반환
+  const getStatusInfo = () => {
+    const state = annotationData.dataInfo.state;
+    let backgroundColor, textColor, icon, label;
+    
+    switch(state.toLowerCase()) {
+      case 'completed':
+        backgroundColor = "#E0F2F1";
+        textColor = "#00B69B";
+        icon = <FaCheck />;
+        label = 'Completed';
+        break;
+      case 'in progress':
+        backgroundColor = "#E3F2FD";
+        textColor = "#4880FF";
+        icon = <FaClock />;
+        label = 'In Progress';
+        break;
+      case 'rejected':
+        backgroundColor = "#FFEBEE";
+        textColor = "#EF3826";
+        icon = <FaTrash />;
+        label = 'Rejected';
+        break;
+      case 'pending':
+      default:
+        backgroundColor = "#FFF8E1";
+        textColor = "#FCAA0B";
+        icon = <FaClock />;
+        label = state.charAt(0).toUpperCase() + state.slice(1);
+        break;
+    }
+    
+    return {
+      icon,
+      label,
+      backgroundColor,
+      textColor
+    };
+  };
+  
+  const statusInfo = getStatusInfo();
+
+  // 로딩 중일 때 표시할 내용
+  if (annotationData.isLoading) {
+    return (
+      <div className="annotator-annotation-edit-page">
+        <div className="annotator-detail-header">
+          <h1>Annotation Details</h1>
+          
+          <div className="pagination-container">
+            <div className="pagination-arrows">
+              <button className="prev-arrow" disabled>◀</button>
+              <span className="page-indicator">1 / 1</span>
+              <button className="next-arrow" disabled>▶</button>
+            </div>
+          </div>
+
+          <div className="header-actions">
+            {/* 로딩 중에는 버튼 표시하지 않음 */}
+          </div>
+        </div>
+        <div className="annotator-loading">
+          <div className="loader"></div>
+          <p>Loading annotation data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="annotator-annotation-edit-page">
+      {/* 헤더 */}
+      <div className="annotator-detail-header">
+        <h1>Annotation Details</h1>
+        
+        <div className="pagination-container">
+          <div className="pagination-arrows">
+            <button className="prev-arrow" disabled>◀</button>
+            <span className="page-indicator">1 / 1</span>
+            <button className="next-arrow" disabled>▶</button>
+          </div>
+        </div>
+        
+        <div className="header-actions">
+          {/* 상태 표시 및 변경 버튼 제거 */}
+          
+          <button 
+            className="start-annotating-btn"
+            onClick={startAnnotating}
+            title="Edit Annotation"
+            style={{ width: 'auto', padding: '0 15px' }}
+          >
+            <FaPen size={16} style={{ marginRight: '5px' }} /> Annotate
+          </button>
+          
+          <button 
+            className="delete-btn"
+            onClick={handleDelete}
+            title="Delete Annotation"
+            style={{ width: 'auto', padding: '0 15px' }}
+          >
+            <span style={{ fontSize: '14px', display: 'flex', alignItems: 'center' }}>
+              <FaTrash size={16} style={{ marginRight: '5px' }} /> Delete
+            </span>
+          </button>
+        </div>
+      </div>
+      
+      {/* 메인 컨텐츠 영역 - EditPage와 완전히 동일한 구조 */}
+      <div className={`annotator-body-container ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+        <div className="annotator-sidebar-wrapper">
+          <Sidebar 
+            dataInfo={annotationData.dataInfo}
+            defects={annotationData.defects}
+            selectedDefect={selection.selectedDefect}
+            selectedDefectDetail={selection.selectedDefectDetail}
+            onDefectSelect={selection.handleDefectSelect}
+            toolTypes={TOOL_TYPES}
+            isCollapsed={isSidebarCollapsed}
+            onToggle={handleSidebarToggle}
+            readOnly={false} // 상태 변경을 위해 readOnly를 false로 설정
+            onStatusChange={updateStatus} // 상태 변경 핸들러 전달
+          />
+        </div>
+        <div className="annotator-main-wrapper">
+          <div className="annotator-canvas-wrapper">
+            <ImageCanvas 
+              defects={annotationData.defects}
+              selectedDefect={selection.selectedDefect}
+              onDefectSelect={selection.handleDefectSelect}
+              activeTool={TOOL_TYPES.HAND} // 항상 핸드 툴 사용 (편집 불가)
+              toolTypes={TOOL_TYPES}
+              onCanvasClick={selection.handleCanvasClick}
+              readOnly={true} // 읽기 전용 모드 활성화
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AnnotationDetailPage; 

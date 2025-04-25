@@ -3,6 +3,7 @@
  * 이미지 로딩, 바운딩 박스 편집, 히스토리 관리 등 어노테이션의 핵심 기능을 포함
  */
 import React, { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../../components/Annotator/Header';
 import Sidebar from '../../components/Annotator/Sidebar';
 import ImageCanvas from '../../components/Annotator/ImageCanvas';
@@ -18,8 +19,19 @@ import './AnnotationEditPage.css';
  * 어노테이션 생성, 편집, 저장 기능 제공
  */
 const AnnotationEditPage = () => {
-  // 이미지 ID (URL 쿼리 파라미터 또는 기본값)
-  const [imageId] = useState(101); // 실제 구현에서는 URL 파라미터 등에서 가져옴
+  const navigate = useNavigate();
+  const { imageId: imageIdParam } = useParams();
+  
+  // URL에서 이미지 ID를 가져오거나 기본값 사용 (문자열을 숫자로 변환)
+  const [imageId] = useState(parseInt(imageIdParam) || 101);
+  
+  // 사이드바 접힘/펼침 상태
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  
+  // 사이드바 토글 이벤트 핸들러
+  const handleSidebarToggle = (collapsed) => {
+    setIsSidebarCollapsed(collapsed);
+  };
   
   // 어노테이션 히스토리 관리 훅 사용
   const {
@@ -50,17 +62,37 @@ const AnnotationEditPage = () => {
   /**
    * 바운딩 박스 추가 핸들러
    * @param {Object} coordinates - 좌표 정보
+   * @param {string} defectType - 결함 유형 (선택 사항)
    */
-  const handleAddBox = (coordinates) => {
-    const newId = annotationData.addBox(coordinates, selection.currentDefectType);
+  const handleAddBox = (coordinates, defectType = null) => {
+    // 명시적으로 전달된 결함 유형 또는 현재 선택된 결함 유형 사용
+    const typeToUse = defectType || selection.currentDefectType || 'Scratch';
+    const newId = annotationData.addBox(coordinates, typeToUse);
     selection.setSelectedDefect(newId);
+  };
+  
+  /**
+   * 어노테이션 저장 후 상세 페이지로 이동
+   */
+  const handleSaveAndNavigate = async () => {
+    try {
+      // 저장 함수 호출
+      await annotationData.saveAnnotations();
+      
+      // 저장 성공 후 상세 페이지로 이동
+      navigate(`/annotator/detail/${imageId}`);
+    } catch (error) {
+      console.error('Failed to save annotation:', error);
+      // 오류 처리 (실제 구현에서는 사용자에게 알림 표시)
+      alert('저장에 실패했습니다. 다시 시도해 주세요.');
+    }
   };
 
   // 로딩 중일 때 표시할 내용
   if (annotationData.isLoading) {
     return (
       <div className="annotator-annotation-edit-page">
-        <Header onSave={annotationData.saveAnnotations} />
+        <Header onSave={handleSaveAndNavigate} />
         <div className="annotator-loading">
           <div className="loader"></div>
           <p>어노테이션 데이터 로딩 중...</p>
@@ -71,10 +103,10 @@ const AnnotationEditPage = () => {
 
   return (
     <div className="annotator-annotation-edit-page">
-      <Header onSave={annotationData.saveAnnotations} />
-      <div className="annotator-body-container">
+      <Header onSave={handleSaveAndNavigate} />
+      <div className={`annotator-body-container ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         <div className="annotator-sidebar-wrapper">
-          <Sidebar
+          <Sidebar 
             dataInfo={annotationData.dataInfo}
             defects={annotationData.defects}
             selectedDefect={selection.selectedDefect}
@@ -82,11 +114,14 @@ const AnnotationEditPage = () => {
             onDefectSelect={selection.handleDefectSelect}
             onToolChange={selection.handleToolChange}
             toolTypes={TOOL_TYPES}
+            isCollapsed={isSidebarCollapsed}
+            onToggle={handleSidebarToggle}
+            defectClasses={annotationData.defectClasses}
           />
         </div>
         <div className="annotator-main-wrapper">
           <div className="annotator-tools-container">
-            <AnnotationTools
+            <AnnotationTools 
               activeTool={selection.activeTool}
               onToolChange={selection.handleToolChange}
               selectedDefectType={selection.currentDefectType}
@@ -97,10 +132,11 @@ const AnnotationEditPage = () => {
               canRedo={canRedo}
               onDelete={selection.selectedDefect ? 
                 () => annotationData.deleteDefect(selection.selectedDefect) : null}
+              defectClasses={annotationData.defectClasses}
             />
           </div>
           <div className="annotator-canvas-wrapper">
-            <ImageCanvas
+            <ImageCanvas 
               defects={annotationData.defects}
               selectedDefect={selection.selectedDefect}
               onDefectSelect={selection.handleDefectSelect}
@@ -110,6 +146,8 @@ const AnnotationEditPage = () => {
               onAddBox={handleAddBox}
               onCanvasClick={selection.handleCanvasClick}
               onToolChange={selection.handleToolChange}
+              currentDefectType={selection.currentDefectType}
+              defectClasses={annotationData.defectClasses}
             />
           </div>
         </div>

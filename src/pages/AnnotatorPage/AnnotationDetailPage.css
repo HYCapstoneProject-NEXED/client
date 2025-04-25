@@ -1,0 +1,366 @@
+/* 전체 페이지 스타일 */
+.annotator-annotation-edit-page {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  overflow: hidden;
+  /* 브라우저 확대/축소 방지 (Chrome, Safari) */
+  touch-action: pan-x pan-y;
+}
+
+/* 헤더 스타일 - DetailPage 고유 스타일 유지 */
+.annotator-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 70px;
+  padding: 0 44px;
+  background-color: white;
+  border-bottom: 1px solid #E6EFF5;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  z-index: 10;
+  position: relative;
+}
+
+.annotator-detail-header h1 {
+  font-family: 'Inter', sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+  color: #343C6A;
+  margin: 0;
+  width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 1280px) {
+  .annotator-detail-header h1 {
+    width: auto;
+    max-width: 300px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .annotator-detail-header h1 {
+    max-width: 400px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .annotator-detail-header h1 {
+    max-width: none;
+  }
+}
+
+/* 페이지네이션 컨테이너 */
+.pagination-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  pointer-events: none;
+}
+
+.pagination-arrows {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  width: 140px;
+  pointer-events: auto;
+}
+
+.pagination-arrows .page-indicator {
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #202224;
+  margin: 0;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 0 8px;
+  border-radius: 4px;
+  z-index: 0;
+}
+
+.pagination-arrows button {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+  color: #000;
+  z-index: 1;
+}
+
+.pagination-arrows button.prev-arrow {
+  position: absolute;
+  left: 0;
+}
+
+.pagination-arrows button.next-arrow {
+  position: absolute;
+  right: 0;
+}
+
+.pagination-arrows button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* 액션 버튼 컨테이너 */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: 320px;
+  justify-content: flex-end;
+}
+
+/* 상태 드롭다운 컨테이너 */
+.status-dropdown-container {
+  position: relative;
+}
+
+/* 상태 버튼 */
+.status-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 8px;
+  height: 45px;
+  padding: 0 15px;
+  border: none;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 120px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+}
+
+.status-btn svg {
+  font-size: 16px;
+}
+
+/* 상태별 스타일 */
+.status-completed {
+  background-color: #e6ffed;
+  color: #28a745;
+}
+
+.status-completed:hover {
+  background-color: #d1f2d7;
+}
+
+.status-pending {
+  background-color: #fff8e6;
+  color: #f0ad4e;
+}
+
+.status-pending:hover {
+  background-color: #ffe8b8;
+}
+
+/* 상태 드롭다운 메뉴 */
+.status-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 5px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  overflow: hidden;
+}
+
+/* 상태 옵션 */
+.status-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 15px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.status-option:hover {
+  background-color: #f4f5f7;
+}
+
+.status-option svg {
+  font-size: 16px;
+}
+
+/* 액션 버튼 스타일 */
+.start-annotating-btn {
+  min-width: 120px;
+  height: 45px;
+  background-color: #4880FF;
+  opacity: 1;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 0 20px;
+}
+
+.start-annotating-btn:hover {
+  background-color: #3a70e8;
+}
+
+.start-annotating-btn svg {
+  margin-right: 8px;
+}
+
+.delete-btn {
+  min-width: 120px;
+  height: 45px;
+  background-color: #fde8e8;
+  opacity: 1;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #EF3826;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 0 20px;
+}
+
+.delete-btn:hover {
+  background-color: #fadada;
+}
+
+.delete-btn svg {
+  margin-right: 8px;
+}
+
+/* 본문 컨테이너 */
+.annotator-body-container {
+  display: flex;
+  height: calc(100vh - 70px);
+  width: 100vw;
+  background: #F5F7FA;
+  overflow: auto;
+  /* 확대/축소 방지 */
+  touch-action: pan-x pan-y;
+  transition: all 0.3s ease;
+}
+
+/* 사이드바 래퍼 */
+.annotator-sidebar-wrapper {
+  width: 286px;
+  height: 100%;
+  flex-shrink: 0;
+  background: white;
+  border-right: 0.3px solid #B9B9B9;
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+/* 사이드바가 접혔을 때 사이드바 래퍼 숨기기 */
+.annotator-body-container.sidebar-collapsed .annotator-sidebar-wrapper {
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  border-right: none;
+  position: absolute;
+  left: -300px;
+}
+
+/* 사이드바가 접혔을 때 메인 영역 확장 */
+.annotator-body-container.sidebar-collapsed .annotator-main-wrapper {
+  width: 100%;
+}
+
+/* 메인 영역 래퍼 */
+.annotator-main-wrapper {
+  flex: 1;
+  height: 100%;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  background: #F5F7FA;
+  transition: all 0.3s ease;
+  width: calc(100% - 286px);
+  position: relative;
+  z-index: 1;
+}
+
+/* 캔버스 래퍼 스타일 */
+.annotator-canvas-wrapper {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  position: relative;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 로딩 표시기 스타일 */
+.annotator-loading {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 70px);
+  width: 100%;
+  background: #f8f9fa;
+}
+
+.annotator-loading p {
+  color: #343C6A;
+  font-size: 16px;
+  margin-top: 20px;
+  font-family: 'Nunito Sans', sans-serif;
+}
+
+/* 로딩 애니메이션 */
+.loader {
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #4880FF;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+} 

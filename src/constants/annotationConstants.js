@@ -17,20 +17,25 @@ export const ACTION_TYPES = {
   DELETE_BOX: 'delete_box',
 };
 
-// Defect type constants
+// Standard defect type constants (for reference, actual values come from DB)
 export const DEFECT_TYPES = {
-  DEFECT_A: 'Scratch',
-  DEFECT_B: 'Dent',
-  DEFECT_C: 'Discoloration',
-  DEFECT_D: 'Contamination',
+  SCRATCH: 'Scratch',
+  DENT: 'Dent',
+  DISCOLORATION: 'Discoloration',
+  CONTAMINATION: 'Contamination',
 };
 
-// Color class mapping for each defect type
-export const DEFECT_COLOR_CLASSES = {
-  [DEFECT_TYPES.DEFECT_A]: 'annotator-defect-a',
-  [DEFECT_TYPES.DEFECT_B]: 'annotator-defect-b',
-  [DEFECT_TYPES.DEFECT_C]: 'annotator-defect-c',
-  [DEFECT_TYPES.DEFECT_D]: 'annotator-defect-d',
+// DB에서 로드된 defect classes 저장용 변수
+export let LOADED_DEFECT_CLASSES = [];
+
+// DB에서 로드된 defect classes를 설정하는 함수
+export const setLoadedDefectClasses = (defectClasses) => {
+  LOADED_DEFECT_CLASSES = defectClasses;
+};
+
+// 이름으로 defect class를 가져오는 함수
+export const getDefectClassByName = (name) => {
+  return LOADED_DEFECT_CLASSES.find(dc => dc.class_name === name);
 };
 
 // Annotation status constants
