@@ -2,7 +2,7 @@
  * Annotator Dashboard Page
  * Displays overview of annotation tasks and their status
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaChevronDown, FaTrash } from 'react-icons/fa';
 import useAnnotatorDashboard from '../../hooks/useAnnotatorDashboard';
@@ -20,6 +20,7 @@ import './AnnotatorDashboard.css';
 
 const AnnotatorDashboard = () => {
   const navigate = useNavigate();
+  const [selectedItems, setSelectedItems] = useState({});
   const { 
     annotations,
     isLoading,
@@ -41,9 +42,33 @@ const AnnotatorDashboard = () => {
     }
   };
 
+  const handleViewSelectedDetails = () => {
+    // 체크박스로 선택된 항목의 상세 페이지로 이동
+    const selectedIds = Object.keys(selectedItems).filter(id => selectedItems[id]);
+    
+    if (selectedIds.length === 0) {
+      alert('Please select an item to view details');
+    } else if (selectedIds.length > 1) {
+      alert('Please select only one item to view details');
+    } else {
+      // 선택된 항목이 하나인 경우 상세 페이지로 이동
+      handleViewDetails(selectedIds[0]);
+    }
+  };
+
   const handleDeleteSelected = () => {
     // 체크박스로 선택된 항목들을 삭제하는 기능
-    // 이 기능은 AnnotationTable 컴포넌트에서 자체적으로 구현됨
+    const selectedIds = Object.keys(selectedItems).filter(id => selectedItems[id]);
+    
+    if (selectedIds.length === 0) {
+      alert('Please select at least one item to delete');
+      return;
+    }
+    
+    if (window.confirm(`Are you sure you want to delete ${selectedIds.length} selected item(s)?`)) {
+      selectedIds.forEach(id => handleDelete(id));
+      setSelectedItems({});
+    }
   };
   
   if (isLoading) {
@@ -173,7 +198,7 @@ const AnnotatorDashboard = () => {
             </div>
             
             <div className="filter-actions">
-              <button className="view-details-btn" onClick={refreshData}>
+              <button className="view-details-btn" onClick={handleViewSelectedDetails}>
                 View Details
               </button>
               <button className="delete-btn" onClick={handleDeleteSelected}>
@@ -188,6 +213,8 @@ const AnnotatorDashboard = () => {
             annotations={annotations}
             onViewDetails={handleViewDetails}
             onDelete={handleDelete}
+            selectedItems={selectedItems}
+            setSelectedItems={setSelectedItems}
           />
         </div>
       </div>

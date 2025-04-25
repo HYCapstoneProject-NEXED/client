@@ -11,10 +11,23 @@ import './AnnotationTable.css';
  * @param {Array} props.annotations - List of annotations to display
  * @param {Function} props.onViewDetails - Function to call when a row is clicked
  * @param {Function} props.onDelete - Function to call when delete button is clicked
+ * @param {Object} props.selectedItems - Object containing selected items with their IDs as keys
+ * @param {Function} props.setSelectedItems - Function to update selected items
  */
-const AnnotationTable = ({ annotations, onViewDetails, onDelete }) => {
-  const [selectedItems, setSelectedItems] = useState({});
+const AnnotationTable = ({ 
+  annotations, 
+  onViewDetails, 
+  onDelete, 
+  selectedItems = {}, 
+  setSelectedItems = null 
+}) => {
+  // 내부 상태 사용 여부 결정 (부모로부터 props가 전달되지 않은 경우 내부 상태 사용)
+  const [internalSelectedItems, setInternalSelectedItems] = useState({});
   const [selectAll, setSelectAll] = useState(false);
+  
+  // 실제 사용할 상태 및 setter 결정
+  const effectiveSelectedItems = setSelectedItems ? selectedItems : internalSelectedItems;
+  const effectiveSetSelectedItems = setSelectedItems || setInternalSelectedItems;
 
   // 모든 항목 선택/해제
   const handleSelectAll = (e) => {
@@ -27,21 +40,21 @@ const AnnotationTable = ({ annotations, onViewDetails, onDelete }) => {
         newSelectedItems[item.id] = true;
       });
     }
-    setSelectedItems(newSelectedItems);
+    effectiveSetSelectedItems(newSelectedItems);
   };
 
   // 개별 항목 선택/해제
   const handleSelectItem = (e, id) => {
     e.stopPropagation();
-    setSelectedItems(prev => ({
+    effectiveSetSelectedItems(prev => ({
       ...prev,
       [id]: !prev[id]
     }));
     
     // 모든 항목이 선택되었는지 확인
     const updatedSelectedItems = {
-      ...selectedItems,
-      [id]: !selectedItems[id]
+      ...effectiveSelectedItems,
+      [id]: !effectiveSelectedItems[id]
     };
     
     const allSelected = annotations.every(item => updatedSelectedItems[item.id]);
@@ -50,19 +63,19 @@ const AnnotationTable = ({ annotations, onViewDetails, onDelete }) => {
 
   // annotations가 변경될 때 선택 상태 초기화
   useEffect(() => {
-    setSelectedItems({});
+    effectiveSetSelectedItems({});
     setSelectAll(false);
-  }, [annotations]);
+  }, [annotations, effectiveSetSelectedItems]);
 
   // 부모 컴포넌트에 선택된 항목 전달
   useEffect(() => {
     // 버튼 클릭 이벤트 핸들러
     const handleDeleteSelected = () => {
-      const selectedIds = Object.keys(selectedItems).filter(id => selectedItems[id]);
+      const selectedIds = Object.keys(effectiveSelectedItems).filter(id => effectiveSelectedItems[id]);
       if (selectedIds.length > 0) {
         if (window.confirm(`Are you sure you want to delete ${selectedIds.length} selected item(s)?`)) {
           selectedIds.forEach(id => onDelete(id));
-          setSelectedItems({});
+          effectiveSetSelectedItems({});
           setSelectAll(false);
         }
       } else {
@@ -82,7 +95,7 @@ const AnnotationTable = ({ annotations, onViewDetails, onDelete }) => {
         deleteButton.removeEventListener('click', handleDeleteSelected);
       }
     };
-  }, [selectedItems, onDelete]);
+  }, [effectiveSelectedItems, onDelete, effectiveSetSelectedItems]);
 
   /**
    * 상태에 맞는 스타일 및 아이콘을 렌더링합니다
@@ -149,12 +162,12 @@ const AnnotationTable = ({ annotations, onViewDetails, onDelete }) => {
             <tr 
               key={annotation.id} 
               onClick={() => onViewDetails(annotation.id)}
-              className={selectedItems[annotation.id] ? 'selected-row' : ''}
+              className={effectiveSelectedItems[annotation.id] ? 'selected-row' : ''}
             >
               <td className="checkbox-col">
                 <input 
                   type="checkbox" 
-                  checked={!!selectedItems[annotation.id]} 
+                  checked={!!effectiveSelectedItems[annotation.id]} 
                   onChange={(e) => handleSelectItem(e, annotation.id)}
                   onClick={(e) => e.stopPropagation()}
                 />

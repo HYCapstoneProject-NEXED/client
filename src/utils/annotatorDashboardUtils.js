@@ -8,8 +8,8 @@
  * @param {string} fallback - Fallback text when score is missing
  * @returns {string} Formatted score as percentage with 2 decimal places
  */
-export const formatConfidenceScore = (score, fallback = 'N/A') => {
-  if (score === null || score === undefined) {
+export const formatConfidenceScore = (score, fallback = '-') => {
+  if (score === null || score === undefined || score === 0) {
     return fallback;
   }
   return `${(score * 100).toFixed(2)}%`;

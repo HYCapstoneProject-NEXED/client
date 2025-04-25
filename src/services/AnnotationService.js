@@ -50,7 +50,8 @@ const DUMMY_IMAGES = [
     last_modified: '2023-05-16T14:35:20Z',
     width: 1920,
     height: 1080,
-    status: 'completed'
+    status: 'completed',
+    camera_id: 'CAM_A001'
   },
   {
     image_id: 102,
@@ -59,7 +60,8 @@ const DUMMY_IMAGES = [
     last_modified: '2023-05-16T11:22:15Z',
     width: 1920,
     height: 1080,
-    status: 'pending'
+    status: 'pending',
+    camera_id: 'CAM_A002'
   },
   {
     image_id: 103,
@@ -68,7 +70,8 @@ const DUMMY_IMAGES = [
     last_modified: '2023-05-17T15:22:15Z',
     width: 1920,
     height: 1080,
-    status: 'pending'
+    status: 'pending',
+    camera_id: 'CAM_B001'
   },
   {
     image_id: 104,
@@ -77,7 +80,8 @@ const DUMMY_IMAGES = [
     last_modified: '2023-05-17T16:42:15Z',
     width: 1920,
     height: 1080,
-    status: 'completed'
+    status: 'completed',
+    camera_id: 'CAM_B002'
   },
   {
     image_id: 105,
@@ -86,7 +90,8 @@ const DUMMY_IMAGES = [
     last_modified: '2023-05-18T10:12:15Z',
     width: 1920,
     height: 1080,
-    status: 'pending'
+    status: 'pending',
+    camera_id: 'CAM_C001'
   },
   {
     image_id: 106,
@@ -95,12 +100,14 @@ const DUMMY_IMAGES = [
     last_modified: '2023-05-18T14:32:15Z',
     width: 1920,
     height: 1080,
-    status: 'pending'
+    status: 'pending',
+    camera_id: 'CAM_C002'
   }
 ];
 
 // 더미 데이터 - 실제 API 연동 전까지 사용 (class_id가 이제 숫자 ID로 변경됨)
 const DUMMY_ANNOTATIONS = [
+  // 이미지 101의 결함들 (여러 개의 결함)
   { 
     annotation_id: 1,
     image_id: 101,
@@ -160,7 +167,75 @@ const DUMMY_ANNOTATIONS = [
     user_id: 1002,
     status: 'pending',
     class_id: 4  // Contamination
+  },
+  
+  // 이미지 103의 결함들 (1개만 있음)
+  {
+    annotation_id: 1,
+    image_id: 103,
+    date: '2023-05-16T10:15:30Z',
+    conf_score: 0.67,
+    bounding_box: JSON.stringify({ x: 450.20, y: 380.40, width: 135.60, height: 95.80 }),
+    user_id: 1001,
+    status: 'pending',
+    class_id: 1  // Scratch
+  },
+  
+  // 이미지 104의 결함들 (3개의 결함)
+  {
+    annotation_id: 1,
+    image_id: 104,
+    date: '2023-05-16T12:10:20Z',
+    conf_score: 0.88,
+    bounding_box: JSON.stringify({ x: 320.50, y: 410.30, width: 110.40, height: 130.70 }),
+    user_id: 1002,
+    status: 'completed',
+    class_id: 2  // Dent
+  },
+  {
+    annotation_id: 2,
+    image_id: 104,
+    date: '2023-05-16T12:12:40Z',
+    conf_score: 0.76,
+    bounding_box: JSON.stringify({ x: 580.60, y: 280.30, width: 85.40, height: 120.20 }),
+    user_id: 1002,
+    status: 'completed',
+    class_id: 3  // Discoloration
+  },
+  {
+    annotation_id: 3,
+    image_id: 104,
+    date: '2023-05-16T12:15:10Z',
+    conf_score: 0.95,
+    bounding_box: JSON.stringify({ x: 750.30, y: 520.60, width: 180.20, height: 140.90 }),
+    user_id: 1002,
+    status: 'completed',
+    class_id: 1  // Scratch
+  },
+  
+  // 이미지 106의 결함들 (2개의 결함)
+  {
+    annotation_id: 1,
+    image_id: 106,
+    date: '2023-05-17T13:05:45Z',
+    conf_score: 0.81,
+    bounding_box: JSON.stringify({ x: 420.70, y: 350.90, width: 130.60, height: 90.40 }),
+    user_id: 1001,
+    status: 'pending',
+    class_id: 4  // Contamination
+  },
+  {
+    annotation_id: 2,
+    image_id: 106,
+    date: '2023-05-17T13:08:30Z',
+    conf_score: 0.72,
+    bounding_box: JSON.stringify({ x: 620.10, y: 480.50, width: 95.30, height: 110.80 }),
+    user_id: 1001,
+    status: 'pending',
+    class_id: 2  // Dent
   }
+  
+  // 이미지 102와 105에는 결함이 없음 (Confidence Score가 '-'로 표시될 것임)
 ];
 
 class AnnotationService {
@@ -233,7 +308,7 @@ class AnnotationService {
             
             return {
               id: `IMG_${image.image_id.toString().padStart(3, '0')}`, // IMG_001 형식으로 포맷팅
-              cameraId: `IMG_${image.image_id.toString().padStart(3, '0')}`,
+              cameraId: image.camera_id,
               confidenceScore: minConfScore,
               defectCount: imageAnnotations.length > 0 ? imageAnnotations.length : 0,
               status: image.status

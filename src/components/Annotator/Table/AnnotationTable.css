@@ -57,7 +57,7 @@
   width: 100%;
   background: white;
   border-radius: 14px;
-  border: 0.3px solid #B9B9B9;
+  border: 0.3px solid #D5D5D5;
   overflow: hidden;
   margin-bottom: 20px;
 }
@@ -94,6 +94,13 @@
   padding-right: 0;
 }
 
+/* 체크박스 셀에는 ellipsis 적용하지 않음 */
+td.checkbox-col {
+  overflow: visible;
+  white-space: normal;
+  text-overflow: clip;
+}
+
 /* 데이터 열 너비 설정 */
 th:not(.checkbox-col),
 td:not(.checkbox-col) {
@@ -103,7 +110,7 @@ td:not(.checkbox-col) {
 /* Table Body */
 .annotation-table tbody tr {
   height: 76px;
-  border-bottom: 0.4px solid #979797;
+  border-bottom: 0.6px solid #D5D5D5;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
@@ -121,6 +128,7 @@ td:not(.checkbox-col) {
   background: rgba(72, 128, 255, 0.1);
 }
 
+/* 일반 데이터 셀 스타일 */
 .annotation-table td {
   padding: 15px;
   color: #202224;
