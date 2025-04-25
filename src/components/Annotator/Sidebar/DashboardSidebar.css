@@ -18,8 +18,9 @@
   font-size: 36px;
   font-family: 'Lalezar', cursive;
   font-weight: 400;
-  padding: 27px 0 0 49px;
-  margin-bottom: 50px;
+  text-align: left;
+  padding: 15px 0 15px 44px;
+  margin-bottom: 40px;
 }
 
 .sidebar-menu {
@@ -31,14 +32,31 @@
 .menu-item {
   display: flex;
   align-items: center;
-  gap: 26px;
-  padding: 10px 0;
+  gap: 20px;
+  padding: 15px 0;
+  height: 60px;
   cursor: pointer;
   position: relative;
+  transition: all 0.2s ease;
+  background-color: transparent;
+}
+
+.menu-item:hover {
+  background-color: rgba(45, 96, 255, 0.05);
+}
+
+.menu-item:active {
+  background-color: rgba(45, 96, 255, 0.1);
+  transform: scale(0.98);
 }
 
 .menu-item.active {
   color: #2D60FF;
+  background-color: transparent;
+}
+
+.menu-item.active:hover {
+  background-color: rgba(45, 96, 255, 0.05);
 }
 
 .menu-item.active:before {
@@ -54,34 +72,86 @@
 }
 
 .menu-icon {
-  width: 25px;
-  height: 25px;
-  background: #B6B6B6;
+  color: #B6B6B6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  min-width: 24px;
+  transition: color 0.2s ease;
+}
+
+.menu-item:hover .menu-icon {
+  color: #8eacff;
 }
 
 .menu-item.active .menu-icon {
-  background: #2D60FF;
+  color: #2D60FF;
 }
 
 .menu-text {
-  font-size: 18px;
+  font-size: 16px;
   font-family: 'Inter', sans-serif;
   font-weight: 500;
   color: #B1B1B1;
+  line-height: 60px;
+  vertical-align: middle;
+  transition: color 0.2s ease;
+}
+
+.menu-item:hover .menu-text {
+  color: #8eacff;
 }
 
 .menu-item.active .menu-text {
   color: #2D60FF;
+  font-weight: 600;
 }
 
 .menu-item.logout {
   margin-top: auto;
   position: absolute;
   bottom: 30px;
+  margin-bottom: 0;
+  right: 20px;
+  left: auto;
+  height: auto;
+  padding: 10px 0;
+  border-radius: 8px;
+  background-color: transparent;
 }
 
+.menu-item.logout:hover {
+  background-color: rgba(237, 85, 59, 0.05);
+}
+
+.menu-item.logout:active {
+  background-color: rgba(237, 85, 59, 0.1);
+}
+
+.menu-item.logout .menu-icon {
+  color: #B6B6B6;
+}
+
+.menu-item.logout:hover .menu-icon {
+  color: #ed553b;
+}
+
+.menu-item.logout:hover .menu-text {
+  color: #ed553b;
+}
+
+.logout-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+/* 아래 사용하지 않는 아이콘 스타일 제거 */
 /* Dashboard Icon (임시, 실제 프로젝트에서는 아이콘 이미지나 SVG 사용 권장) */
-.dashboard-icon {
+/* .dashboard-icon {
   background: #B6B6B6;
 }
 
@@ -91,4 +161,4 @@
 
 .logout-icon {
   background: #B6B6B6;
-} 
+} */ 
