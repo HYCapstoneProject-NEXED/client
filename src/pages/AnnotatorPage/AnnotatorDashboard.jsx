@@ -4,7 +4,7 @@
  */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaChevronDown, FaTrash } from 'react-icons/fa';
+import { FaChevronDown, FaTrash, FaEye } from 'react-icons/fa';
 import useAnnotatorDashboard from '../../hooks/useAnnotatorDashboard';
 import { 
   FILTER_TYPES, 
@@ -199,6 +199,7 @@ const AnnotatorDashboard = () => {
             
             <div className="filter-actions">
               <button className="view-details-btn" onClick={handleViewSelectedDetails}>
+                <FaEye size={14} style={{ marginRight: '5px' }} />
                 View Details
               </button>
               <button className="delete-btn" onClick={handleDeleteSelected}>

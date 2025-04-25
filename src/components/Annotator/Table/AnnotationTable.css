@@ -91,14 +91,37 @@
   width: 40px;
   max-width: 40px;
   min-width: 40px;
-  padding-right: 0;
+  padding: 0;
+  overflow: visible;
+  text-align: center;
+  vertical-align: middle;
+  position: relative;
+  border: none;
+  background-color: transparent;
+  font-size: 0; /* 혹시 모를 텍스트 숨기기 */
 }
 
-/* 체크박스 셀에는 ellipsis 적용하지 않음 */
-td.checkbox-col {
-  overflow: visible;
-  white-space: normal;
-  text-overflow: clip;
+/* 체크박스 래퍼 스타일 */
+.checkbox-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 20px;
+  height: 20px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* Checkbox Input */
+.annotation-table input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1.2px solid #B3B3B3;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+  appearance: auto;
 }
 
 /* 데이터 열 너비 설정 */
@@ -161,15 +184,6 @@ td:not(.checkbox-col) {
 .status-tag.pending {
   background-color: #FFF8E1;
   color: #FCAA0B;
-}
-
-/* Checkbox Input */
-.annotation-table input[type="checkbox"] {
-  width: 15.55px;
-  height: 16px;
-  border-radius: 3px;
-  border: 1.2px solid #B3B3B3;
-  cursor: pointer;
 }
 
 /* Empty State */

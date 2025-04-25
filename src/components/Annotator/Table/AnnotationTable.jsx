@@ -4,6 +4,22 @@ import { formatConfidenceScore, getStatusStyles } from '../../../utils/annotator
 import './AnnotationTable.css';
 
 /**
+ * 체크박스 컴포넌트 - 점(..)이 표시되는 문제를 해결하기 위한 분리된 컴포넌트
+ */
+const CheckboxCell = ({ checked, onChange, onClick }) => {
+  return (
+    <div className="checkbox-wrapper">
+      <input 
+        type="checkbox" 
+        checked={checked}
+        onChange={onChange}
+        onClick={onClick}
+      />
+    </div>
+  );
+};
+
+/**
  * Annotation Table Component
  * Displays a table of annotations with filtering and sorting capabilities
  * 
@@ -144,8 +160,7 @@ const AnnotationTable = ({
         <thead>
           <tr>
             <th className="checkbox-col">
-              <input 
-                type="checkbox" 
+              <CheckboxCell 
                 checked={selectAll}
                 onChange={handleSelectAll}
               />
@@ -165,8 +180,7 @@ const AnnotationTable = ({
               className={effectiveSelectedItems[annotation.id] ? 'selected-row' : ''}
             >
               <td className="checkbox-col">
-                <input 
-                  type="checkbox" 
+                <CheckboxCell 
                   checked={!!effectiveSelectedItems[annotation.id]} 
                   onChange={(e) => handleSelectItem(e, annotation.id)}
                   onClick={(e) => e.stopPropagation()}
