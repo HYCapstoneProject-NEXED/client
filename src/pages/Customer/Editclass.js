@@ -91,12 +91,12 @@ const Editclass = () => {
   return (
     <CustomerLayout>
       <div className="editclass-container">
-        <button className="add-button" onClick={handleAddNewDefect}>Add New Defect</button>
+        <button className="edit-add-button" onClick={handleAddNewDefect}>Add New Defect</button>
 
-        <table className="defect-table">
+        <table className="edit-defect-table">
           <thead>
             <tr>
-              <th className="th-type">Defect Type</th>
+              <th className="edit-th-type">Defect Type</th>
               <th>Box Color</th>
               <th>Setting</th>
             </tr>
@@ -104,8 +104,8 @@ const Editclass = () => {
           
           <tbody>
             {defectData.map((item, index) => (
-              <tr key={index} className="defect-row">
-                <td className="td-type">
+              <tr key={index} className="edit-defect-row">
+                <td className="edit-td-type">
                   {editingIndex === index ? (
                     <div className="edit-name-container">
                       <input
@@ -116,20 +116,20 @@ const Editclass = () => {
                         placeholder="Enter defect type"
                         autoFocus
                       />
-                      <button onClick={handleNameSave} className="save-btn">저장</button>
+                      <button onClick={handleNameSave} className="edit-save-btn">저장</button>
                     </div>
                   ) : (
                     item.name || '(이름 없음)'
                   )}
                 </td>
-                <td className="td-color">
-                  <div className="color-wrapper">
+                <td className="edit-td-color">
+                  <div className="edit-color-wrapper">
                     {editingIndex === index && showColorPicker ? (
-                      <div className="color-picker">
+                      <div className="edit-color-picker">
                         {colorOptions.map((option) => (
                           <div
                             key={option.value}
-                            className="color-option"
+                            className="edit-color-option"
                             style={{ backgroundColor: option.value }}
                             onClick={() => handleColorChange(option.value)}
                           />
@@ -137,7 +137,7 @@ const Editclass = () => {
                       </div>
                     ) : (
                       <div
-                        className="color-box"
+                        className="edit-color-box"
                         style={{ backgroundColor: item.color }}
                         onClick={() => {
                           if (editingIndex === index) {
@@ -148,16 +148,16 @@ const Editclass = () => {
                     )}
                   </div>
                 </td>
-                <td className="td-setting">
-                  <div className="setting-buttons">
+                <td className="edit-td-setting">
+                  <div className="edit-setting-buttons">
                     <button 
-                      className="setting-btn"
+                      className="edit-setting-btn"
                       onClick={() => handleEdit(index)}
                     >
                       ✏️
                     </button>
                     <button 
-                      className="setting-btn"
+                      className="edit-setting-btn"
                       onClick={() => handleDelete(index)}
                     >
                       🗑️
