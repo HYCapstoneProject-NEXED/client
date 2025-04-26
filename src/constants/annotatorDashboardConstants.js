@@ -28,9 +28,9 @@ export const STATUS_FILTERS = [
 // 신뢰도 점수 필터 옵션
 export const CONFIDENCE_SCORE_FILTERS = [
   { id: 'all', label: 'All Scores' },
-  { id: 'high', label: 'High (0.8-1.0)', min: 0.8, max: 1.0 },
-  { id: 'medium', label: 'Medium (0.5-0.8)', min: 0.5, max: 0.8 },
-  { id: 'low', label: 'Low (0.0-0.5)', min: 0, max: 0.5 }
+  { id: 'high', label: 'High (80-100%)', min: 0.8, max: 1.0 },
+  { id: 'medium', label: 'Medium (50-80%)', min: 0.5, max: 0.8 },
+  { id: 'low', label: 'Low (0-50%)', min: 0, max: 0.5 }
 ];
 
 // 대시보드 페이지 크기 (페이지네이션 용)

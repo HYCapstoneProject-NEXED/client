@@ -1,11 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaHome, FaClock, FaSignOutAlt } from 'react-icons/fa';
+import { FaHome, FaSignOutAlt } from 'react-icons/fa';
 import './DashboardSidebar.css';
 
 /**
  * 어노테이터 대시보드 사이드바 컴포넌트
- * 대시보드, 히스토리, 로그아웃 등의 네비게이션 메뉴 제공
+ * 대시보드, 로그아웃 등의 네비게이션 메뉴 제공
  */
 const DashboardSidebar = ({ activeMenu = 'dashboard' }) => {
   const navigate = useNavigate();
@@ -14,9 +14,6 @@ const DashboardSidebar = ({ activeMenu = 'dashboard' }) => {
     switch (menuType) {
       case 'dashboard':
         navigate('/annotator/dashboard');
-        break;
-      case 'history':
-        navigate('/annotator/history');
         break;
       case 'logout':
         // 실제 로그아웃 로직 구현 필요
@@ -36,15 +33,10 @@ const DashboardSidebar = ({ activeMenu = 'dashboard' }) => {
           className={`menu-item ${activeMenu === 'dashboard' ? 'active' : ''}`}
           onClick={() => handleMenuClick('dashboard')}
         >
-          <FaHome className="menu-icon" size={18} />
-          <span className="menu-text">Dashboard</span>
-        </div>
-        <div
-          className={`menu-item ${activeMenu === 'history' ? 'active' : ''}`}
-          onClick={() => handleMenuClick('history')}
-        >
-          <FaClock className="menu-icon" size={18} />
-          <span className="menu-text">History</span>
+          <div className="menu-content">
+            <FaHome className="menu-icon" size={18} />
+            <span className="menu-text">Dashboard</span>
+          </div>
         </div>
         <div
           className="menu-item logout"

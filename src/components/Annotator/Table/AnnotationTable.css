@@ -5,6 +5,10 @@
 /* Table Wrapper */
 .annotation-table-wrapper {
   width: 100%;
+  overflow-y: auto;
+  overflow-x: auto;
+  height: calc(100% - 65px);
+  scrollbar-width: thin;
 }
 
 /* Table Actions */
@@ -54,35 +58,34 @@
 
 /* Table Container */
 .annotation-table-container {
-  width: 100% !important;
-  background: white;
-  border-radius: 16px;
-  border: 1px solid #E5E8ED;
+  position: relative;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  height: 100%;
   overflow: hidden;
-  margin-bottom: 20px;
-  min-height: 400px;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
-  flex: 1;
-  position: relative;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 /* Table Styles */
 .annotation-table {
-  width: 100% !important;
-  table-layout: fixed !important;
-  border-collapse: collapse !important;
+  width: 100%;
+  min-width: 800px;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
 }
 
 /* Table 열 너비 설정 */
 .annotation-table colgroup col.checkbox-col { width: 40px !important; }
-.annotation-table colgroup col.camera-id-col { width: 20% !important; }
-.annotation-table colgroup col.data-id-col { width: 20% !important; }
-.annotation-table colgroup col.confidence-col { width: 20% !important; }
-.annotation-table colgroup col.count-col { width: 15% !important; }
-.annotation-table colgroup col.status-col { width: 25% !important; }
+.annotation-table colgroup col.camera-id-col { width: 120px !important; }
+.annotation-table colgroup col.data-id-col { width: 120px !important; }
+.annotation-table colgroup col.confidence-col { width: 160px !important; }
+.annotation-table colgroup col.count-col { width: 80px !important; }
+.annotation-table colgroup col.status-col { width: 120px !important; }
+.annotation-table colgroup col.time-col { width: 200px !important; }
 
 /* Table Header */
 .header-table {
@@ -100,27 +103,27 @@
 }
 
 .annotation-table th {
-  padding: 15px !important;
+  padding: 10px 15px;
   text-align: left;
-  color: #1E293B;
-  font-size: 14px;
+  color: #333;
+  font-size: 13px;
   font-family: 'Nunito Sans', sans-serif;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   box-sizing: border-box !important;
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  line-height: 1.4;
 }
 
 /* 체크박스 열 스타일 */
 .checkbox-col {
-  width: 40px !important;
-  padding: 0 10px !important;
-  text-align: center !important;
-  vertical-align: middle !important;
-  box-sizing: border-box !important;
+  width: 40px;
 }
 
 /* 체크박스 래퍼 스타일 */
@@ -178,7 +181,7 @@
 .table-body-container {
   flex: 1;
   overflow-y: auto;
-  max-height: calc(100vh - 350px);
+  height: calc(100% - 50px);
   position: relative;
   border-top: none;
   scrollbar-width: thin;
@@ -240,7 +243,7 @@
 
 /* 일반 데이터 셀 스타일 */
 .annotation-table td {
-  padding: 15px !important;
+  padding: 10px 15px;
   color: #334155;
   font-size: 14px;
   font-family: 'Nunito Sans', sans-serif;
@@ -305,27 +308,32 @@
 /* 각 열의 너비를 명시적으로 지정 */
 .header-table th:nth-child(2),
 .body-table td:nth-child(2) {
-  width: 20% !important;
+  width: 120px !important;
 }
 
 .header-table th:nth-child(3),
 .body-table td:nth-child(3) {
-  width: 20% !important;
+  width: 120px !important;
 }
 
 .header-table th:nth-child(4),
 .body-table td:nth-child(4) {
-  width: 20% !important;
+  width: 160px !important;
 }
 
 .header-table th:nth-child(5),
 .body-table td:nth-child(5) {
-  width: 15% !important;
+  width: 80px !important;
 }
 
 .header-table th:nth-child(6),
 .body-table td:nth-child(6) {
-  width: 25% !important;
+  width: 120px !important;
+}
+
+.header-table th:nth-child(7),
+.body-table td:nth-child(7) {
+  width: 200px !important;
 }
 
 /* 테이블 셀 공통 스타일 */
@@ -337,7 +345,7 @@
 
 /* 테이블 내 모든 셀에 패딩 동일하게 적용 */
 .annotation-table td:not(.checkbox-col) {
-  padding: 15px !important;
+  padding: 10px 15px !important;
 }
 
 /* 마지막 행 테두리 제거 */
@@ -369,4 +377,24 @@
 .table-controls-container,
 .select-label {
   display: none;
+}
+
+/* 스크롤바 스타일링 */
+.annotation-table-wrapper::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.annotation-table-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.annotation-table-wrapper::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.annotation-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 } 

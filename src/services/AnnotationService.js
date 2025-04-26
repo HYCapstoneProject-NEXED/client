@@ -306,12 +306,19 @@ class AnnotationService {
               }
             }
             
+            // 이미지에 포함된 defect 유형들 수집
+            const defectTypes = imageAnnotations.map(anno => {
+              const defectClass = DUMMY_DEFECT_CLASSES.find(dc => dc.class_id === anno.class_id);
+              return defectClass ? defectClass.class_name.toLowerCase() : null;
+            }).filter(Boolean);
+            
             return {
               id: `IMG_${image.image_id.toString().padStart(3, '0')}`, // IMG_001 형식으로 포맷팅
               cameraId: image.camera_id,
               confidenceScore: minConfScore,
               defectCount: imageAnnotations.length > 0 ? imageAnnotations.length : 0,
-              status: image.status
+              status: image.status,
+              defectTypes: [...new Set(defectTypes)] // 중복 제거
             };
           });
           

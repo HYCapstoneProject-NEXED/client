@@ -223,6 +223,13 @@
   display: flex;
   align-items: center;
   padding: 0 15px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.filter-dropdown:hover {
+  border-color: #4880FF;
+  background-color: #f9f9f9;
 }
 
 .filter-input {
@@ -231,46 +238,53 @@
   align-items: center;
   justify-content: space-between;
   color: rgba(0, 0, 0, 0.7);
+  cursor: pointer;
+  padding: 8px 0;
 }
 
 .filter-actions {
   margin-left: auto;
   display: flex;
   gap: 10px;
+  margin-top: 0px;
 }
 
 /* View Details 버튼 스타일 */
 .view-details-btn {
-  background: #4880FF;
-  opacity: 0.9;
-  border: none;
-  color: white;
+  background: white;
+  border: 1px solid #EFF0F6;
+  color: #4880FF;
   padding: 0 15px;
+  height: 43px;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
 }
 
 .view-details-btn:hover {
-  background-color: #4880FF;
-  opacity: 1;
+  background-color: #F8F9FF;
+  border-color: #4880FF;
+  color: #4880FF;
 }
 
 /* Delete 버튼 스타일 */
 .delete-btn {
-  background-color: #e64c4c;
-  opacity: 0.95;
-  border: none;
-  color: white;
+  background-color: white;
+  border: 1px solid #EFF0F6;
+  color: #e64c4c;
   padding: 0 15px;
+  height: 43px;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
 }
 
 .delete-btn:hover {
-  background-color: #d83c3c;
-  opacity: 1;
+  background-color: #FFF8F8;
+  border-color: #e64c4c;
+  color: #e64c4c;
 }
 
 /* View Mode Buttons */
@@ -367,6 +381,8 @@
   display: flex;
   flex-direction: column;
   min-height: 400px;
+  height: calc(100% - 180px);
+  overflow: hidden;
 }
 
 .view-container.transitioning {
@@ -376,6 +392,7 @@
 /* 테이블/그리드 래퍼가 항상 가능한 최대 너비를 사용하도록 */
 .view-container > div {
   width: 100% !important;
+  height: 100% !important;
   flex: 1;
 }
 
@@ -457,4 +474,52 @@
 
 .dashboard-error .retry-btn:hover {
   background-color: #3a70e8;
+}
+
+/* 결과 없음 메시지 스타일 */
+.no-results-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e0e6ed;
+  margin: 20px 0;
+}
+
+.no-results-icon {
+  font-size: 40px;
+  margin-bottom: 15px;
+}
+
+.no-results-message h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.no-results-message p {
+  color: #666;
+  margin-bottom: 20px;
+  max-width: 400px;
+  font-size: 14px;
+}
+
+.clear-filters-btn {
+  background: #4880FF;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.clear-filters-btn:hover {
+  background: #3A70E3;
 } 

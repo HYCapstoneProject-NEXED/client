@@ -178,7 +178,7 @@ const AnnotationTable = ({
             </th>
             <th>CAMERA ID</th>
             <th>DATA ID</th>
-            <th>CONFIDENCE SCORE(MIN)</th>
+            <th>CONF. SCORE (MIN)</th>
             <th>COUNT</th>
             <th className="status-selection-col">
               <div className="header-content">

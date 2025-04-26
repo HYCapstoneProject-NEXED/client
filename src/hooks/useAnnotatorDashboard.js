@@ -39,16 +39,41 @@ const useAnnotatorDashboard = () => {
     return data.filter(annotation => {
       // Filter by defect type
       if (currentFilters[FILTER_TYPES.DEFECT_TYPE] !== 'all') {
-        const defectType = currentFilters[FILTER_TYPES.DEFECT_TYPE];
-        if (!annotation.defects.some(defect => defect.type === defectType)) {
-          return false;
+        const defectTypeFilter = currentFilters[FILTER_TYPES.DEFECT_TYPE];
+        
+        // 배열인 경우 (여러 선택)
+        if (Array.isArray(defectTypeFilter)) {
+          // defectTypes 배열이 없거나, 선택된 필터 중 하나라도 포함하지 않으면 필터링
+          if (!annotation.defectTypes || 
+              !defectTypeFilter.some(type => annotation.defectTypes.includes(type.toLowerCase()))) {
+            return false;
+          }
+        } 
+        // 문자열인 경우 (단일 선택 - 이전 버전 호환)
+        else {
+          const defectType = defectTypeFilter.toLowerCase();
+          if (!annotation.defectTypes || !annotation.defectTypes.includes(defectType)) {
+            return false;
+          }
         }
       }
       
       // Filter by status
       if (currentFilters[FILTER_TYPES.STATUS] !== 'all') {
-        if (annotation.status !== currentFilters[FILTER_TYPES.STATUS]) {
-          return false;
+        const statusFilter = currentFilters[FILTER_TYPES.STATUS];
+        
+        // 배열인 경우 (여러 선택)
+        if (Array.isArray(statusFilter)) {
+          // 선택된 상태 중 하나도 맞지 않으면 필터링
+          if (!statusFilter.includes(annotation.status)) {
+            return false;
+          }
+        } 
+        // 문자열인 경우 (단일 선택 - 이전 버전 호환)
+        else {
+          if (annotation.status !== statusFilter) {
+            return false;
+          }
         }
       }
       
@@ -56,6 +81,11 @@ const useAnnotatorDashboard = () => {
       if (currentFilters[FILTER_TYPES.CONFIDENCE_SCORE] !== 'all') {
         const score = annotation.confidenceScore;
         const confidenceFilter = currentFilters[FILTER_TYPES.CONFIDENCE_SCORE];
+        
+        // null이나 undefined인 경우 필터링 제외
+        if (score === null || score === undefined) {
+          return false;
+        }
         
         if (confidenceFilter === 'high' && score < 0.7) return false;
         if (confidenceFilter === 'medium' && (score < 0.4 || score >= 0.7)) return false;

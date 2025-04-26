@@ -17,6 +17,9 @@ import DashboardSidebar from '../../components/Annotator/Sidebar/DashboardSideba
 import DashboardHeader from '../../components/Annotator/Header/DashboardHeader';
 import AnnotationTable from '../../components/Annotator/Table/AnnotationTable';
 import AnnotationGrid from '../../components/Annotator/Grid/AnnotationGrid';
+import DefectTypeFilter from '../../components/Annotator/Filter/DefectTypeFilter';
+import StatusFilter from '../../components/Annotator/Filter/StatusFilter';
+import ConfidenceScoreFilter from '../../components/Annotator/Filter/ConfidenceScoreFilter';
 import './AnnotatorDashboard.css';
 
 const AnnotatorDashboard = () => {
@@ -36,6 +39,142 @@ const AnnotatorDashboard = () => {
     refreshData
   } = useAnnotatorDashboard();
   
+  // 필터 팝업 상태
+  const [openFilter, setOpenFilter] = useState({
+    defectType: false,
+    status: false,
+    confidenceScore: false
+  });
+  
+  // 외부 클릭 감지를 위한 refs
+  const filterRefs = {
+    defectType: useRef(null),
+    status: useRef(null),
+    confidenceScore: useRef(null)
+  };
+
+  // 필터 팝업 토글 함수
+  const toggleFilter = (filterName, event) => {
+    // 이벤트 객체가 있으면 이벤트 전파 중지
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    // 현재 필터의 열림/닫힘 상태를 반전
+    setOpenFilter(prev => ({
+      defectType: false,
+      status: false,
+      confidenceScore: false,
+      [filterName]: !prev[filterName]
+    }));
+  };
+
+  // 모든 필터 팝업 닫기
+  const closeAllFilters = () => {
+    setOpenFilter({
+      defectType: false,
+      status: false,
+      confidenceScore: false
+    });
+  };
+
+  // 외부 클릭 감지
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // 클릭한 요소가 필터 드롭다운이나 팝업 내부인지 확인
+      let isInsideAnyFilter = false;
+      
+      // 필터 레퍼런스 확인
+      Object.values(filterRefs).forEach(ref => {
+        if (ref.current && ref.current.contains(event.target)) {
+          isInsideAnyFilter = true;
+        }
+      });
+
+      // 필터 외부를 클릭한 경우에만 닫기
+      if (!isInsideAnyFilter) {
+        closeAllFilters();
+      }
+    };
+
+    // document 레벨에서 클릭 이벤트 감지
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []); // 의존성 배열을 비워서 한 번만 이벤트 리스너를 등록
+
+  // 필터 적용 함수
+  const applyDefectTypeFilter = (selected) => {
+    // 선택된 항목이 없으면 'all'로 처리, 아니면 선택된 항목의 배열을 그대로
+    const newValue = !selected || selected.length === 0 ? 'all' : selected;
+    handleFilterChange(FILTER_TYPES.DEFECT_TYPE, newValue);
+    closeAllFilters();
+  };
+
+  const applyStatusFilter = (selected) => {
+    // 선택된 항목이 없으면 'all'로 처리, 아니면 선택된 항목의 배열을 그대로
+    const newValue = !selected || selected.length === 0 ? 'all' : selected;
+    handleFilterChange(FILTER_TYPES.STATUS, newValue);
+    closeAllFilters();
+  };
+
+  const applyConfidenceScoreFilter = (range) => {
+    // 범위가 없거나 빈 값이면 'all'로 처리
+    if (!range || (!range.min && !range.max)) {
+      handleFilterChange(FILTER_TYPES.CONFIDENCE_SCORE, 'all');
+    } else {
+      // 범위에 따라 적절한 필터 값을 설정
+      let filterValue = 'all';
+      if (range.min >= 0.8 || (range.min && !range.max)) {
+        filterValue = 'high';
+      } else if (range.min >= 0.5 || (range.min && range.max && range.max < 0.8)) {
+        filterValue = 'medium';
+      } else if (range.max && range.max <= 0.5) {
+        filterValue = 'low';
+      }
+      
+      handleFilterChange(FILTER_TYPES.CONFIDENCE_SCORE, filterValue);
+    }
+    closeAllFilters();
+  };
+
+  // 필터 값 표시 텍스트 반환
+  const getDisplayText = (filterType) => {
+    const value = filters[filterType];
+    if (value === 'all') return 'All';
+    
+    if (filterType === FILTER_TYPES.DEFECT_TYPE || filterType === FILTER_TYPES.STATUS) {
+      // 배열인 경우 처리
+      if (Array.isArray(value)) {
+        if (value.length === 1) {
+          // 하나만 선택된 경우 해당 옵션의 레이블 표시
+          const filterOptions = filterType === FILTER_TYPES.DEFECT_TYPE 
+            ? DEFECT_TYPE_FILTERS 
+            : STATUS_FILTERS;
+          const option = filterOptions.find(opt => opt.id === value[0]);
+          return option ? option.label : 'All';
+        } else {
+          // 두 개 이상 선택된 경우 개수 표시
+          return `${value.length} selected`;
+        }
+      }
+      
+      // 이전 버전 호환성을 위한 코드 (문자열인 경우)
+      const filterOptions = filterType === FILTER_TYPES.DEFECT_TYPE 
+        ? DEFECT_TYPE_FILTERS 
+        : STATUS_FILTERS;
+      const option = filterOptions.find(opt => opt.id === value);
+      return option ? option.label : 'All';
+    } else if (filterType === FILTER_TYPES.CONFIDENCE_SCORE) {
+      const option = CONFIDENCE_SCORE_FILTERS.find(opt => opt.id === value);
+      return option ? option.label : 'All';
+    }
+    
+    return 'All';
+  };
+
   // 페이지 레이아웃 일관성 유지
   useEffect(() => {
     const ensureLayout = () => {
@@ -222,52 +361,90 @@ const AnnotatorDashboard = () => {
           
           {/* Filters */}
           <div className="annotation-filters">
-            <div className="filter-dropdown">
+            <div 
+              className="filter-dropdown" 
+              ref={filterRefs.defectType}
+            >
               <div 
                 className="filter-input"
-                onClick={() => {
-                  // 추후 드롭다운 UI 구현
-                  const newValue = window.prompt('Select defect type: all, scratch, dent, discoloration, contamination', filters[FILTER_TYPES.DEFECT_TYPE]);
-                  if (newValue) {
-                    handleFilterChange(FILTER_TYPES.DEFECT_TYPE, newValue);
-                  }
-                }}
+                onClick={(e) => toggleFilter('defectType', e)}
               >
-                <span>Defect Type</span>
+                <span>Defect Type: {getDisplayText(FILTER_TYPES.DEFECT_TYPE)}</span>
                 <FaChevronDown size={14} />
               </div>
+              
+              {openFilter.defectType && (
+                <DefectTypeFilter
+                  options={DEFECT_TYPE_FILTERS.filter(f => f.id !== 'all').map(f => f.id)}
+                  selectedOptions={
+                    filters[FILTER_TYPES.DEFECT_TYPE] === 'all' 
+                      ? [] 
+                      : Array.isArray(filters[FILTER_TYPES.DEFECT_TYPE])
+                        ? filters[FILTER_TYPES.DEFECT_TYPE]
+                        : [filters[FILTER_TYPES.DEFECT_TYPE]]
+                  }
+                  onApply={applyDefectTypeFilter}
+                  onClose={() => setOpenFilter(prev => ({...prev, defectType: false}))}
+                />
+              )}
             </div>
             
-            <div className="filter-dropdown">
+            <div 
+              className="filter-dropdown" 
+              ref={filterRefs.status}
+            >
               <div 
                 className="filter-input"
-                onClick={() => {
-                  // 추후 드롭다운 UI 구현
-                  const newValue = window.prompt('Select status: all, completed, pending', filters[FILTER_TYPES.STATUS]);
-                  if (newValue) {
-                    handleFilterChange(FILTER_TYPES.STATUS, newValue);
-                  }
-                }}
+                onClick={(e) => toggleFilter('status', e)}
               >
-                <span>Status</span>
+                <span>Status: {getDisplayText(FILTER_TYPES.STATUS)}</span>
                 <FaChevronDown size={14} />
               </div>
+              
+              {openFilter.status && (
+                <StatusFilter
+                  options={STATUS_FILTERS.filter(f => f.id !== 'all').map(f => f.id)}
+                  selectedOptions={
+                    filters[FILTER_TYPES.STATUS] === 'all' 
+                      ? [] 
+                      : Array.isArray(filters[FILTER_TYPES.STATUS])
+                        ? filters[FILTER_TYPES.STATUS]
+                        : [filters[FILTER_TYPES.STATUS]]
+                  }
+                  onApply={applyStatusFilter}
+                  onClose={() => setOpenFilter(prev => ({...prev, status: false}))}
+                />
+              )}
             </div>
             
-            <div className="filter-dropdown">
+            <div 
+              className="filter-dropdown" 
+              ref={filterRefs.confidenceScore}
+            >
               <div 
                 className="filter-input"
-                onClick={() => {
-                  // 추후 드롭다운 UI 구현
-                  const newValue = window.prompt('Select confidence score: all, high, medium, low', filters[FILTER_TYPES.CONFIDENCE_SCORE]);
-                  if (newValue) {
-                    handleFilterChange(FILTER_TYPES.CONFIDENCE_SCORE, newValue);
-                  }
-                }}
+                onClick={(e) => toggleFilter('confidenceScore', e)}
               >
-                <span>Confidence Score</span>
+                <span>Confidence Score: {getDisplayText(FILTER_TYPES.CONFIDENCE_SCORE)}</span>
                 <FaChevronDown size={14} />
               </div>
+              
+              {openFilter.confidenceScore && (
+                <ConfidenceScoreFilter
+                  range={
+                    filters[FILTER_TYPES.CONFIDENCE_SCORE] === 'all' 
+                    ? { min: '', max: '' }
+                    : (() => {
+                        const filter = CONFIDENCE_SCORE_FILTERS.find(
+                          f => f.id === filters[FILTER_TYPES.CONFIDENCE_SCORE]
+                        );
+                        return filter ? { min: filter.min, max: filter.max } : { min: '', max: '' };
+                      })()
+                  }
+                  onApply={applyConfidenceScoreFilter}
+                  onClose={() => setOpenFilter(prev => ({...prev, confidenceScore: false}))}
+                />
+              )}
             </div>
             
             {/* 뷰 모드 전환 버튼 */}
@@ -302,22 +479,40 @@ const AnnotatorDashboard = () => {
           
           {/* 뷰 모드에 따라 다른 컴포넌트 렌더링 */}
           <div className={`view-container ${isTransitioning ? 'transitioning' : ''}`}>
-            {viewMode === 'list' ? (
-              <AnnotationTable 
-                annotations={annotations}
-                onViewDetails={handleViewDetails}
-                onDelete={handleDelete}
-                selectedItems={selectedItems}
-                setSelectedItems={setSelectedItems}
-              />
+            {annotations.length === 0 ? (
+              <div className="no-results-message">
+                <div className="no-results-icon">🔍</div>
+                <h3>No matching results found</h3>
+                <p>Try changing your filter criteria or clear all filters to see all data.</p>
+                <button 
+                  className="clear-filters-btn"
+                  onClick={() => {
+                    handleFilterChange(FILTER_TYPES.DEFECT_TYPE, 'all');
+                    handleFilterChange(FILTER_TYPES.STATUS, 'all');
+                    handleFilterChange(FILTER_TYPES.CONFIDENCE_SCORE, 'all');
+                  }}
+                >
+                  Clear All Filters
+                </button>
+              </div>
             ) : (
-              <AnnotationGrid 
-                annotations={annotations}
-                onViewDetails={handleViewDetails}
-                onDelete={handleDelete}
-                selectedItems={selectedItems}
-                setSelectedItems={setSelectedItems}
-              />
+              viewMode === 'list' ? (
+                <AnnotationTable 
+                  annotations={annotations}
+                  onViewDetails={handleViewDetails}
+                  onDelete={handleDelete}
+                  selectedItems={selectedItems}
+                  setSelectedItems={setSelectedItems}
+                />
+              ) : (
+                <AnnotationGrid 
+                  annotations={annotations}
+                  onViewDetails={handleViewDetails}
+                  onDelete={handleDelete}
+                  selectedItems={selectedItems}
+                  setSelectedItems={setSelectedItems}
+                />
+              )
             )}
           </div>
         </div>
