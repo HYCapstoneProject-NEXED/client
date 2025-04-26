@@ -41,3 +41,42 @@
   font-weight: bold;
   color: #111;
 }
+
+/* 테이블 스타일 */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.defect-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.defect-table th,
+.defect-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.defect-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+.defect-table tr:hover {
+  background-color: #f8f9fa;
+}
+
+.table-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
+}
