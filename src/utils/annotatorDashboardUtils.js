@@ -80,15 +80,30 @@ export const formatDataId = (id) => {
  * @returns {number} Numeric ID
  */
 export const extractNumericId = (formattedId) => {
+  console.log('Extracting numeric ID from:', formattedId);
+  
+  // 이미 숫자인 경우
+  if (typeof formattedId === 'number') {
+    return formattedId;
+  }
+  
   if (typeof formattedId !== 'string') {
+    console.error('Invalid ID format (not a string):', formattedId);
     return null;
   }
   
-  const match = formattedId.match(/IMG_(\d+)/);
-  if (match && match[1]) {
-    return parseInt(match[1]);
+  // IMG_XXX 형식인 경우
+  const imgMatch = formattedId.match(/IMG_(\d+)/);
+  if (imgMatch && imgMatch[1]) {
+    return parseInt(imgMatch[1]);
   }
   
+  // 순수 숫자 문자열인 경우
+  if (/^\d+$/.test(formattedId)) {
+    return parseInt(formattedId);
+  }
+  
+  console.error('Could not extract numeric ID from:', formattedId);
   return null;
 };
 

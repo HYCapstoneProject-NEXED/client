@@ -363,4 +363,56 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* 이미지 네비게이션 컨트롤 스타일 */
+.detail-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px;
+  background-color: white;
+  border-radius: 6px;
+  padding: 4px 12px;
+  min-width: 120px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #EFF0F6;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background-color: white;
+  cursor: pointer;
+  border-radius: 4px;
+  color: #4880FF;
+  transition: all 0.2s;
+  margin: 0 2px;
+}
+
+.nav-btn:hover {
+  background-color: #F8F9FF;
+}
+
+.nav-btn:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.nav-position {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 4px;
+  color: #343C6A;
+  white-space: nowrap; /* 줄바꿈 방지 */
+  min-width: 40px; /* 최소 너비 설정 */
+  font-family: 'Nunito Sans', sans-serif;
 } 

@@ -2,8 +2,8 @@
  * Annotation Detail Page
  * 어노테이션 상세 조회 페이지 - 편집 불가능, 확인만 가능
  */
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { FaChevronLeft, FaChevronRight, FaTrash, FaPen, FaCheck, FaClock, FaArrowLeft } from 'react-icons/fa';
 import ImageCanvas from '../../components/Annotator/ImageCanvas';
 import Sidebar from '../../components/Annotator/Sidebar';
@@ -20,9 +20,14 @@ import './AnnotationDetailPage.css';
 const AnnotationDetailPage = () => {
   const navigate = useNavigate();
   const { imageId: imageIdParam } = useParams();
+  const location = useLocation();
   
   // URL에서 이미지 ID를 가져오거나 기본값 사용 (문자열을 숫자로 변환)
-  const [imageId] = useState(parseInt(imageIdParam) || 101);
+  const [imageId, setImageId] = useState(parseInt(imageIdParam) || 101);
+  
+  // URL의 쿼리 파라미터에서 선택된 이미지 ID 목록 추출
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   
   // 사이드바 접힘/펼침 상태
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -35,6 +40,111 @@ const AnnotationDetailPage = () => {
   
   // 상태 변경 드롭다운 표시 여부
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  
+  // URL에서 selectedIds 쿼리 파라미터 파싱
+  useEffect(() => {
+    try {
+      const queryParams = new URLSearchParams(location.search);
+      const selectedIdsParam = queryParams.get('selectedIds');
+      
+      if (selectedIdsParam) {
+        // 쉼표로 구분된 ID 문자열을 정수 배열로 변환
+        const ids = selectedIdsParam
+          .split(',')
+          .map(id => parseInt(id))
+          .filter(id => !isNaN(id));
+        
+        if (ids.length > 0) {
+          setSelectedIds(ids);
+          
+          // 현재 URL의 이미지 ID가 선택된 이미지 목록에 있는지 확인
+          const currentId = parseInt(imageIdParam);
+          const index = ids.findIndex(id => id === currentId);
+          
+          // 현재 이미지의 인덱스 설정 (없으면 첫 번째 이미지로)
+          setCurrentIndex(index !== -1 ? index : 0);
+        } else {
+          // 유효한 ID가 없으면 현재 이미지만 사용
+          setSelectedIds([parseInt(imageIdParam)]);
+          setCurrentIndex(0);
+        }
+      } else {
+        // 쿼리 파라미터가 없는 경우 현재 이미지만 포함
+        setSelectedIds([parseInt(imageIdParam)]);
+        setCurrentIndex(0);
+      }
+    } catch (error) {
+      console.error("Error parsing query parameters:", error);
+      // 오류 발생 시 기본값 사용
+      setSelectedIds([parseInt(imageIdParam)]);
+      setCurrentIndex(0);
+    }
+  }, [location.search, imageIdParam]);
+  
+  // 이전 이미지로 이동
+  const handlePrevImage = useCallback(() => {
+    console.log("Prev image requested. Current index:", currentIndex, "Selected IDs:", selectedIds);
+    if (selectedIds.length <= 1 || currentIndex <= 0) {
+      console.log("Cannot go to previous image");
+      return;
+    }
+    
+    const prevIndex = currentIndex - 1;
+    const prevImageId = selectedIds[prevIndex];
+    console.log("Moving to previous image. Index:", prevIndex, "ID:", prevImageId);
+    
+    // 이전 이미지의 상세 페이지로 이동하면서 기존 선택 이미지 목록 유지
+    const targetUrl = `/annotator/detail/${prevImageId}?selectedIds=${selectedIds.join(',')}`;
+    console.log("Navigating to:", targetUrl);
+    navigate(targetUrl, { replace: false });
+  }, [selectedIds, currentIndex, navigate]);
+  
+  // 다음 이미지로 이동
+  const handleNextImage = useCallback(() => {
+    console.log("Next image requested. Current index:", currentIndex, "Selected IDs:", selectedIds);
+    if (selectedIds.length <= 1 || currentIndex >= selectedIds.length - 1) {
+      console.log("Cannot go to next image");
+      return;
+    }
+    
+    const nextIndex = currentIndex + 1;
+    const nextImageId = selectedIds[nextIndex];
+    console.log("Moving to next image. Index:", nextIndex, "ID:", nextImageId);
+    
+    // 다음 이미지의 상세 페이지로 이동하면서 기존 선택 이미지 목록 유지
+    const targetUrl = `/annotator/detail/${nextImageId}?selectedIds=${selectedIds.join(',')}`;
+    console.log("Navigating to:", targetUrl);
+    navigate(targetUrl, { replace: false });
+  }, [selectedIds, currentIndex, navigate]);
+  
+  // 키보드 단축키 이벤트 핸들러 설정
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // 포커스가 input, textarea 등에 있을 경우 키보드 단축키 무시
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+      
+      // 왼쪽 화살표 키: 이전 이미지
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handlePrevImage();
+      }
+      // 오른쪽 화살표 키: 다음 이미지
+      else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleNextImage();
+      }
+    };
+    
+    // 키보드 이벤트 리스너 등록
+    window.addEventListener('keydown', handleKeyDown);
+    
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handlePrevImage, handleNextImage]); // 이제 의존성으로 함수만 전달
   
   // 사이드바 토글 핸들러
   const handleSidebarToggle = (collapsed) => {
@@ -153,6 +263,33 @@ const AnnotationDetailPage = () => {
         <h1>Annotation Details</h1>
         
         <div className="header-actions">
+          {/* 네비게이션 컨트롤 추가 */}
+          {selectedIds.length > 1 && (
+            <div className="detail-navigation">
+              <button 
+                className="nav-btn prev-btn"
+                onClick={handlePrevImage}
+                disabled={currentIndex <= 0}
+                title="Previous Image"
+              >
+                <FaChevronLeft size={16} />
+              </button>
+              
+              <span className="nav-position">
+                {currentIndex + 1} / {selectedIds.length}
+              </span>
+              
+              <button 
+                className="nav-btn next-btn"
+                onClick={handleNextImage}
+                disabled={currentIndex >= selectedIds.length - 1}
+                title="Next Image"
+              >
+                <FaChevronRight size={16} />
+              </button>
+            </div>
+          )}
+          
           <button 
             className="start-annotating-btn"
             onClick={startAnnotating}
