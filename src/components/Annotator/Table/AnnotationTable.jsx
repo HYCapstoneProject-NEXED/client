@@ -76,7 +76,7 @@ const AnnotationTable = ({
       const allSelected = annotations.every(item => 
         newItems[item.id] === true
       );
-      setSelectAll(allSelected);
+    setSelectAll(allSelected);
       
       return newItems;
     });
@@ -98,8 +98,8 @@ const AnnotationTable = ({
     // 선택된 항목이 없을 때만 세부 정보로 바로 이동 
     if (Object.keys(effectiveSelectedItems).filter(itemId => effectiveSelectedItems[itemId]).length === 0) {
       onViewDetails(id);
-    }
-  };
+      }
+    };
 
   /**
    * 상태에 맞는 스타일 및 아이콘을 렌더링합니다
@@ -202,10 +202,10 @@ const AnnotationTable = ({
               >
                 <td className="checkbox-col">
                   <div onClick={(e) => e.stopPropagation()}>
-                    <CheckboxCell 
-                      checked={!!effectiveSelectedItems[annotation.id]} 
-                      onChange={(e) => handleSelectItem(e, annotation.id)}
-                    />
+                  <CheckboxCell 
+                    checked={!!effectiveSelectedItems[annotation.id]} 
+                    onChange={(e) => handleSelectItem(e, annotation.id)}
+                  />
                   </div>
                 </td>
                 <td>{annotation.cameraId}</td>

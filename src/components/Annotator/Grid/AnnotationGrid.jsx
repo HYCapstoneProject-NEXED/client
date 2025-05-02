@@ -76,7 +76,7 @@ const AnnotationGrid = ({
       const allSelected = annotations.every(item => 
         newItems[item.id] === true
       );
-      setSelectAll(allSelected);
+    setSelectAll(allSelected);
       
       return newItems;
     });
@@ -148,10 +148,10 @@ const AnnotationGrid = ({
             className="checkbox-container" 
             onClick={(e) => e.stopPropagation()}
           >
-            <CheckboxCell 
-              checked={isSelected}
-              onChange={(e) => handleSelectItem(e, annotation.id)}
-            />
+          <CheckboxCell 
+            checked={isSelected}
+            onChange={(e) => handleSelectItem(e, annotation.id)}
+          />
           </div>
           <div className="annotation-title">{annotation.id}</div>
         </div>
