@@ -62,7 +62,14 @@ const AnnotationDetailPage = () => {
           const index = ids.findIndex(id => id === currentId);
           
           // 현재 이미지의 인덱스 설정 (없으면 첫 번째 이미지로)
-          setCurrentIndex(index !== -1 ? index : 0);
+          if (index !== -1) {
+            setCurrentIndex(index);
+          } else {
+            // 현재 이미지가 목록에 없는 경우, 목록에 추가
+            const newIds = [...ids, currentId];
+            setSelectedIds(newIds);
+            setCurrentIndex(newIds.length - 1);
+          }
         } else {
           // 유효한 ID가 없으면 현재 이미지만 사용
           setSelectedIds([parseInt(imageIdParam)]);
@@ -83,7 +90,6 @@ const AnnotationDetailPage = () => {
   
   // 이전 이미지로 이동
   const handlePrevImage = useCallback(() => {
-    console.log("Prev image requested. Current index:", currentIndex, "Selected IDs:", selectedIds);
     if (selectedIds.length <= 1 || currentIndex <= 0) {
       console.log("Cannot go to previous image");
       return;
@@ -91,17 +97,17 @@ const AnnotationDetailPage = () => {
     
     const prevIndex = currentIndex - 1;
     const prevImageId = selectedIds[prevIndex];
-    console.log("Moving to previous image. Index:", prevIndex, "ID:", prevImageId);
+    
+    // URL 변경 없이 상태 업데이트
+    setImageId(prevImageId);
+    setCurrentIndex(prevIndex);
     
     // 이전 이미지의 상세 페이지로 이동하면서 기존 선택 이미지 목록 유지
-    const targetUrl = `/annotator/detail/${prevImageId}?selectedIds=${selectedIds.join(',')}`;
-    console.log("Navigating to:", targetUrl);
-    navigate(targetUrl, { replace: false });
+    navigate(`/annotator/detail/${prevImageId}?selectedIds=${selectedIds.join(',')}`, { replace: true });
   }, [selectedIds, currentIndex, navigate]);
   
   // 다음 이미지로 이동
   const handleNextImage = useCallback(() => {
-    console.log("Next image requested. Current index:", currentIndex, "Selected IDs:", selectedIds);
     if (selectedIds.length <= 1 || currentIndex >= selectedIds.length - 1) {
       console.log("Cannot go to next image");
       return;
@@ -109,12 +115,13 @@ const AnnotationDetailPage = () => {
     
     const nextIndex = currentIndex + 1;
     const nextImageId = selectedIds[nextIndex];
-    console.log("Moving to next image. Index:", nextIndex, "ID:", nextImageId);
+    
+    // URL 변경 없이 상태 업데이트
+    setImageId(nextImageId);
+    setCurrentIndex(nextIndex);
     
     // 다음 이미지의 상세 페이지로 이동하면서 기존 선택 이미지 목록 유지
-    const targetUrl = `/annotator/detail/${nextImageId}?selectedIds=${selectedIds.join(',')}`;
-    console.log("Navigating to:", targetUrl);
-    navigate(targetUrl, { replace: false });
+    navigate(`/annotator/detail/${nextImageId}?selectedIds=${selectedIds.join(',')}`, { replace: true });
   }, [selectedIds, currentIndex, navigate]);
   
   // 키보드 단축키 이벤트 핸들러 설정
@@ -153,7 +160,9 @@ const AnnotationDetailPage = () => {
   
   // 편집 페이지로 이동하는 함수
   const startAnnotating = () => {
-    navigate(`/annotator/edit/${imageId}`);
+    // 편집 페이지로 이동할 때도 선택된 이미지 목록 유지
+    // 쿼리 파라미터로 selectedIds 전달
+    navigate(`/annotator/edit/${imageId}?selectedIds=${selectedIds.join(',')}`);
   };
   
   // 데이터 삭제 함수
