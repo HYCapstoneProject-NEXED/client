@@ -214,25 +214,25 @@
 .start-annotating-btn {
   min-width: 120px;
   height: 45px;
-  background-color: #4880FF;
-  opacity: 1;
+  background-color: white;
+  border: 1px solid #EFF0F6;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: #4880FF;
   font-family: 'Nunito Sans', sans-serif;
   font-size: 14px;
   font-weight: 600;
-  border: none;
   cursor: pointer;
-  transition: background-color 0.2s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
   padding: 0 20px;
 }
 
 .start-annotating-btn:hover {
-  background-color: #3a70e8;
+  background-color: #F8F9FF;
+  border-color: #4880FF;
 }
 
 .start-annotating-btn svg {
@@ -242,25 +242,25 @@
 .delete-btn {
   min-width: 120px;
   height: 45px;
-  background-color: #fde8e8;
-  opacity: 1;
+  background-color: white;
+  border: 1px solid #EFF0F6;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #EF3826;
+  color: #e64c4c;
   font-family: 'Nunito Sans', sans-serif;
   font-size: 14px;
   font-weight: 600;
-  border: none;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
   padding: 0 20px;
 }
 
 .delete-btn:hover {
-  background-color: #fadada;
+  background-color: #FFF8F8;
+  border-color: #e64c4c;
 }
 
 .delete-btn svg {

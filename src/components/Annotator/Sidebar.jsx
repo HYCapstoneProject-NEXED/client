@@ -278,7 +278,15 @@ const Sidebar = ({
           {/* Traditional Selected Annotation Details (now hidden via CSS) */}
           {selectedDefectDetail && (
             <div className="annotator-defect-detail">
-              <h2>Selected Annotation Details</h2>
+              <h2 style={{
+                color: "#343C6A",
+                fontSize: "18px",
+                fontWeight: 700,
+                fontFamily: "'Nunito Sans', sans-serif",
+                margin: "0 0 16px 0",
+                padding: "0 0 8px 0",
+                borderBottom: "1px solid #e6e8eb"
+              }}>Selected Annotation Details</h2>
               <div className="annotator-detail-item">
                 <span className="detail-label">Annotation ID:</span>
                 <span className="detail-value">{selectedDefectDetail.id}</span>
@@ -314,7 +322,15 @@ const Sidebar = ({
 
           {/* Defect List Section */}
           <div className="annotator-defect-list-container">
-            <h2>Defects List</h2>
+            <h2 style={{
+              color: "#343C6A",
+              fontSize: "18px",
+              fontWeight: 700,
+              fontFamily: "'Nunito Sans', sans-serif",
+              margin: "0 0 16px 0",
+              padding: "0 0 8px 0",
+              borderBottom: "1px solid #e6e8eb"
+            }}>Defects List</h2>
             <ul className="annotator-defect-list">
               {defects.map((defect) => (
                 <li 

@@ -2,7 +2,7 @@
  * 어노테이션 편집 페이지
  * 이미지 로딩, 바운딩 박스 편집, 히스토리 관리 등 어노테이션의 핵심 기능을 포함
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../../components/Annotator/Header';
 import Sidebar from '../../components/Annotator/Sidebar';
@@ -51,6 +51,24 @@ const AnnotationEditPage = () => {
   // 어노테이션 선택 관리 훅 사용
   const selection = useAnnotationSelection(annotationData.defects);
 
+  // 페이지를 떠날 때 저장되지 않은 변경 사항 확인
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (annotationData.hasUnsavedChanges) {
+        // 변경 사항이 있는 경우 경고 메시지 표시
+        const message = '변경 사항이 저장되지 않았습니다. 정말 페이지를 떠나시겠습니까?';
+        e.returnValue = message;
+        return message;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [annotationData.hasUnsavedChanges]);
+
   /**
    * 클래스 선택 핸들러
    * @param {string} defectType - 결함 유형
@@ -87,12 +105,28 @@ const AnnotationEditPage = () => {
       alert('저장에 실패했습니다. 다시 시도해 주세요.');
     }
   };
+  
+  /**
+   * 뒤로가기 함수 - 무조건 디테일 페이지로 이동
+   */
+  const handleGoBack = () => {
+    if (annotationData.hasUnsavedChanges) {
+      const confirmed = window.confirm('변경 사항이 저장되지 않을 수 있습니다. 계속 진행하시겠습니까?');
+      if (confirmed) {
+        navigate(`/annotator/detail/${imageId}`);
+      }
+    } else {
+      navigate(`/annotator/detail/${imageId}`);
+    }
+  };
 
   // 로딩 중일 때 표시할 내용
   if (annotationData.isLoading) {
     return (
       <div className="annotator-annotation-edit-page">
-        <Header onSave={handleSaveAndNavigate} />
+        <Header
+          onSave={handleSaveAndNavigate}
+        />
         <div className="annotator-loading">
           <div className="loader"></div>
           <p>어노테이션 데이터 로딩 중...</p>
@@ -103,7 +137,9 @@ const AnnotationEditPage = () => {
 
   return (
     <div className="annotator-annotation-edit-page">
-      <Header onSave={handleSaveAndNavigate} />
+      <Header
+        onSave={handleSaveAndNavigate}
+      />
       <div className={`annotator-body-container ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         <div className="annotator-sidebar-wrapper">
           <Sidebar 
