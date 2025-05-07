@@ -25,25 +25,43 @@ jobs:
         
       - name: Build
         run: CI=false npm run build
-        
-      - name: Install sshpass
-        run: sudo apt-get install -y sshpass
-        
-      - name: Deploy to server
+      
+      - name: Deploy with expect
         env:
-          SSH_PASS: defectect!!@
+          SERVER_PASS: ${{ secrets.SERVER_PASSWORD }}
         run: |
-          # 원격 폴더 생성 확인
-          sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "mkdir -p ~/website"
+          sudo apt-get update
+          sudo apt-get install -y expect
           
-          # 설정 파일 복사
-          sshpass -p "$SSH_PASS" scp -o StrictHostKeyChecking=no Dockerfile.production defectect@166.104.246.64:~/website/
-          sshpass -p "$SSH_PASS" scp -o StrictHostKeyChecking=no docker-compose.production.yml defectect@166.104.246.64:~/website/docker-compose.yml
-          sshpass -p "$SSH_PASS" scp -o StrictHostKeyChecking=no nginx.conf defectect@166.104.246.64:~/website/
+          # 설정 파일들 복사
+          echo '#!/usr/bin/expect -f
+          spawn scp -o StrictHostKeyChecking=no Dockerfile.production docker-compose.production.yml nginx.conf defectect@166.104.246.64:~/website/
+          expect "password:"
+          send "$env(SERVER_PASS)\r"
+          expect eof
+          ' > copy_files.exp
           
-          # build 폴더 복사 (압축 후 전송하여 속도 향상)
+          # build 폴더 tar로 묶기
           tar -czf build.tar.gz build/
-          sshpass -p "$SSH_PASS" scp -o StrictHostKeyChecking=no build.tar.gz defectect@166.104.246.64:~/website/
           
-          # 서버에서 압축 해제 및 도커 실행
-          sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "cd ~/website && tar -xzf build.tar.gz && docker-compose up -d --build" 
+          # tar 파일 복사
+          echo '#!/usr/bin/expect -f
+          spawn scp -o StrictHostKeyChecking=no build.tar.gz defectect@166.104.246.64:~/website/
+          expect "password:"
+          send "$env(SERVER_PASS)\r"
+          expect eof
+          ' > copy_build.exp
+          
+          # 서버에서 명령 실행
+          echo '#!/usr/bin/expect -f
+          spawn ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "mkdir -p ~/website && cd ~/website && tar -xzf build.tar.gz && docker-compose -f docker-compose.yml up -d --build"
+          expect "password:"
+          send "$env(SERVER_PASS)\r"
+          expect eof
+          ' > run_commands.exp
+          
+          # 스크립트 실행 권한 부여 및 실행
+          chmod +x copy_files.exp copy_build.exp run_commands.exp
+          ./copy_files.exp
+          ./copy_build.exp
+          ./run_commands.exp 
