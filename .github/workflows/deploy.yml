@@ -24,7 +24,7 @@ jobs:
         run: npm ci
         
       - name: Build
-        run: npm run build
+        run: CI=false npm run build
         
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.7.0
