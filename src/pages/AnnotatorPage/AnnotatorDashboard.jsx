@@ -23,8 +23,8 @@ import ConfidenceScoreFilter from '../../components/Annotator/Filter/ConfidenceS
 import './AnnotatorDashboard.css';
 
 const AnnotatorDashboard = () => {
-  // 자동 배포 테스트용 헤더 제목 변경
-  const dashboardTitle = "Annotator Dashboard - 자동 배포 테스트";
+  // 대시보드 타이틀
+  const dashboardTitle = "Annotator Dashboard";
   
   const navigate = useNavigate();
   const [selectedItems, setSelectedItems] = useState({});
