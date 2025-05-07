@@ -166,5 +166,33 @@ const defectStats = [
   }
 ];
 
+// 아래는 오늘 날짜 기준 최근 100일 이내의 랜덤 데이터 100개 추가
+function getRandomDateWithinLastNDays(n) {
+  const today = new Date();
+  const daysAgo = Math.floor(Math.random() * n);
+  const d = new Date(today);
+  d.setDate(today.getDate() - daysAgo);
+  d.setHours(Math.floor(Math.random() * 24));
+  d.setMinutes(Math.floor(Math.random() * 60));
+  d.setSeconds(Math.floor(Math.random() * 60));
+  return d.toISOString();
+}
+const defectTypes = [
+  ['Crack'], ['Scratch'], ['Burr'], ['Particle'],
+  ['Crack', 'Burr'], ['Scratch', 'Particle'], ['Burr', 'Particle'], ['Crack', 'Scratch']
+];
+const lines = ['Line-A', 'Line-B', 'Line-C'];
+const cameraIds = [1, 2, 3, 4, 5];
+for (let i = 19; i <= 118; i++) {
+  dummyDefectData.push({
+    id: i,
+    image: '/circle-placeholder.png',
+    line: lines[Math.floor(Math.random() * lines.length)],
+    cameraId: cameraIds[Math.floor(Math.random() * cameraIds.length)],
+    timestamp: getRandomDateWithinLastNDays(100),
+    type: defectTypes[Math.floor(Math.random() * defectTypes.length)]
+  });
+}
+
 export default dummyDefectData;
 export { defectStats }; 
