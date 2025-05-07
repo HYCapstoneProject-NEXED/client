@@ -2,13 +2,20 @@
   padding: 24px;
   background-color: #f5f6fa;
   min-height: calc(100vh - 64px);
+  width: 100%;
+  max-width: 100%;  /* 최대 너비 제한 */
+  position: relative;
+  overflow-x: hidden; /* 가로 스크롤 방지 */
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .charts-container {
   display: flex;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 24px;
+  width: 100%;
 }
 
 .chart-card {
@@ -54,12 +61,12 @@
   margin-bottom: 24px;
 }
 
-.filters-container {
+.statistics-filters-container {
   display: flex;
   gap: 24px;
 }
 
-.filter-select {
+.statistics-filter-button {
   padding: 8px 12px;
   border-radius: 4px;
   border: 1px solid #e1e1e1;
@@ -69,27 +76,61 @@
   color: #333;
   cursor: pointer;
   transition: all 0.2s ease;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 8px center;
-  background-size: 16px;
-  padding-right: 32px;
+  text-align: left;
+  position: relative;
 }
 
-.filter-select:hover {
+.statistics-filter-button:hover {
   border-color: #8884d8;
 }
 
-.filter-select:focus {
+.statistics-filter-button:focus {
   outline: none;
   border-color: #8884d8;
   box-shadow: 0 0 0 2px rgba(136, 132, 216, 0.1);
 }
 
-.filter-label {
+.statistics-filter-label {
   font-size: 14px;
   font-weight: 500;
   color: #333;
   margin-bottom: 4px;
+  display: block;
+}
+
+/* 팝업 위치 조정을 위한 스타일 */
+.statistics-filters-container > div {
+  position: relative;
+}
+
+.filter-popup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  margin-top: 4px;
+}
+
+.line-chart-card {
+  margin-top: 24px;
+  width: 100%;
+  padding: 12px 0;  /* 좌우 패딩 제거 */
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;  /* 넘치는 부분 숨김 */
+}
+
+/* 기존 차트들의 크기 유지를 위한 추가 스타일 */
+.chart-card:not(.line-chart-card) {
+  flex: 0 0 auto;
+}
+
+/* 반응형 처리를 위한 미디어 쿼리 추가 */
+@media screen and (max-width: 1200px) {
+  .line-chart-card {
+    margin-left: -12px;
+    margin-right: -12px;
+    width: calc(100% + 24px);
+  }
 }
