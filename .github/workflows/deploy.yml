@@ -22,35 +22,63 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y expect
           
-          # NVM 설치 및 Node.js 설정
-          cat > setup_node.exp << 'EOL'
+          # 단일 스크립트로 배포 실행
+          cat > deploy.exp << 'EOL'
           #!/usr/bin/expect -f
-          spawn ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash && export NVM_DIR=\$HOME/.nvm && . \$NVM_DIR/nvm.sh && nvm install 18 && nvm use 18"
-          expect "password:"
-          send "$env(SERVER_PASS)\r"
-          expect eof
-          EOL
-          chmod +x setup_node.exp
-          ./setup_node.exp
+          # 디버깅 모드 켜기
+          exp_internal 1
           
-          # 프로젝트 클론 및 빌드
-          cat > build_on_server.exp << 'EOL'
-          #!/usr/bin/expect -f
-          spawn ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "mkdir -p ~/website && cd ~/website && git clone https://github.com/HYCapstoneProject-NEXED/client.git . || git pull && export NVM_DIR=\$HOME/.nvm && . \$NVM_DIR/nvm.sh && nvm use 18 && npm ci && CI=false npm run build"
-          expect "password:"
-          send "$env(SERVER_PASS)\r"
-          expect eof
-          EOL
-          chmod +x build_on_server.exp
-          ./build_on_server.exp
+          # 타임아웃 설정
+          set timeout 600
           
-          # 서버 실행
-          cat > run_server.exp << 'EOL'
-          #!/usr/bin/expect -f
-          spawn ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "cd ~/website && export NVM_DIR=\$HOME/.nvm && . \$NVM_DIR/nvm.sh && nvm use 18 && npm install -g serve && pkill -f \"serve -s build\" || true && nohup serve -s build -l 3000 > server.log 2>&1 & echo \$! > serve.pid"
+          # SSH 연결 및 명령 실행
+          spawn ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "
+            # 디렉토리 준비
+            mkdir -p ~/website
+            cd ~/website
+            
+            # 소스 코드 복제
+            git clone https://github.com/HYCapstoneProject-NEXED/client.git . || git pull
+            
+            # 이미 실행 중인 서버 종료
+            pkill -f 'serve -s build' || true
+            
+            # 의존성 설치 및 빌드
+            export PATH=\$HOME/.local/bin:\$PATH
+            npm ci
+            CI=false npm run build
+            
+            # 서버 실행
+            npm install -g serve
+            nohup serve -s build -l 3000 > server.log 2>&1 &
+            echo \$! > serve.pid
+            
+            # systemd 서비스 설정 (서버 재시작시 자동 실행)
+            mkdir -p ~/.config/systemd/user
+            cat > ~/.config/systemd/user/website.service << 'EOF'
+            [Unit]
+            Description=React Website
+
+            [Service]
+            ExecStart=\$(which serve) -s \$(echo \$HOME)/website/build -l 3000
+            Restart=always
+            
+            [Install]
+            WantedBy=default.target
+            EOF
+            
+            systemctl --user daemon-reload
+            systemctl --user enable website
+            systemctl --user restart website
+            
+            # 상태 확인
+            echo '배포 완료! 서버 상태:'
+            ps aux | grep serve
+          "
           expect "password:"
           send "$env(SERVER_PASS)\r"
           expect eof
           EOL
-          chmod +x run_server.exp
-          ./run_server.exp 
+          
+          chmod +x deploy.exp
+          ./deploy.exp 

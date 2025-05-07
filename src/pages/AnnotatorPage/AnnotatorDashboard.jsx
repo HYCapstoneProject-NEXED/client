@@ -23,6 +23,9 @@ import ConfidenceScoreFilter from '../../components/Annotator/Filter/ConfidenceS
 import './AnnotatorDashboard.css';
 
 const AnnotatorDashboard = () => {
+  // 자동 배포 테스트용 헤더 제목 변경
+  const dashboardTitle = "Annotator Dashboard - 자동 배포 테스트";
+  
   const navigate = useNavigate();
   const [selectedItems, setSelectedItems] = useState({});
   const [viewMode, setViewMode] = useState('list'); // 'list' 또는 'thumbnail' 모드
@@ -284,7 +287,7 @@ const AnnotatorDashboard = () => {
         <DashboardSidebar activeMenu="dashboard" />
         
         <div className="main-content">
-          <DashboardHeader title="Annotator" />
+          <DashboardHeader title={dashboardTitle} />
           
           <div className="dashboard-loading">
             <div className="loader"></div>
@@ -301,7 +304,7 @@ const AnnotatorDashboard = () => {
         <DashboardSidebar activeMenu="dashboard" />
         
         <div className="main-content">
-          <DashboardHeader title="Annotator" />
+          <DashboardHeader title={dashboardTitle} />
           
           <div className="dashboard-error">
             <p className="error-message">{error}</p>
@@ -317,7 +320,7 @@ const AnnotatorDashboard = () => {
       <DashboardSidebar activeMenu="dashboard" />
       
       <div className="main-content">
-        <DashboardHeader title="Annotator" />
+        <DashboardHeader title={dashboardTitle} />
         
         <div className="dashboard-content">
           <h2 className="section-title">Current Task</h2>
