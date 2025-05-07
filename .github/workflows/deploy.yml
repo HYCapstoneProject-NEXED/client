@@ -33,35 +33,32 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y expect
           
-          # 설정 파일들 복사
+          # 서버에서 직접 빌드 및 실행
           echo '#!/usr/bin/expect -f
-          spawn scp -o StrictHostKeyChecking=no Dockerfile.production docker-compose.production.yml nginx.conf defectect@166.104.246.64:~/website/
+          spawn ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "mkdir -p ~/website && cd ~/website && git clone https://github.com/HYCapstoneProject-NEXED/client.git . || git pull && npm ci && CI=false npm run build && cp docker-compose.production.yml docker-compose.yml"
           expect "password:"
           send "$env(SERVER_PASS)\r"
           expect eof
-          ' > copy_files.exp
+          ' > build_on_server.exp
+          chmod +x build_on_server.exp
+          ./build_on_server.exp
           
-          # build 폴더 tar로 묶기
-          tar -czf build.tar.gz build/
-          
-          # tar 파일 복사
+          # 설정 파일 복사
           echo '#!/usr/bin/expect -f
-          spawn scp -o StrictHostKeyChecking=no build.tar.gz defectect@166.104.246.64:~/website/
+          spawn scp -o StrictHostKeyChecking=no Dockerfile.production nginx.conf defectect@166.104.246.64:~/website/
           expect "password:"
           send "$env(SERVER_PASS)\r"
           expect eof
-          ' > copy_build.exp
+          ' > copy_configs.exp
+          chmod +x copy_configs.exp
+          ./copy_configs.exp
           
-          # 서버에서 명령 실행
+          # Docker 실행 (권한이 있다면)
           echo '#!/usr/bin/expect -f
-          spawn ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "mkdir -p ~/website && cd ~/website && tar -xzf build.tar.gz && cp docker-compose.production.yml docker-compose.yml && docker-compose -f docker-compose.yml up -d --build"
+          spawn ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "cd ~/website && if command -v docker &> /dev/null && docker ps &> /dev/null; then docker-compose up -d --build; else echo \"Docker 권한 없음. Node.js로 실행 시도\"; npm install -g serve; nohup serve -s build -l 3000 > server.log 2>&1 & echo $! > serve.pid; fi"
           expect "password:"
           send "$env(SERVER_PASS)\r"
           expect eof
-          ' > run_commands.exp
-          
-          # 스크립트 실행 권한 부여 및 실행
-          chmod +x copy_files.exp copy_build.exp run_commands.exp
-          ./copy_files.exp
-          ./copy_build.exp
-          ./run_commands.exp 
+          ' > run_server.exp
+          chmod +x run_server.exp
+          ./run_server.exp 
