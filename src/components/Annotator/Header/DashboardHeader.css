@@ -8,7 +8,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 50px;
+  padding: 0 30px;
   border-bottom: 1px solid #E6EFF5;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
   z-index: 10;
@@ -21,8 +21,11 @@
   font-family: 'Inter', sans-serif;
   font-weight: 700;
   margin: 0;
-  margin-left: auto;
-  margin-right: 20px;
+  position: relative;
+  background: none;
+  padding: 0;
+  box-shadow: none;
+  border: none;
 }
 
 .user-profile {

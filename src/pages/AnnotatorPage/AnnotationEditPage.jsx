@@ -3,7 +3,7 @@
  * 이미지 로딩, 바운딩 박스 편집, 히스토리 관리 등 어노테이션의 핵심 기능을 포함
  */
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import Header from '../../components/Annotator/Header';
 import Sidebar from '../../components/Annotator/Sidebar';
 import ImageCanvas from '../../components/Annotator/ImageCanvas';
@@ -21,9 +21,34 @@ import './AnnotationEditPage.css';
 const AnnotationEditPage = () => {
   const navigate = useNavigate();
   const { imageId: imageIdParam } = useParams();
+  const location = useLocation();
   
   // URL에서 이미지 ID를 가져오거나 기본값 사용 (문자열을 숫자로 변환)
   const [imageId] = useState(parseInt(imageIdParam) || 101);
+  
+  // URL에서 selectedIds 쿼리 파라미터 추출
+  const [selectedIds, setSelectedIds] = useState([]);
+  
+  // URL 쿼리 파라미터에서 selectedIds 파싱
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const selectedIdsParam = queryParams.get('selectedIds');
+    
+    if (selectedIdsParam) {
+      const ids = selectedIdsParam
+        .split(',')
+        .map(id => parseInt(id))
+        .filter(id => !isNaN(id));
+      
+      if (ids.length > 0) {
+        setSelectedIds(ids);
+      } else {
+        setSelectedIds([parseInt(imageIdParam)]);
+      }
+    } else {
+      setSelectedIds([parseInt(imageIdParam)]);
+    }
+  }, [location.search, imageIdParam]);
   
   // 사이드바 접힘/펼침 상태
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -97,8 +122,8 @@ const AnnotationEditPage = () => {
       // 저장 함수 호출
       await annotationData.saveAnnotations();
       
-      // 저장 성공 후 상세 페이지로 이동
-      navigate(`/annotator/detail/${imageId}`);
+      // 저장 성공 후 상세 페이지로 이동 (selectedIds 유지)
+      navigate(`/annotator/detail/${imageId}?selectedIds=${selectedIds.join(',')}`);
     } catch (error) {
       console.error('Failed to save annotation:', error);
       // 오류 처리 (실제 구현에서는 사용자에게 알림 표시)
@@ -113,10 +138,10 @@ const AnnotationEditPage = () => {
     if (annotationData.hasUnsavedChanges) {
       const confirmed = window.confirm('변경 사항이 저장되지 않을 수 있습니다. 계속 진행하시겠습니까?');
       if (confirmed) {
-        navigate(`/annotator/detail/${imageId}`);
+        navigate(`/annotator/detail/${imageId}?selectedIds=${selectedIds.join(',')}`);
       }
     } else {
-      navigate(`/annotator/detail/${imageId}`);
+      navigate(`/annotator/detail/${imageId}?selectedIds=${selectedIds.join(',')}`);
     }
   };
 
@@ -126,6 +151,7 @@ const AnnotationEditPage = () => {
       <div className="annotator-annotation-edit-page">
         <Header
           onSave={handleSaveAndNavigate}
+          onBack={handleGoBack}
         />
         <div className="annotator-loading">
           <div className="loader"></div>
@@ -139,6 +165,7 @@ const AnnotationEditPage = () => {
     <div className="annotator-annotation-edit-page">
       <Header
         onSave={handleSaveAndNavigate}
+        onBack={handleGoBack}
       />
       <div className={`annotator-body-container ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         <div className="annotator-sidebar-wrapper">

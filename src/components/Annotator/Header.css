@@ -12,6 +12,34 @@
   box-sizing: border-box;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.annotator-back-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: #4880FF;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Nunito Sans', sans-serif;
+  cursor: pointer;
+  margin-right: 20px;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.annotator-back-button:hover {
+  background-color: #F8F9FF;
+}
+
 .annotator-header h1 {
   color: #343C6A;
   font-size: 28px;

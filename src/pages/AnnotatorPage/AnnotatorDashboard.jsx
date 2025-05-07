@@ -224,18 +224,28 @@ const AnnotatorDashboard = () => {
     }
   };
 
+  // 체크박스로 선택된 항목(들)의 상세 페이지로 이동
   const handleViewSelectedDetails = () => {
     // 체크박스로 선택된 항목의 상세 페이지로 이동
     const selectedIds = Object.keys(selectedItems).filter(id => selectedItems[id]);
     
     if (selectedIds.length === 0) {
-      alert('Please select an item to view details');
-    } else if (selectedIds.length > 1) {
-      alert('Please select only one item to view details');
-    } else {
-      // 선택된 항목이 하나인 경우 상세 페이지로 이동
-      handleViewDetails(selectedIds[0]);
+      alert('Please select at least one item to view details');
+      return;
     }
+    
+    // 선택된 모든 이미지의 ID를 쿼리 파라미터로 전달
+    const numericIds = selectedIds
+      .map(id => extractNumericId(id))
+      .filter(id => id !== null);
+    
+    if (numericIds.length === 0) {
+      alert('Invalid selected items. Please try again.');
+      return;
+    }
+    
+    // 첫 번째 이미지의 상세 페이지로 이동하면서 선택된 모든 이미지 ID를 쿼리 파라미터로 전달
+    navigate(`/annotator/detail/${numericIds[0]}?selectedIds=${numericIds.join(',')}`);
   };
 
   const handleDeleteSelected = () => {
@@ -466,11 +476,25 @@ const AnnotatorDashboard = () => {
             </div>
             
             <div className="filter-actions">
-              <button className="view-details-btn" onClick={handleViewSelectedDetails}>
+              <button 
+                className="view-details-btn" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleViewSelectedDetails();
+                }}
+              >
                 <FaEye size={14} style={{ marginRight: '5px' }} />
                 View Details
               </button>
-              <button className="delete-btn" onClick={handleDeleteSelected}>
+              <button 
+                className="delete-btn" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleDeleteSelected();
+                }}
+              >
                 <FaTrash size={14} style={{ marginRight: '5px' }} />
                 Delete Selected
               </button>

@@ -6,14 +6,13 @@ import './AnnotationGrid.css';
 /**
  * 체크박스 컴포넌트 - 분리된 컴포넌트
  */
-const CheckboxCell = ({ checked, onChange, onClick }) => {
+const CheckboxCell = ({ checked, onChange }) => {
   return (
-    <div className="grid-checkbox-wrapper">
+    <div className="grid-checkbox-wrapper" onClick={(e) => e.stopPropagation()}>
       <input 
         type="checkbox" 
         checked={checked}
         onChange={onChange}
-        onClick={onClick}
       />
     </div>
   );
@@ -46,7 +45,8 @@ const AnnotationGrid = ({
   const effectiveSetSelectedItems = setSelectedItems || setInternalSelectedItems;
 
   // 모든 항목 선택/해제
-  const handleSelectAll = () => {
+  const handleSelectAll = (e) => {
+    e.stopPropagation();
     const isAllSelected = !selectAll;
     setSelectAll(isAllSelected);
     
@@ -62,19 +62,24 @@ const AnnotationGrid = ({
   // 개별 항목 선택/해제
   const handleSelectItem = (e, id) => {
     e.stopPropagation();
-    effectiveSetSelectedItems(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
     
-    // 모든 항목이 선택되었는지 확인
-    const updatedSelectedItems = {
-      ...effectiveSelectedItems,
-      [id]: !effectiveSelectedItems[id]
-    };
+    // 이벤트 전파 중지 (클릭 하이라이트나 다른 이벤트 방지)
+    if (e && e.stopPropagation) {
+      e.stopPropagation();
+    }
     
-    const allSelected = annotations.every(item => updatedSelectedItems[item.id]);
+    effectiveSetSelectedItems(prev => {
+      const newItems = { ...prev };
+      newItems[id] = !prev[id];
+      
+      // selectAll 업데이트
+      const allSelected = annotations.every(item => 
+        newItems[item.id] === true
+      );
     setSelectAll(allSelected);
+      
+      return newItems;
+    });
   };
 
   // annotations가 변경될 때 선택 상태 초기화
@@ -82,6 +87,14 @@ const AnnotationGrid = ({
     effectiveSetSelectedItems({});
     setSelectAll(false);
   }, [annotations, effectiveSetSelectedItems]);
+
+  // 카드 클릭시 세부 정보 보기
+  const handleCardClick = (id) => {
+    // 선택된 항목이 없을 때만 세부 정보로 바로 이동 
+    if (Object.keys(effectiveSelectedItems).filter(itemId => effectiveSelectedItems[itemId]).length === 0) {
+      onViewDetails(id);
+    }
+  };
 
   /**
    * 상태에 맞는 태그를 렌더링합니다
@@ -128,14 +141,18 @@ const AnnotationGrid = ({
       <div 
         key={annotation.id}
         className={`annotation-card ${isSelected ? 'selected' : ''}`}
-        onClick={() => onViewDetails(annotation.id)}
+        onClick={() => handleCardClick(annotation.id)}
       >
         <div className="annotation-card-header">
+          <div 
+            className="checkbox-container" 
+            onClick={(e) => e.stopPropagation()}
+          >
           <CheckboxCell 
             checked={isSelected}
             onChange={(e) => handleSelectItem(e, annotation.id)}
-            onClick={(e) => e.stopPropagation()}
           />
+          </div>
           <div className="annotation-title">{annotation.id}</div>
         </div>
         

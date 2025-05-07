@@ -1,0 +1,41 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches: [ main ] # main 브랜치에 직접 푸시하거나 PR이 merge될 때 실행
+  pull_request:
+    types: [closed]
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # PR이 merge된 경우에만 실행 (직접 push거나 PR이 merge된 경우)
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build
+        run: npm run build
+        
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          
+      - name: Deploy to server
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H 166.104.246.64 >> ~/.ssh/known_hosts
+          rsync -avz --delete ./build/ defectect@166.104.246.64:~/website/build/
+          ssh defectect@166.104.246.64 'cd ~/website && docker-compose up -d --build'
+        env:
+          SSH_AUTH_SOCK: ${{ github.workspace }}/.ssh/agent.sock 
