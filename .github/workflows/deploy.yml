@@ -23,31 +23,34 @@ jobs:
           sudo apt-get install -y expect
           
           # NVM 설치 및 Node.js 설정
-          echo '#!/usr/bin/expect -f
-          spawn ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash && export NVM_DIR=\"\$HOME/.nvm\" && [ -s \"\$NVM_DIR/nvm.sh\" ] && . \"\$NVM_DIR/nvm.sh\" && nvm install 18 && nvm use 18"
+          cat > setup_node.exp << 'EOL'
+          #!/usr/bin/expect -f
+          spawn ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash && export NVM_DIR=\$HOME/.nvm && . \$NVM_DIR/nvm.sh && nvm install 18 && nvm use 18"
           expect "password:"
           send "$env(SERVER_PASS)\r"
           expect eof
-          ' > setup_node.exp
+          EOL
           chmod +x setup_node.exp
           ./setup_node.exp
           
           # 프로젝트 클론 및 빌드
-          echo '#!/usr/bin/expect -f
-          spawn ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "mkdir -p ~/website && cd ~/website && git clone https://github.com/HYCapstoneProject-NEXED/client.git . || git pull && export NVM_DIR=\"\$HOME/.nvm\" && [ -s \"\$NVM_DIR/nvm.sh\" ] && . \"\$NVM_DIR/nvm.sh\" && nvm use 18 && npm ci && CI=false npm run build"
+          cat > build_on_server.exp << 'EOL'
+          #!/usr/bin/expect -f
+          spawn ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "mkdir -p ~/website && cd ~/website && git clone https://github.com/HYCapstoneProject-NEXED/client.git . || git pull && export NVM_DIR=\$HOME/.nvm && . \$NVM_DIR/nvm.sh && nvm use 18 && npm ci && CI=false npm run build"
           expect "password:"
           send "$env(SERVER_PASS)\r"
           expect eof
-          ' > build_on_server.exp
+          EOL
           chmod +x build_on_server.exp
           ./build_on_server.exp
           
           # 서버 실행
-          echo '#!/usr/bin/expect -f
-          spawn ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "cd ~/website && export NVM_DIR=\"\$HOME/.nvm\" && [ -s \"\$NVM_DIR/nvm.sh\" ] && . \"\$NVM_DIR/nvm.sh\" && nvm use 18 && npm install -g serve && pkill -f \"serve -s build\" || true && nohup serve -s build -l 3000 > server.log 2>&1 & echo \$! > serve.pid"
+          cat > run_server.exp << 'EOL'
+          #!/usr/bin/expect -f
+          spawn ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "cd ~/website && export NVM_DIR=\$HOME/.nvm && . \$NVM_DIR/nvm.sh && nvm use 18 && npm install -g serve && pkill -f \"serve -s build\" || true && nohup serve -s build -l 3000 > server.log 2>&1 & echo \$! > serve.pid"
           expect "password:"
           send "$env(SERVER_PASS)\r"
           expect eof
-          ' > run_server.exp
+          EOL
           chmod +x run_server.exp
           ./run_server.exp 
