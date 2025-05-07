@@ -14,20 +14,22 @@ const DefectFilterPopup = ({ selected, onApply, onClose }) => {
     };
 
   return (
-    <div className="filter-popup">
-      <p>Defect Type</p>
-      <div className="button-grid">
-        {options.map(name => (
-          <button
-            key={name}
-            className={`popup-btn ${active.includes(name) ? 'active' : ''}`}
-            onClick={() => toggle(name)}
-          >
-            {name}
-          </button>
-        ))}
+    <div className="customer-filter-popup-wrapper" style={{ position: 'relative' }}>
+      <div className="customer-filter-popup">
+        <p>Defect Type</p>
+        <div className="button-grid">
+          {options.map(name => (
+            <button
+              key={name}
+              className={`popup-btn ${active.includes(name) ? 'active' : ''}`}
+              onClick={() => toggle(name)}
+            >
+              {name}
+            </button>
+          ))}
+        </div>
+        <button onClick={() => onApply(active)} className="popup-apply-btn">Apply Now</button>
       </div>
-      <button onClick={() => onApply(active)} className="popup-apply-btn">Apply Now</button>
     </div>
   );
 };
