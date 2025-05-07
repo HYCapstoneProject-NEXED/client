@@ -25,6 +25,8 @@ const Dashboard = () => {
   const handleReset = () => {
     setFilter({ dates: [], orderType: '', cameraId: '' });
     setSelectedDates([]);
+    setSelectedDefects([]);
+    setSelectedCameras([]);
     setOpenFilter(null);
   };
 
@@ -35,25 +37,31 @@ const Dashboard = () => {
   };
 
   const handleDefectApply = (orderType) => {
+    setSelectedDefects(orderType.split(', '));
     setFilter({ ...filter, orderType });
     setOpenFilter(null);
   };
 
   const handleCameraApply = (cameraId) => {
+    setSelectedCameras(cameraId.split(', '));
     setFilter({ ...filter, cameraId });
     setOpenFilter(null);
   };
 
   const filteredData = dummyDefectData.filter((defect) => {
-    const defectMatch = selectedDefects.length === 0 || selectedDefects.some(type => defect.type.includes(type));
-    const cameraMatch = selectedCameras.length === 0 || selectedCameras.includes(defect.cameraId.toString());
-    const dateMatch = filter.dates.length === 0 || filter.dates.some(date => defect.timestamp.includes(date));
-    
-    return (
-      dateMatch &&
-      defectMatch &&
-      cameraMatch
-    );
+    const dateMatch = selectedDates.length === 0 || selectedDates.some(date => {
+      const defectDate = new Date(defect.timestamp);
+      const filterDate = new Date(date);
+      return defectDate.toDateString() === filterDate.toDateString();
+    });
+
+    const defectMatch = selectedDefects.length === 0 || 
+      selectedDefects.some(type => defect.type.includes(type));
+
+    const cameraMatch = selectedCameras.length === 0 || 
+      selectedCameras.includes(defect.cameraId.toString());
+
+    return dateMatch && defectMatch && cameraMatch;
   });
 
   return (
