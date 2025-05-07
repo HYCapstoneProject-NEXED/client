@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import CustomerLayout from '../../components/Customer/CustomerLayout';
 import './Dashboard.css';
+import DateFilterPopup from '../../components/Customer/Filter/DateFilterPopup';
+import DefectFilterPopup from '../../components/Customer/Filter/DefectFilterPopup';
+import CameraFilterPopup from '../../components/Customer/Filter/CameraFilterPopup';
+import dummyDefectData from '../../data/dummyDefectData';
 
 //더미데이터
 const defectStats = [
@@ -24,111 +28,132 @@ const defectStats = [
   }
 ];
 
-// 테이블용 더미데이터
-const dummyDefectData = [
-  {
-    id: 1,
-    image: '/circle-placeholder.png',
-    line: 'Line-A',
-    cameraId: 1,
-    timestamp: '2025-04-19T10:00:00',
-    type: 'Crack'
-  },
-  {
-    id: 2,
-    image: '/circle-placeholder.png',
-    line: 'Line-B',
-    cameraId: 2,
-    timestamp: '2025-04-19T10:05:00',
-    type: 'Scratch'
-  },
-  {
-    id: 3,
-    image: '/circle-placeholder.png',
-    line: 'Line-A',
-    cameraId: 3,
-    timestamp: '2025-04-19T10:10:00',
-    type: 'Particle'
-  }
-];
-
 const Dashboard = () => {
+  const [filter, setFilter] = useState({
+    date: '',
+    orderType: '',
+    cameraId: ''
+  });
+
+  const [openFilter, setOpenFilter] = useState(null);
+  const [selectedDefects, setSelectedDefects] = useState([]);
+  const [selectedCameras, setSelectedCameras] = useState([]);
+
+  const handleReset = () => {
+    setFilter({ date: '', orderType: '', cameraId: '' });
+    setOpenFilter(null);
+  };
+
+  const handleDateApply = (date) => {
+    setFilter({ ...filter, date });
+    setOpenFilter(null);
+  };
+
+  const handleDefectApply = (orderType) => {
+    setFilter({ ...filter, orderType });
+    setOpenFilter(null);
+  };
+
+  const handleCameraApply = (cameraId) => {
+    setFilter({ ...filter, cameraId });
+    setOpenFilter(null);
+  };
+
+  const filteredData = dummyDefectData.filter((defect) => {
+    const defectMatch = selectedDefects.length === 0 || selectedDefects.some(type => defect.type.includes(type));
+    const cameraMatch = selectedCameras.length === 0 || selectedCameras.includes(defect.cameraId.toString());
+    
+    return (
+      (filter.date ? defect.timestamp.includes(filter.date) : true) &&
+      defectMatch &&
+      cameraMatch
+    );
+  });
+
   return (
     <CustomerLayout>
       <h2>Today</h2>
       <div style={{ padding: '32px' }}>
         <div style={{ display: 'flex', gap: '24px' }}>
           {/* 왼쪽 요약 박스 */}
-          <div style={{
-            flex: '1',
-            minWidth: '280px',
-            height: '200px',
-            borderRadius: '16px',
-            background: '#2C3EFD',
-            color: 'white',
-            padding: '24px'
-            }}>
-            <h3 style={{ fontSize: '16px', marginBottom: '4px'}}>Total defect count</h3>
-            <p style={{ fontSize: '20px' , marginBottom: '30px'}}>46</p>
-            <h3 style={{ fontSize: '16px', marginBottom: '4px' }}>Most frequent defect</h3>
-            <p style={{ fontSize: '20px' }}>Crack</p>
+          <div className="customer-summary-box">
+            <h3>Total defect count</h3>
+            <p>46</p>
+            <h3>Most frequent defect</h3>
+            <p>Crack</p>
           </div>
 
-
-          <div style={{
-            flex: '1',
-            minWidth: '280px',
-            height: '200px',
-            borderRadius: '16px',
-            background: '#fff',
-            padding: '24px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
-          }}>
-            <p style={{
-              color: 'gray',
-              fontSize: '14px',
-              textAlign: 'right',
-              marginBottom: '12px'
-            }}>
-              Compared to the previous day
-            </p>
+          <div className="customer-stats-box">
+            <p>Compared to the previous day</p>
 
             {defectStats.map((item, index) => (
-              <div key={index} style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '12px'
-              }}>
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  backgroundColor: item.class_color
-                }}></div>
+              <div key={index} className="customer-stats-item">
+                <div className="customer-color-circle" style={{ backgroundColor: item.class_color }}></div>
 
-                <div style={{ flex: 1, marginLeft: '12px' }}>
-                  <p style={{ margin: 0, fontWeight: '500' }}>{item.class_name}</p>
-                  <p style={{ margin: 0, color: '#5A69C9', fontSize: '14px' }}>{item.count}</p>
+                <div className="customer-info">
+                  <p>{item.class_name}</p>
+                  <p className="customer-count">{item.count}</p>
                 </div>
 
-                <div style={{
-                  minWidth: '40px',
-                  textAlign: 'right',
-                  color: item.change > 0 ? '#D9534F' : item.change < 0 ? '#28A745' : '#888'
-                }}>
+                <div className="customer-change" style={{ color: item.change > 0 ? '#D9534F' : item.change < 0 ? '#28A745' : '#888' }}>
                   {item.change > 0 ? `+${item.change}` : `${item.change}`}
                 </div>
-                </div>
+              </div>
             ))}
           </div>
         </div>
 
+        {/* 필터 UI 추가 */}
+        <div className="customer-filter-ui">
+            <span role="img" aria-label="filter">🔍</span> Filter By    
+          <button onClick={() => setOpenFilter('date')} className="filter-btn">
+            {filter.date || 'Select Date'}
+            <span style={{ marginLeft: '8px' }}>⌄</span>
+          </button>
+          <button onClick={() => setOpenFilter('defect')} className="filter-btn">
+            {filter.orderType || 'Order Type'}
+            <span style={{ marginLeft: '8px' }}>⌄</span>
+          </button>
+          <button onClick={() => setOpenFilter('camera')} className="filter-btn">
+            {filter.cameraId || 'Camera ID'}
+            <span style={{ marginLeft: '8px' }}>⌄</span>
+          </button>
+          <button onClick={handleReset} className="reset-btn">
+            <span role="img" aria-label="reset">↺</span> Reset Filter
+          </button>
+        </div>
+
+        {openFilter === 'date' && (
+          <DateFilterPopup
+            onApply={handleDateApply}
+            onClose={() => setOpenFilter(null)}
+          />
+        )}
+        {openFilter === 'defect' && (
+          <DefectFilterPopup
+            selected={selectedDefects}
+            onApply={(list) => {
+              setSelectedDefects(list);
+              handleDefectApply(list.join(', '));
+            }}
+            onClose={() => setOpenFilter(null)}
+          />
+        )}
+        {openFilter === 'camera' && (
+          <CameraFilterPopup
+            selected={selectedCameras}
+            onApply={(list) => {
+              setSelectedCameras(list);
+              handleCameraApply(list.join(', '));
+            }}
+            onClose={() => setOpenFilter(null)}
+          />
+        )}
+
         {/* 테이블 영역 */}
         <div style={{ marginTop: '32px' }}>
-          <h3 style={{ marginBottom: '16px' }}>Real-time Check</h3>
-          <div className="table-container">
-            <table className="defect-table">
+          <div className="customer-table-container">
+            <table className="customer-defect-table">
               <thead>
                 <tr>
                   <th>Image</th>
@@ -139,13 +164,13 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {dummyDefectData.map((defect) => (
+                {filteredData.map((defect) => (
                   <tr key={defect.id}>
                     <td>
                       <img 
                         src={defect.image}
                         alt={`defect-${defect.id}`}
-                        className="table-image"
+                        className="customer-table-image"
                       />
                     </td>
                     <td>{defect.line}</td>
@@ -159,7 +184,7 @@ const Dashboard = () => {
                       second: '2-digit',
                       hour12: false
                     })}</td>
-                    <td>{defect.type}</td>
+                    <td>{defect.type.join(', ')}</td>
                   </tr>
                 ))}
               </tbody>
@@ -172,4 +197,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-

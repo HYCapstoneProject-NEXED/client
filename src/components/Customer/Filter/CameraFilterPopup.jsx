@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import useOutsideClick from '../../../hooks/useOutsideClick';
 import './FilterPopup.css';
 
-const cameras = ['num1', 'num2', 'num3', 'num4', 'num5'];
+const cameras = ['1', '2', '3', '4', '5'];
 
 const CameraFilterPopup = ({ selected, onApply, onClose }) => {
     const ref = useRef();
@@ -14,20 +14,22 @@ const CameraFilterPopup = ({ selected, onApply, onClose }) => {
     };
 
   return (
-    <div className="filter-popup">
-      <p>Camera ID</p>
-      <div className="button-grid">
-        {cameras.map(name => (
-          <button
-            key={name}
-            className={`popup-btn ${active.includes(name) ? 'active' : ''}`}
-            onClick={() => toggle(name)}
-          >
-            {name}
-          </button>
-        ))}
+    <div className="customer-filter-popup-wrapper" style={{ position: 'relative' }}>
+      <div className="customer-filter-popup">
+        <p>Camera ID</p>
+        <div className="button-grid">
+          {cameras.map(name => (
+            <button
+              key={name}
+              className={`popup-btn ${active.includes(name) ? 'active' : ''}`}
+              onClick={() => toggle(name)}
+            >
+              {name}
+            </button>
+          ))}
+        </div>
+        <button onClick={() => onApply(active)} className="popup-apply-btn">Apply Now</button>
       </div>
-      <button onClick={() => onApply(active)} className="popup-apply-btn">Apply Now</button>
     </div>
   );
 };
