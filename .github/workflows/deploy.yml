@@ -54,7 +54,7 @@ jobs:
           
           # 서버에서 명령 실행
           echo '#!/usr/bin/expect -f
-          spawn ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "mkdir -p ~/website && cd ~/website && tar -xzf build.tar.gz && docker-compose -f docker-compose.yml up -d --build"
+          spawn ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "mkdir -p ~/website && cd ~/website && tar -xzf build.tar.gz && cp docker-compose.production.yml docker-compose.yml && docker-compose -f docker-compose.yml up -d --build"
           expect "password:"
           send "$env(SERVER_PASS)\r"
           expect eof
