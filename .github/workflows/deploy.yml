@@ -25,23 +25,25 @@ jobs:
         
       - name: Build
         run: CI=false npm run build
-      
-      - name: Deploy using sshpass
-        uses: appleboy/scp-action@master
-        with:
-          host: 166.104.246.64
-          username: defectect
-          password: defectect!!@
-          source: "build/,Dockerfile.production,docker-compose.production.yml,nginx.conf"
-          target: "website"
+        
+      - name: Install sshpass
+        run: sudo apt-get install -y sshpass
+        
+      - name: Deploy to server
+        env:
+          SSH_PASS: defectect!!@
+        run: |
+          # 원격 폴더 생성 확인
+          sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "mkdir -p ~/website"
           
-      - name: Start Docker containers
-        uses: appleboy/ssh-action@master
-        with:
-          host: 166.104.246.64
-          username: defectect
-          password: defectect!!@
-          script: |
-            cd ~/website
-            cp docker-compose.production.yml docker-compose.yml
-            docker-compose up -d --build 
+          # 설정 파일 복사
+          sshpass -p "$SSH_PASS" scp -o StrictHostKeyChecking=no Dockerfile.production defectect@166.104.246.64:~/website/
+          sshpass -p "$SSH_PASS" scp -o StrictHostKeyChecking=no docker-compose.production.yml defectect@166.104.246.64:~/website/docker-compose.yml
+          sshpass -p "$SSH_PASS" scp -o StrictHostKeyChecking=no nginx.conf defectect@166.104.246.64:~/website/
+          
+          # build 폴더 복사 (압축 후 전송하여 속도 향상)
+          tar -czf build.tar.gz build/
+          sshpass -p "$SSH_PASS" scp -o StrictHostKeyChecking=no build.tar.gz defectect@166.104.246.64:~/website/
+          
+          # 서버에서 압축 해제 및 도커 실행
+          sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no defectect@166.104.246.64 "cd ~/website && tar -xzf build.tar.gz && docker-compose up -d --build" 
