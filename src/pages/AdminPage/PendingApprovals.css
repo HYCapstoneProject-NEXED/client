@@ -1,0 +1,347 @@
+/**
+ * Pending Approvals Page Styles
+ */
+
+/* Page Layout */
+.admin-dashboard-page {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  background: white;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #F5F7FA;
+  width: 100%;
+  min-width: 0; /* Prevent flex items from shrinking */
+  overflow: hidden;
+}
+
+/* Dashboard Content */
+.dashboard-content {
+  padding: 30px;
+  overflow-y: auto; /* 내부 콘텐츠 스크롤 허용 */
+  height: calc(100vh - 80px);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* Header Area */
+.pending-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+  background-color: transparent;
+  padding: 25px 30px;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+}
+
+.pending-header h1 {
+  color: #232323;
+  font-size: 28px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  margin: 0;
+  position: relative;
+  background: transparent;
+  padding: 0;
+}
+
+/* 파란색 선 제거 */
+.pending-header h1::after {
+  content: none;
+}
+
+.back-button {
+  background: white;
+  border: 1px solid #EFF0F6;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4880FF;
+  cursor: pointer;
+  margin-right: 25px;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.back-icon {
+  margin-right: 8px;
+  font-size: 12px;
+}
+
+.back-button:hover {
+  background-color: #f5f7fa;
+  transform: translateX(-3px);
+}
+
+/* Approval Card Layout */
+.pending-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.approval-card {
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(235, 238, 245, 0.6);
+  transition: all 0.3s ease;
+}
+
+.approval-card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+  transform: translateY(-2px);
+}
+
+/* Profile Section */
+.profile-section {
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-right: 1px solid rgba(235, 238, 245, 0.6);
+  min-width: 100px;
+  width: 100px;
+}
+
+.profile-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* User Info Section */
+.user-info-section {
+  flex: 1;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 25px;
+  align-items: center;
+}
+
+.info-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #718EBF;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.info-value {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  color: #232323;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+/* Action Section */
+.action-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  border-left: 1px solid rgba(235, 238, 245, 0.6);
+  min-width: 160px;
+}
+
+.approve-button,
+.reject-button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  width: 120px;
+  text-align: center;
+}
+
+.approve-button {
+  background-color: #4880FF;
+  color: white;
+  border: 1px solid #4880FF;
+}
+
+.approve-button:hover {
+  background-color: #3a70e8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(72, 128, 255, 0.2);
+}
+
+.reject-button {
+  background-color: white;
+  color: #e64c4c;
+  border: 1px solid #e64c4c;
+}
+
+.reject-button:hover {
+  background-color: #fdf3f3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(230, 76, 76, 0.1);
+}
+
+/* No Pending Message */
+.no-pending {
+  padding: 50px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.no-pending-icon {
+  font-size: 40px;
+  margin-bottom: 20px;
+}
+
+.no-pending h3 {
+  font-family: 'Inter', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #232323;
+  margin: 0 0 15px 0;
+}
+
+.no-pending p {
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 16px;
+  color: #718EBF;
+  margin: 0;
+}
+
+/* Loading Indicator */
+.admin-loading {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 80px);
+  width: 100%;
+  background: #f8f9fa;
+}
+
+.admin-loading p {
+  color: #343C6A;
+  font-size: 16px;
+  margin-top: 20px;
+  font-family: 'Nunito Sans', sans-serif;
+}
+
+.loader {
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #4880FF;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error Message */
+.error-message {
+  background-color: #FFEBEE;
+  color: #EF3826;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.error-message::before {
+  content: "⚠️";
+  margin-right: 10px;
+  font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .user-info-section {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .approval-card {
+    flex-direction: column;
+  }
+  
+  .profile-section {
+    border-right: none;
+    border-bottom: 1px solid rgba(235, 238, 245, 0.6);
+    width: 100%;
+    padding: 20px;
+  }
+  
+  .user-info-section {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 20px;
+  }
+  
+  .action-section {
+    flex-direction: row;
+    border-left: none;
+    border-top: 1px solid rgba(235, 238, 245, 0.6);
+    width: 100%;
+    padding: 20px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .pending-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .back-button {
+    margin-right: 0;
+  }
+  
+  .user-info-section {
+    grid-template-columns: 1fr;
+  }
+} 

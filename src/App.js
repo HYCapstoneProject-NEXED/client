@@ -2,10 +2,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-
 import ProtectedRoute from './routes/ProtectedRoute';
 import CustomerRoutes from './routes/CustomerRoutes';
 import LoginRoutes from './routes/LoginRoutes';
+import AdminRoutes from './routes/AdminRoutes';
 
 import AuthCallback from './pages/AuthCallback/AuthCallback';
 import MainPage from './pages/MainPage/MainPage';
@@ -45,6 +45,9 @@ function App() {
   
         {/* Customer 역할 전용 라우트 */}
         <Route path="/customer/*" element={<CustomerRoutes />} />
+
+        {/* Admin 역할 전용 라우트 */}
+        <Route path="/admin/*" element={<AdminRoutes />} />
 
         {/* Annotation 페이지 라우트 */}
         <Route path="/annotator" element={<AnnotatorDashboard />} />

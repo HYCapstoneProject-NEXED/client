@@ -102,6 +102,147 @@ const DUMMY_IMAGES = [
     height: 1080,
     status: 'pending',
     camera_id: 'CAM_C002'
+  },
+  // 추가 카메라 ID와 이미지 데이터
+  {
+    image_id: 107,
+    file_name: 'sample_image_07.jpg',
+    capture_date: '2023-05-18T09:15:30Z',
+    last_modified: '2023-05-19T10:22:15Z',
+    width: 1920,
+    height: 1080,
+    status: 'pending',
+    camera_id: 'CAM_D001'
+  },
+  {
+    image_id: 108,
+    file_name: 'sample_image_08.jpg',
+    capture_date: '2023-05-18T10:30:20Z',
+    last_modified: '2023-05-19T11:45:10Z',
+    width: 1920,
+    height: 1080,
+    status: 'pending',
+    camera_id: 'CAM_D001'
+  },
+  {
+    image_id: 109,
+    file_name: 'sample_image_09.jpg',
+    capture_date: '2023-05-18T11:05:45Z',
+    last_modified: '2023-05-19T13:20:30Z',
+    width: 1920,
+    height: 1080,
+    status: 'pending',
+    camera_id: 'CAM_D002'
+  },
+  {
+    image_id: 110,
+    file_name: 'sample_image_10.jpg',
+    capture_date: '2023-05-19T08:40:15Z',
+    last_modified: '2023-05-20T09:15:40Z',
+    width: 1920,
+    height: 1080,
+    status: 'pending',
+    camera_id: 'CAM_D002'
+  },
+  {
+    image_id: 111,
+    file_name: 'sample_image_11.jpg',
+    capture_date: '2023-05-19T09:30:20Z',
+    last_modified: '2023-05-20T10:40:35Z',
+    width: 1920,
+    height: 1080,
+    status: 'pending',
+    camera_id: 'CAM_E001'
+  },
+  {
+    image_id: 112,
+    file_name: 'sample_image_12.jpg',
+    capture_date: '2023-05-19T10:50:40Z',
+    last_modified: '2023-05-20T12:15:25Z',
+    width: 1920,
+    height: 1080,
+    status: 'pending',
+    camera_id: 'CAM_E001'
+  },
+  {
+    image_id: 113,
+    file_name: 'sample_image_13.jpg',
+    capture_date: '2023-05-19T13:25:10Z',
+    last_modified: '2023-05-20T15:05:50Z',
+    width: 1920,
+    height: 1080,
+    status: 'pending',
+    camera_id: 'CAM_E002'
+  },
+  {
+    image_id: 114,
+    file_name: 'sample_image_14.jpg',
+    capture_date: '2023-05-20T08:15:30Z',
+    last_modified: '2023-05-21T09:45:15Z',
+    width: 1920,
+    height: 1080,
+    status: 'pending',
+    camera_id: 'CAM_E002'
+  },
+  {
+    image_id: 115,
+    file_name: 'sample_image_15.jpg',
+    capture_date: '2023-05-20T09:40:20Z',
+    last_modified: '2023-05-21T10:55:40Z',
+    width: 1920,
+    height: 1080,
+    status: 'pending',
+    camera_id: 'CAM_F001'
+  },
+  {
+    image_id: 116,
+    file_name: 'sample_image_16.jpg',
+    capture_date: '2023-05-20T11:20:15Z',
+    last_modified: '2023-05-21T13:10:25Z',
+    width: 1920,
+    height: 1080,
+    status: 'pending',
+    camera_id: 'CAM_F001'
+  },
+  {
+    image_id: 117,
+    file_name: 'sample_image_17.jpg',
+    capture_date: '2023-05-20T14:35:30Z',
+    last_modified: '2023-05-21T16:25:45Z',
+    width: 1920,
+    height: 1080,
+    status: 'pending',
+    camera_id: 'CAM_F001'
+  },
+  {
+    image_id: 118,
+    file_name: 'sample_image_18.jpg',
+    capture_date: '2023-05-21T08:50:15Z',
+    last_modified: '2023-05-22T10:05:30Z',
+    width: 1920,
+    height: 1080,
+    status: 'pending',
+    camera_id: 'CAM_F002'
+  },
+  {
+    image_id: 119,
+    file_name: 'sample_image_19.jpg',
+    capture_date: '2023-05-21T10:25:40Z',
+    last_modified: '2023-05-22T12:15:05Z',
+    width: 1920,
+    height: 1080,
+    status: 'pending',
+    camera_id: 'CAM_F002'
+  },
+  {
+    image_id: 120,
+    file_name: 'sample_image_20.jpg',
+    capture_date: '2023-05-21T13:10:20Z',
+    last_modified: '2023-05-22T14:45:35Z',
+    width: 1920,
+    height: 1080,
+    status: 'pending',
+    camera_id: 'CAM_F002'
   }
 ];
 
@@ -541,6 +682,73 @@ class AnnotationService {
     } catch (error) {
       console.error(`Failed to update status for image ${imageId}:`, error);
       throw error;
+    }
+  }
+
+  /**
+   * 모든 이미지 가져오기
+   * @returns {Promise<Array>} 이미지 목록
+   */
+  async getAllImages() {
+    try {
+      // 실제 API 요청 코드 (현재는 주석 처리)
+      // const response = await axios.get(`${API_URL}/images`);
+      // return response.data;
+      
+      console.log('AnnotationService.getAllImages called, dummy data length:', DUMMY_IMAGES.length);
+      
+      // 더미 데이터 사용 - 비동기 시뮬레이션을 위해 Promise 추가
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          console.log('Returning dummy images data');
+          resolve([...DUMMY_IMAGES]); // 배열 복사본 반환
+        }, 500);
+      });
+    } catch (error) {
+      console.error('Error fetching images:', error);
+      // 명확한 오류 메시지 제공
+      throw new Error(`이미지 데이터를 가져오는데 실패했습니다: ${error.message || '알 수 없는 오류'}`);
+    }
+  }
+
+  /**
+   * 카메라 ID별로 이미지 어노테이터 할당
+   * @param {Object} assignments - 카메라 ID를 키로, 어노테이터 ID를 값으로 하는 객체
+   * @returns {Promise<Object>} 할당 결과
+   */
+  async assignTasksByCameraId(assignments) {
+    try {
+      // 실제 API 요청 코드 (현재는 주석 처리)
+      // const response = await axios.post(`${API_URL}/tasks/assign`, assignments);
+      // return response.data;
+      
+      console.log('AnnotationService.assignTasksByCameraId called with:', assignments);
+      
+      // 비동기 처리 시뮬레이션
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          // 로컬 상태 업데이트 (실제 구현에서는 서버 DB에 저장됨)
+          const assignedImages = {};
+          
+          // 할당된 카메라 ID에 해당하는 이미지 개수 계산
+          Object.entries(assignments).forEach(([cameraId, annotatorId]) => {
+            const imagesForCamera = DUMMY_IMAGES.filter(img => img.camera_id === cameraId);
+            assignedImages[cameraId] = imagesForCamera.length;
+          });
+          
+          console.log('Assignment successful, images per camera:', assignedImages);
+          
+          resolve({
+            success: true,
+            assignments: assignments,
+            assignedImages: assignedImages,
+            message: '작업이 성공적으로 할당되었습니다.'
+          });
+        }, 800);
+      });
+    } catch (error) {
+      console.error('Error assigning tasks:', error);
+      throw new Error(`작업 할당 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
     }
   }
 }
