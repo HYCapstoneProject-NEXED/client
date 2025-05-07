@@ -94,7 +94,77 @@ const dummyDefectData = [
     cameraId: 2,
     timestamp: '2025-04-19T10:55:00',
     type: ['Scratch']
+  },
+  {
+    id: 13,
+    image: '/circle-placeholder.png',
+    line: 'Line-A',
+    cameraId: 2,
+    timestamp: '2025-04-18T09:00:00',
+    type: ['Crack']
+  },
+  {
+    id: 14,
+    image: '/circle-placeholder.png',
+    line: 'Line-B',
+    cameraId: 3,
+    timestamp: '2025-04-18T11:30:00',
+    type: ['Particle']
+  },
+  {
+    id: 15,
+    image: '/circle-placeholder.png',
+    line: 'Line-C',
+    cameraId: 4,
+    timestamp: '2025-04-20T14:15:00',
+    type: ['Scratch']
+  },
+  {
+    id: 16,
+    image: '/circle-placeholder.png',
+    line: 'Line-A',
+    cameraId: 5,
+    timestamp: '2025-04-20T15:45:00',
+    type: ['Burr']
+  },
+  {
+    id: 17,
+    image: '/circle-placeholder.png',
+    line: 'Line-B',
+    cameraId: 1,
+    timestamp: '2025-04-18T16:20:00',
+    type: ['Crack', 'Particle']
+  },
+  {
+    id: 18,
+    image: '/circle-placeholder.png',
+    line: 'Line-C',
+    cameraId: 2,
+    timestamp: '2025-04-20T17:10:00',
+    type: ['Scratch', 'Burr']
   }
 ];
 
-export default dummyDefectData; 
+const defectStats = [
+  {
+    class_name: 'Crack',
+    class_color: '#FFF7CC',
+    count: 28,
+    change: -5
+  },
+  {
+    class_name: 'Scratch',
+    class_color: '#DBE4FF',
+    count: 15,
+    change: 3
+  },
+  {
+    class_name: 'Particle',
+    class_color: '#D4F7F4',
+    count: 3,
+    change: 0
+  }
+];
+
+export default dummyDefectData;
+export { defectStats }; 

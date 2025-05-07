@@ -86,20 +86,33 @@
   min-width: 280px;
   height: 200px;
   border-radius: 16px;
-  background: #2C3EFD;
+  background: linear-gradient(135deg, #3a4af0, #001AFF);
   color: white;
   padding: 24px;
   margin-bottom: 24px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.customer-summary-box .summary-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
 }
 
 .customer-summary-box h3 {
-  font-size: 16px;
-  margin-bottom: 4px;
+  font-size: 20px;
+  margin-bottom: 12px;
+  font-weight: 400;
 }
 
 .customer-summary-box p {
-  font-size: 20px;
-  margin-bottom: 30px;
+  font-size: 30px;
+  margin: 0;
+  font-weight: 300;
 }
 
 .customer-stats-box {
@@ -128,7 +141,7 @@
 }
 
 .customer-color-circle {
-  width: 32px;
+  width: 60px;
   height: 32px;
   border-radius: 50%;
   margin-right: 12px;
@@ -136,23 +149,26 @@
 
 .customer-info {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   margin-right: auto;
 }
 
 .customer-info p {
   margin: 0;
   font-weight: 500;
+  font-size: 20px;
 }
 
 .customer-stats-item .customer-info .customer-count {
   color: #5A69C9;
-  font-size: 14px;
+  font-size: 20px;
 }
 
 .customer-stats-item .customer-change {
   min-width: 40px;
   text-align: right;
+  font-size: 18px;
 }
 
 .customer-filter-ui {

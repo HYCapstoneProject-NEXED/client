@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom';
 
 const ProtectedRoute = ({ allowedRoles, children }) => {
   // 테스트용 가짜 유저
-  const fakeUser = { role: 'admin' };
+  const fakeUser = { role: 'customer' };
 
   // 권한 없으면 접근 불가
   if (!allowedRoles.includes(fakeUser.role)) {

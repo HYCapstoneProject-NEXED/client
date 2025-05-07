@@ -12,7 +12,7 @@ const Header = () => {
   return (
     <div className="top-header">
       <div className="header-right">
-        <div className="user-role">Customer</div>
+        <div className="customer-user-role">Customer</div>
         <div className="user-info">
           <FaBell className="icon" />
           <img
