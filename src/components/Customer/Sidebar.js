@@ -12,7 +12,7 @@ import './Sidebar.css';
 const Sidebar = () => {
   return (
     <div className="sidebar">
-      <div className="logo">Defetect.</div>
+      <div className="customer-logo">Defetect.</div>
       <nav className="nav">
         <NavLink to="/customer/dashboard" className="nav-link">
           <FaHome /> Dashboard

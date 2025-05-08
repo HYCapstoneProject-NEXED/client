@@ -4,33 +4,15 @@ import './Dashboard.css';
 import DateFilterPopup from '../../components/Customer/Filter/DateFilterPopup';
 import DefectFilterPopup from '../../components/Customer/Filter/DefectFilterPopup';
 import CameraFilterPopup from '../../components/Customer/Filter/CameraFilterPopup';
-import dummyDefectData from '../../data/dummyDefectData';
-
 //더미데이터
-const defectStats = [
-  {
-    class_name: 'Crack',
-    class_color: '#FFF7CC',
-    count: 28,
-    change: -5
-  },
-  {
-    class_name: 'Scratch',
-    class_color: '#DBE4FF',
-    count: 15,
-    change: 3
-  },
-  {
-    class_name: 'Particle',
-    class_color: '#D4F7F4',
-    count: 3,
-    change: 0
-  }
-];
+import dummyDefectData from '../../data/dummyDefectData';
+import { defectStats } from '../../data/dummyDefectData';
+
+
 
 const Dashboard = () => {
   const [filter, setFilter] = useState({
-    date: '',
+    dates: [],
     orderType: '',
     cameraId: ''
   });
@@ -38,51 +20,68 @@ const Dashboard = () => {
   const [openFilter, setOpenFilter] = useState(null);
   const [selectedDefects, setSelectedDefects] = useState([]);
   const [selectedCameras, setSelectedCameras] = useState([]);
+  const [selectedDates, setSelectedDates] = useState([]);
 
   const handleReset = () => {
-    setFilter({ date: '', orderType: '', cameraId: '' });
+    setFilter({ dates: [], orderType: '', cameraId: '' });
+    setSelectedDates([]);
+    setSelectedDefects([]);
+    setSelectedCameras([]);
     setOpenFilter(null);
   };
 
-  const handleDateApply = (date) => {
-    setFilter({ ...filter, date });
+  const handleDateApply = (dates) => {
+    setSelectedDates(dates);
+    setFilter({ ...filter, dates });
     setOpenFilter(null);
   };
 
   const handleDefectApply = (orderType) => {
+    setSelectedDefects(orderType.split(', '));
     setFilter({ ...filter, orderType });
     setOpenFilter(null);
   };
 
   const handleCameraApply = (cameraId) => {
+    setSelectedCameras(cameraId.split(', '));
     setFilter({ ...filter, cameraId });
     setOpenFilter(null);
   };
 
   const filteredData = dummyDefectData.filter((defect) => {
-    const defectMatch = selectedDefects.length === 0 || selectedDefects.some(type => defect.type.includes(type));
-    const cameraMatch = selectedCameras.length === 0 || selectedCameras.includes(defect.cameraId.toString());
-    
-    return (
-      (filter.date ? defect.timestamp.includes(filter.date) : true) &&
-      defectMatch &&
-      cameraMatch
-    );
+    const dateMatch = selectedDates.length === 0 || selectedDates.some(date => {
+      const defectDate = new Date(defect.timestamp);
+      const filterDate = new Date(date);
+      return defectDate.toDateString() === filterDate.toDateString();
+    });
+
+    const defectMatch = selectedDefects.length === 0 || 
+      selectedDefects.some(type => defect.type.includes(type));
+
+    const cameraMatch = selectedCameras.length === 0 || 
+      selectedCameras.includes(defect.cameraId.toString());
+
+    return dateMatch && defectMatch && cameraMatch;
   });
 
   return (
     <CustomerLayout>
-      <h2>Today</h2>
       <div style={{ padding: '32px' }}>
         <div style={{ display: 'flex', gap: '24px' }}>
+
           {/* 왼쪽 요약 박스 */}
           <div className="customer-summary-box">
-            <h3>Total defect count</h3>
-            <p>46</p>
-            <h3>Most frequent defect</h3>
-            <p>Crack</p>
+            <div className="summary-section">
+              <h2>Today's Total defect count</h2>
+              <h1>46</h1>
+            </div>
+            <div className="summary-section">
+              <h2>Today's Most frequent defect</h2>
+              <h1>Crack</h1>
+            </div>
           </div>
 
+          {/* 오른쪽 통계 박스 */}
           <div className="customer-stats-box">
             <p>Compared to the previous day</p>
 
@@ -107,16 +106,16 @@ const Dashboard = () => {
         <div className="customer-filter-ui">
             <span role="img" aria-label="filter">🔍</span> Filter By    
           <button onClick={() => setOpenFilter('date')} className="filter-btn">
-            {filter.date || 'Select Date'}
-            <span style={{ marginLeft: '8px' }}>⌄</span>
+            {filter.dates.length > 0 ? `${filter.dates.length} dates selected` : 'Select Date'}
+            <span style={{ marginLeft: '10px' }}>⌄</span>
           </button>
           <button onClick={() => setOpenFilter('defect')} className="filter-btn">
             {filter.orderType || 'Order Type'}
-            <span style={{ marginLeft: '8px' }}>⌄</span>
+            <span style={{ marginLeft: '10px' }}>⌄</span>
           </button>
           <button onClick={() => setOpenFilter('camera')} className="filter-btn">
             {filter.cameraId || 'Camera ID'}
-            <span style={{ marginLeft: '8px' }}>⌄</span>
+            <span style={{ marginLeft: '10px' }}>⌄</span>
           </button>
           <button onClick={handleReset} className="reset-btn">
             <span role="img" aria-label="reset">↺</span> Reset Filter
@@ -125,6 +124,7 @@ const Dashboard = () => {
 
         {openFilter === 'date' && (
           <DateFilterPopup
+            selected={filter.dates}
             onApply={handleDateApply}
             onClose={() => setOpenFilter(null)}
           />
@@ -152,7 +152,16 @@ const Dashboard = () => {
 
         {/* 테이블 영역 */}
         <div style={{ marginTop: '32px' }}>
-          <div className="customer-table-container">
+          <div
+            className="customer-table-container"
+            style={{
+              maxHeight: '600px', 
+              overflowY: 'auto',
+              border: '1px solid #eee',
+              borderRadius: '8px',
+              background: '#fff'
+            }}
+          >
             <table className="customer-defect-table">
               <thead>
                 <tr>
