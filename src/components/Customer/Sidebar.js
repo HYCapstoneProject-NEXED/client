@@ -2,7 +2,6 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   FaHome,
-  FaDatabase,
   FaChartBar,
   FaWrench,
   FaSignOutAlt
@@ -16,9 +15,6 @@ const Sidebar = () => {
       <nav className="nav">
         <NavLink to="/customer/dashboard" className="nav-link">
           <FaHome /> Dashboard
-        </NavLink>
-        <NavLink to="/customer/defectdata" className="nav-link">
-          <FaDatabase /> Defect data
         </NavLink>
         <NavLink to="/customer/statistics" className="nav-link">
           <FaChartBar /> Statistics
