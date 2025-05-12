@@ -57,11 +57,42 @@ const Defectdata = () => {
     }, 500);
   }, []);
 
+  // 필터링 로직
+  useEffect(() => {
+    let filteredData = [...dummyDefectData];
+
+    // 날짜 필터링
+    if (selectedDate) {
+      const selectedDateObj = new Date(selectedDate);
+      filteredData = filteredData.filter(defect => {
+        const defectDate = new Date(defect.timestamp);
+        return defectDate.toDateString() === selectedDateObj.toDateString();
+      });
+    }
+
+    // 불량 유형 필터링
+    if (selectedDefects.length > 0) {
+      filteredData = filteredData.filter(defect => 
+        selectedDefects.includes(defect.type)
+      );
+    }
+
+    // 카메라 ID 필터링
+    if (selectedCameras.length > 0) {
+      filteredData = filteredData.filter(defect => 
+        selectedCameras.includes(defect.cameraId)
+      );
+    }
+
+    setDefectData(filteredData);
+  }, [selectedDate, selectedDefects, selectedCameras]);
+
   const handleReset = () => {
     setSelectedDate('');
     setSelectedDefects([]);
     setSelectedCameras([]);
     setOpenFilter(null);
+    setDefectData(dummyDefectData);
   };
 
   return (
