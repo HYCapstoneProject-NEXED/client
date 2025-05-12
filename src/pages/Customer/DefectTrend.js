@@ -14,18 +14,11 @@ const getRecentYears = (n = 10) => {
   }
   return arr;
 };
-const getRecentMonths = (n = 24) => {
+const getRecentMonths = () => {
   const arr = [];
   const now = new Date();
-  let year = now.getFullYear();
-  let month = now.getMonth() + 1;
-  for (let i = 0; i < n; i++) {
-    arr.unshift(`${year}.${String(month).padStart(2, '0')}`);
-    month--;
-    if (month === 0) {
-      month = 12;
-      year--;
-    }
+  for (let i = 0; i <= now.getMonth(); i++) {
+    arr.push(`${now.getFullYear()}.${String(i + 1).padStart(2, '0')}`);
   }
   return arr;
 };
@@ -51,9 +44,8 @@ function getWeekNumber(d) {
 const getRecentDays = (n = 30) => {
   const arr = [];
   const now = new Date();
-  for (let i = n - 1; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(now.getDate() - i);
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  for (let d = startOfMonth; d <= now; d.setDate(d.getDate() + 1)) {
     arr.push(d.toISOString().slice(0, 10));
   }
   return arr;
@@ -77,10 +69,12 @@ const DefectTrend = () => {
     const handleDefectFilter = (defects) => {
         setSelectedDefects(defects);
         setDefectPopupOpen(false);
+        setSelectedCameras([]);
     };
     const handleCameraFilter = (cameras) => {
         setSelectedCameras(cameras);
-        setCameraPopupOpen(false);
+        setDefectPopupOpen(false);
+        setSelectedDefects([]);
     };
     const handleReset = () => {
         setDateRangeType('last7');
@@ -91,8 +85,8 @@ const DefectTrend = () => {
     // x축 생성 및 데이터 필터링
     let xAxisData = [];
     if (dateRangeType === 'last7') xAxisData = getRecentDays(7);
-    else if (dateRangeType === 'month') xAxisData = getRecentMonths(24);
-    else if (dateRangeType === 'year') xAxisData = getRecentYears(10);
+    else if (dateRangeType === 'month') xAxisData = getRecentDays(new Date().getDate());
+    else if (dateRangeType === 'year') xAxisData = getRecentMonths();
     else if (dateRangeType === 'week') xAxisData = getRecentWeeks(20);
     else if (dateRangeType === 'custom' && customRange.start && customRange.end) {
       const arr = [];
@@ -106,53 +100,39 @@ const DefectTrend = () => {
     }
     // 그래프 데이터 생성
     let chartData = [];
-    if (dateRangeType === 'year') {
-      chartData = xAxisData.map(yearStr => {
-        const filtered = dummyDefectData.filter(defect => {
-          const defectYear = new Date(defect.timestamp).getFullYear().toString();
-          const yearMatch = defectYear === yearStr;
-          const defectMatch = selectedDefects.length === 0 || selectedDefects.some(type => defect.type.includes(type));
-          const cameraMatch = selectedCameras.length === 0 || selectedCameras.includes(defect.cameraId.toString());
-          return yearMatch && defectMatch && cameraMatch;
-        });
-        return { year: yearStr, value: filtered.length };
-      });
-    } else if (dateRangeType === 'month') {
-      chartData = xAxisData.map(monthStr => {
-        const filtered = dummyDefectData.filter(defect => {
-          const defectMonth = new Date(defect.timestamp).toISOString().slice(0, 7).replace('-', '.');
-          const monthMatch = defectMonth === monthStr;
-          const defectMatch = selectedDefects.length === 0 || selectedDefects.some(type => defect.type.includes(type));
-          const cameraMatch = selectedCameras.length === 0 || selectedCameras.includes(defect.cameraId.toString());
-          return monthMatch && defectMatch && cameraMatch;
-        });
-        return { month: monthStr, value: filtered.length };
-      });
-    } else if (dateRangeType === 'week') {
-      chartData = xAxisData.map(weekStr => {
-        const [year, week] = weekStr.split('-W');
-        const filtered = dummyDefectData.filter(defect => {
-          const d = new Date(defect.timestamp);
-          const defectYear = d.getFullYear();
-          const defectWeek = getWeekNumber(d);
-          const weekMatch = defectYear.toString() === year && String(defectWeek).padStart(2, '0') === week;
-          const defectMatch = selectedDefects.length === 0 || selectedDefects.some(type => defect.type.includes(type));
-          const cameraMatch = selectedCameras.length === 0 || selectedCameras.includes(defect.cameraId.toString());
-          return weekMatch && defectMatch && cameraMatch;
-        });
-        return { week: weekStr, value: filtered.length };
-      });
+    if (selectedDefects.length > 0) {
+        chartData = selectedDefects.map(defectType => {
+            return xAxisData.map(dateStr => {
+                const filtered = dummyDefectData.filter(defect => {
+                    const defectDate = defect.timestamp.slice(0, 10);
+                    const dateMatch = defectDate === dateStr;
+                    const defectMatch = defect.type.includes(defectType);
+                    return dateMatch && defectMatch;
+                });
+                return { date: dateStr, value: filtered.length, type: defectType };
+            });
+        }).flat();
+    } else if (selectedCameras.length > 0) {
+        chartData = selectedCameras.map(cameraId => {
+            return xAxisData.map(dateStr => {
+                const filtered = dummyDefectData.filter(defect => {
+                    const defectDate = defect.timestamp.slice(0, 10);
+                    const dateMatch = defectDate === dateStr;
+                    const cameraMatch = defect.cameraId.toString() === cameraId;
+                    return dateMatch && cameraMatch;
+                });
+                return { date: dateStr, value: filtered.length, camera: cameraId };
+            });
+        }).flat();
     } else {
-      chartData = xAxisData.map(dateStr => {
-        const filtered = dummyDefectData.filter(defect => {
-          const defectDate = defect.timestamp.slice(0, 10);
-          const dateMatch = defectDate === dateStr;
-          const defectMatch = selectedDefects.length === 0 || selectedDefects.some(type => defect.type.includes(type));
-          const cameraMatch = selectedCameras.length === 0 || selectedCameras.includes(defect.cameraId.toString());
-          return dateMatch && defectMatch && cameraMatch;
+        chartData = xAxisData.map(dateStr => {
+            const filtered = dummyDefectData.filter(defect => {
+                const defectDate = defect.timestamp.slice(0, 10);
+                const dateMatch = defectDate === dateStr;
+                return dateMatch;
+            });
+            return { date: dateStr, value: filtered.length };
         });
-        return { date: dateStr, value: filtered.length };
-      });
     }
     // chartWidth 계산: x축 데이터 개수에 따라 최소 60px씩 할당, 카드보다 적으면 카드에 맞게
     const [chartWidth, setChartWidth] = useState(window.innerWidth - 100);
@@ -164,6 +144,12 @@ const DefectTrend = () => {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+    const typeColors = {
+        'Crack': '#FF0000',
+        'Scratch': '#00FF00',
+        'Burr': '#0000FF',
+        'Particle': '#FFFF00'
+    };
     return (
         <>
             <div className="filters-card">
@@ -230,27 +216,69 @@ const DefectTrend = () => {
                     >
                         <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" />
                         <XAxis 
-                            dataKey={dateRangeType === 'year' ? 'year' : dateRangeType === 'month' ? 'month' : dateRangeType === 'week' ? 'week' : 'date'}
+                            dataKey={dateRangeType === 'year' ? 'date' : dateRangeType === 'month' ? 'date' : dateRangeType === 'week' ? 'date' : 'date'}
                             tick={{ fontSize: 12 }}
                             padding={{ left: 0, right: 0 }}
                             stroke="#999"
+                            tickFormatter={(value) => {
+                                if (dateRangeType === 'year') return `${value.split('.')[1]}월`;
+                                if (dateRangeType === 'month') return `${value.split('-')[2]}일`;
+                                if (dateRangeType === 'week') return `W${value.split('-W')[1]}`;
+                                return value;
+                            }}
                         />
                         <YAxis 
-                            domain={[0, 100]}
+                            domain={[0, Math.max(...chartData.map(d => d.value)) + 10]}
                             tick={{ fontSize: 12 }}
                             stroke="#999"
                             axisLine={false}
                             tickLine={false}
                         />
-                        <Tooltip />
-                        <Line
-                            type="monotone"
-                            dataKey="value"
-                            stroke="#4D4DFF"
-                            strokeWidth={1.5}
-                            dot={{ r: 3, fill: "#4D4DFF" }}
-                            activeDot={{ r: 5 }}
+                        <Tooltip 
+                            formatter={(value, name, props) => {
+                                if (!Array.isArray(props.payload)) return [];
+                                const total = props.payload.reduce((acc, curr) => acc + curr.value, 0);
+                                return [
+                                    `total: ${total}`,
+                                    `선택한 결함: ${value}`
+                                ];
+                            }}
+                            labelFormatter={(label) => `날짜: ${label}`}
                         />
+                        {selectedDefects.length > 0 && selectedDefects.map((defectType, index) => (
+                            <Line
+                                key={index}
+                                type="monotone"
+                                dataKey="value"
+                                data={chartData.filter(data => data.type === defectType)}
+                                stroke={typeColors[defectType] || '#4D4DFF'}
+                                strokeWidth={1.5}
+                                dot={{ r: 3, fill: typeColors[defectType] || '#4D4DFF' }}
+                                activeDot={{ r: 5 }}
+                            />
+                        ))}
+                        {selectedCameras.length > 0 && selectedCameras.map((cameraId, index) => (
+                            <Line
+                                key={index}
+                                type="monotone"
+                                dataKey="value"
+                                data={chartData.filter(data => data.camera === cameraId)}
+                                stroke="#4D4DFF"
+                                strokeWidth={1.5}
+                                dot={{ r: 3, fill: "#4D4DFF" }}
+                                activeDot={{ r: 5 }}
+                            />
+                        ))}
+                        {selectedDefects.length === 0 && selectedCameras.length === 0 && (
+                            <Line
+                                type="monotone"
+                                dataKey="value"
+                                stroke="#4D4DFF"
+                                strokeWidth={1.5}
+                                dot={{ r: 3, fill: "#4D4DFF" }}
+                                activeDot={{ r: 5 }}
+                            />
+                        )}
                     </LineChart>
                 </div>
             </div>

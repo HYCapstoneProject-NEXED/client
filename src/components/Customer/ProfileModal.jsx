@@ -1,12 +1,29 @@
 // src/components/ProfileModal.jsx
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { ProfileModalContext } from '../../context/ProfileModalContext';
 
 const ProfileModal = () => {
   const { isProfileOpen, setIsProfileOpen } = useContext(ProfileModalContext);
+  // 상태 추가: 각 필드 값과 수정 가능 여부
+  const [address, setAddress] = useState('Korea, Gyunggi-do');
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [bank, setBank] = useState('신한은행');
+  const [isEditingBank, setIsEditingBank] = useState(false);
+  const [bankAccount, setBankAccount] = useState('xxxx-0000-xxxxx-000');
+  const [isEditingBankAccount, setIsEditingBankAccount] = useState(false);
+
   console.log("isProfileOpen:", isProfileOpen);
 
   if (!isProfileOpen) return null;
+
+  // 저장 함수
+  const handleSave = () => {
+    setIsEditingAddress(false);
+    setIsEditingBank(false);
+    setIsEditingBankAccount(false);
+    // 실제 저장 로직은 백엔드 연동 시 추가
+    console.log('저장됨!', { address, bank, bankAccount });
+  };
 
   return (
     <div
@@ -174,15 +191,16 @@ const ProfileModal = () => {
               <label style={{ fontSize: '14px', color: '#555' }}>Address</label>
               <input
                 type="text"
-                value="Korea, Gyunggi-do"
-                readOnly
+                value={address}
+                readOnly={!isEditingAddress}
+                onChange={e => setAddress(e.target.value)}
                 style={{
                   width: '100%',
                   padding: '8px',
                   border: '1px solid #ddd',
                   borderRadius: '8px',
                   marginTop: '4px',
-                  backgroundColor: '#f9f9f9',
+                  backgroundColor: isEditingAddress ? '#fff' : '#f9f9f9',
                 }}
               />
               <span
@@ -193,7 +211,9 @@ const ProfileModal = () => {
                   fontSize: '13px',
                   color: '#007BFF',
                   cursor: 'pointer',
+                  display: isEditingAddress ? 'none' : 'inline',
                 }}
+                onClick={() => setIsEditingAddress(true)}
               >
                 edit
               </span>
@@ -241,15 +261,16 @@ const ProfileModal = () => {
               <label style={{ fontSize: '14px', color: '#555' }}>Bank</label>
               <input
                 type="text"
-                value="신한은행"
-                readOnly
+                value={bank}
+                readOnly={!isEditingBank}
+                onChange={e => setBank(e.target.value)}
                 style={{
                   width: '100%',
                   padding: '8px',
                   border: '1px solid #ddd',
                   borderRadius: '8px',
                   marginTop: '4px',
-                  backgroundColor: '#f9f9f9',
+                  backgroundColor: isEditingBank ? '#fff' : '#f9f9f9',
                 }}
               />
               <span
@@ -260,7 +281,9 @@ const ProfileModal = () => {
                   fontSize: '13px',
                   color: '#007BFF',
                   cursor: 'pointer',
+                  display: isEditingBank ? 'none' : 'inline',
                 }}
+                onClick={() => setIsEditingBank(true)}
               >
                 edit
               </span>
@@ -271,15 +294,16 @@ const ProfileModal = () => {
               <label style={{ fontSize: '14px', color: '#555' }}>Bank account</label>
               <input
                 type="text"
-                value="xxxx-0000-xxxxx-000"
-                readOnly
+                value={bankAccount}
+                readOnly={!isEditingBankAccount}
+                onChange={e => setBankAccount(e.target.value)}
                 style={{
                   width: '100%',
                   padding: '8px',
                   border: '1px solid #ddd',
                   borderRadius: '8px',
                   marginTop: '4px',
-                  backgroundColor: '#f9f9f9',
+                  backgroundColor: isEditingBankAccount ? '#fff' : '#f9f9f9',
                 }}
               />
               <span
@@ -290,7 +314,9 @@ const ProfileModal = () => {
                   fontSize: '13px',
                   color: '#007BFF',
                   cursor: 'pointer',
+                  display: isEditingBankAccount ? 'none' : 'inline',
                 }}
+                onClick={() => setIsEditingBankAccount(true)}
               >
                 edit
               </span>
@@ -308,10 +334,7 @@ const ProfileModal = () => {
                   fontWeight: 'bold',
                   fontSize: '16px'
                 }}
-                onClick={() => {
-                  console.log('저장됨!');
-                  
-                }}
+                onClick={handleSave}
               >
                 Save
               </button>
