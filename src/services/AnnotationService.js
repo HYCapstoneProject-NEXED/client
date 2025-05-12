@@ -751,6 +751,56 @@ class AnnotationService {
       throw new Error(`작업 할당 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
     }
   }
+
+  /**
+   * 어노테이터별로 카메라 할당 (어노테이터 ID를 키로, 카메라 ID 배열을 값으로 하는 방식)
+   * @param {Object} assignments - 어노테이터 ID를 키로, 카메라 ID 배열을 값으로 하는 객체
+   * @returns {Promise<Object>} 할당 결과
+   */
+  async assignTasksByUserId(assignments) {
+    try {
+      // 실제 API 요청 코드 (현재는 주석 처리)
+      // const response = await axios.post(`${API_URL}/tasks/assign-by-user`, assignments);
+      // return response.data;
+      
+      console.log('AnnotationService.assignTasksByUserId called with:', assignments);
+      
+      // 비동기 처리 시뮬레이션
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          // 로컬 상태 업데이트 (실제 구현에서는 서버 DB에 저장됨)
+          const assignedImages = {};
+          const assignmentsByCameraId = {}; // 기존 형식의 assignments 객체도 생성
+          
+          // 할당된 어노테이터별 이미지 개수 계산
+          Object.entries(assignments).forEach(([annotatorId, cameraIds]) => {
+            let totalImages = 0;
+            // 각 카메라에 해당하는 이미지 개수를 합산
+            cameraIds.forEach(cameraId => {
+              const imagesForCamera = DUMMY_IMAGES.filter(img => img.camera_id === cameraId);
+              totalImages += imagesForCamera.length;
+              // 기존 형식의 assignments 객체에도 매핑 추가
+              assignmentsByCameraId[cameraId] = parseInt(annotatorId);
+            });
+            assignedImages[annotatorId] = totalImages;
+          });
+          
+          console.log('Assignment successful, images per annotator:', assignedImages);
+          
+          resolve({
+            success: true,
+            assignments: assignments,
+            assignmentsByCameraId: assignmentsByCameraId,
+            assignedImages: assignedImages,
+            message: '작업이 성공적으로 할당되었습니다.'
+          });
+        }, 800);
+      });
+    } catch (error) {
+      console.error('Error assigning tasks by user:', error);
+      throw new Error(`작업 할당 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
+    }
+  }
 }
 
 export default new AnnotationService(); 

@@ -770,4 +770,260 @@
     flex-direction: column;
     gap: 10px;
   }
+}
+
+/* New User-to-Camera Assignment Layout */
+.user-task-assignment-layout {
+  display: flex;
+  margin-bottom: 30px;
+  gap: 20px;
+  min-height: 500px;
+}
+
+/* User Selection Panel */
+.user-selection-panel {
+  width: 300px;
+  background: #FAFBFC;
+  border-radius: 12px;
+  border: 1px solid #EFF0F6;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-selection-panel h3 {
+  padding: 16px;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  background-color: #F8F9FB;
+  border-bottom: 1px solid #EFF0F6;
+  color: #232323;
+}
+
+.annotator-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.annotator-card {
+  padding: 14px;
+  margin-bottom: 8px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #EFF0F6;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.annotator-card:hover {
+  background-color: #F0F7FF;
+  border-color: #4880FF;
+}
+
+.annotator-card.selected {
+  background-color: #E6F0FF;
+  border-color: #4880FF;
+  box-shadow: 0 2px 8px rgba(72, 128, 255, 0.1);
+}
+
+.annotator-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.annotator-name {
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #232323;
+}
+
+.annotator-stats {
+  display: flex;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 13px;
+  color: #718EBF;
+  gap: 16px;
+}
+
+.drop-indicator {
+  margin-top: 10px;
+  padding: 6px 10px;
+  background: rgba(72, 128, 255, 0.1);
+  border: 1px dashed #4880FF;
+  border-radius: 4px;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 12px;
+  color: #4880FF;
+  text-align: center;
+}
+
+/* Camera Assignment Panel */
+.camera-assignment-panel {
+  flex: 1;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #EFF0F6;
+  overflow: hidden;
+}
+
+.camera-assignment-content {
+  padding: 16px;
+}
+
+.camera-assignment-content h3 {
+  margin: 0 0 16px 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #232323;
+}
+
+.no-annotator-selected {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  min-height: 300px;
+  padding: 20px;
+  text-align: center;
+}
+
+.no-annotator-selected p {
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 15px;
+  color: #718EBF;
+}
+
+.camera-groups {
+  display: flex;
+  gap: 20px;
+  height: calc(100% - 40px);
+  min-height: 400px;
+}
+
+.camera-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.camera-group h4 {
+  margin: 0 0 12px 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #718EBF;
+}
+
+.camera-list {
+  border: 1px solid #EFF0F6;
+  border-radius: 8px;
+  padding: 10px;
+  overflow-y: auto;
+  height: 100%;
+  min-height: 350px;
+  background: #FAFBFC;
+}
+
+.camera-item {
+  padding: 12px;
+  margin-bottom: 8px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #EFF0F6;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.camera-item:last-child {
+  margin-bottom: 0;
+}
+
+.camera-item:hover {
+  background-color: #F0F7FF;
+  border-color: #4880FF;
+}
+
+.camera-item.assigned {
+  background-color: #E6F7ED;
+  border-color: #00B69B;
+}
+
+.camera-item.assigned:hover {
+  background-color: #D1F0E6;
+}
+
+.camera-item.assigned-other {
+  background-color: #FFF5E6;
+  border-color: #FFAA00;
+}
+
+.camera-item.assigned-other:hover {
+  background-color: #FFE9CC;
+}
+
+.camera-name {
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #232323;
+  margin-bottom: 4px;
+}
+
+.camera-info {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 12px;
+  color: #718EBF;
+}
+
+.camera-image-count {
+  color: #4880FF;
+  font-weight: 600;
+}
+
+.assigned-to {
+  color: #FFAA00;
+  font-style: italic;
+}
+
+.empty-list-message {
+  padding: 20px;
+  text-align: center;
+  color: #718EBF;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 14px;
+  font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .user-task-assignment-layout {
+    flex-direction: column;
+  }
+  
+  .user-selection-panel {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  
+  .annotator-list {
+    max-height: 300px;
+  }
+  
+  .camera-groups {
+    flex-direction: column;
+  }
+  
+  .camera-list {
+    max-height: 250px;
+    margin-bottom: 20px;
+  }
 } 
