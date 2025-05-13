@@ -31,15 +31,27 @@ const Dashboard = () => {
   };
 
   const handleDefectApply = (orderType) => {
-    setSelectedDefects(orderType.split(', '));
-    setFilter({ ...filter, orderType });
+    setSelectedDefects(orderType);
+    setFilter({ ...filter, orderType: orderType.join(', ') });
     setOpenFilter(null);
   };
 
   const handleCameraApply = (cameraId) => {
-    setSelectedCameras(cameraId.split(', '));
-    setFilter({ ...filter, cameraId });
+    setSelectedCameras(cameraId);
+    setFilter({ ...filter, cameraId: cameraId.join(', ') });
     setOpenFilter(null);
+  };
+
+  // Safely check if an array includes a value
+  const safeArrayIncludes = (arr, value) => {
+    if (!Array.isArray(arr)) return false;
+    return arr.includes(value);
+  };
+
+  // Safely check if arrays have common elements
+  const hasCommonElement = (arr1, arr2) => {
+    if (!Array.isArray(arr1) || !Array.isArray(arr2)) return false;
+    return arr1.some(item => arr2.includes(item));
   };
 
   const filteredData = dummyDefectData.filter((defect) => {
@@ -48,11 +60,13 @@ const Dashboard = () => {
       (new Date(defect.timestamp) >= new Date(filter.dateRange.start) && 
        new Date(defect.timestamp) <= new Date(filter.dateRange.end));
 
+    // Defect type filtering - safely handle array types
     const defectMatch = selectedDefects.length === 0 || 
-      selectedDefects.some(type => defect.type.includes(type));
+      hasCommonElement(selectedDefects, Array.isArray(defect.type) ? defect.type : [defect.type]);
 
+    // Camera ID filtering
     const cameraMatch = selectedCameras.length === 0 || 
-      selectedCameras.includes(defect.cameraId.toString());
+      safeArrayIncludes(selectedCameras, defect.cameraId.toString());
 
     return dateMatch && defectMatch && cameraMatch;
   });
@@ -128,8 +142,7 @@ const Dashboard = () => {
           <DefectFilterPopup
             selected={selectedDefects}
             onApply={(list) => {
-              setSelectedDefects(list);
-              handleDefectApply(list.join(', '));
+              handleDefectApply(list);
             }}
             onClose={() => setOpenFilter(null)}
           />
@@ -138,8 +151,7 @@ const Dashboard = () => {
           <CameraFilterPopup
             selected={selectedCameras}
             onApply={(list) => {
-              setSelectedCameras(list);
-              handleCameraApply(list.join(', '));
+              handleCameraApply(list);
             }}
             onClose={() => setOpenFilter(null)}
           />
@@ -188,7 +200,7 @@ const Dashboard = () => {
                       second: '2-digit',
                       hour12: false
                     })}</td>
-                    <td>{defect.type.join(', ')}</td>
+                    <td>{Array.isArray(defect.type) ? defect.type.join(', ') : defect.type}</td>
                   </tr>
                 ))}
               </tbody>

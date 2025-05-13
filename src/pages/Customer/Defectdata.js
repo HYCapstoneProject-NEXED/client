@@ -28,6 +28,12 @@ const Defectdata = () => {
     }, 500);
   }, []);
 
+  // Helper functions for safe type checking
+  const hasCommonElement = (arr1, arr2) => {
+    if (!Array.isArray(arr1) || !Array.isArray(arr2)) return false;
+    return arr1.some(item => arr2.includes(item));
+  };
+
   // 필터링 로직
   useEffect(() => {
     let filteredData = [...dummyDefectData];
@@ -48,7 +54,7 @@ const Defectdata = () => {
     // 불량 유형 필터링
     if (selectedDefects.length > 0) {
       filteredData = filteredData.filter(defect => 
-        selectedDefects.some(type => defect.type.includes(type))
+        hasCommonElement(selectedDefects, Array.isArray(defect.type) ? defect.type : [defect.type])
       );
     }
 
