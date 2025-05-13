@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import DateRangeFilter from '../../components/Customer/Filter/DateRangeFilter';
 import DefectFilterPopup from '../../components/Customer/Filter/DefectFilterPopup';
 import CameraFilterPopup from '../../components/Customer/Filter/CameraFilterPopup';
-import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
+import DateFilterPopup from '../../components/Customer/Filter/DateFilterPopup';
+import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import dummyDefectData from '../../data/dummyDefectData';
 import './DefectTrend.css';
 
@@ -14,14 +15,20 @@ const getRecentYears = (n = 10) => {
   }
   return arr;
 };
+
+// Updated to show current year's months from January to current month
 const getRecentMonths = () => {
   const arr = [];
   const now = new Date();
+  const year = now.getFullYear();
+  
+  // Get all months from January to current month
   for (let i = 0; i <= now.getMonth(); i++) {
-    arr.push(`${now.getFullYear()}.${String(i + 1).padStart(2, '0')}`);
+    arr.push(`${year}.${String(i + 1).padStart(2, '0')}`);
   }
   return arr;
 };
+
 const getRecentWeeks = (n = 20) => {
   const arr = [];
   const now = new Date();
@@ -34,6 +41,7 @@ const getRecentWeeks = (n = 20) => {
   }
   return arr;
 };
+
 function getWeekNumber(d) {
   d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
   d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
@@ -41,13 +49,27 @@ function getWeekNumber(d) {
   const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1)/7);
   return weekNo;
 }
+
+// Updated to handle both month view and last 7 days view
 const getRecentDays = (n = 30) => {
   const arr = [];
   const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  for (let d = startOfMonth; d <= now; d.setDate(d.getDate() + 1)) {
-    arr.push(d.toISOString().slice(0, 10));
+  
+  if (n === 7) {
+    // Last 7 days (including today)
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      arr.push(d.toISOString().slice(0, 10));
+    }
+  } else {
+    // This month (from 1st day to current day)
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    for (let d = new Date(startOfMonth); d <= now; d.setDate(d.getDate() + 1)) {
+      arr.push(new Date(d).toISOString().slice(0, 10));
+    }
   }
+  
   return arr;
 };
 
@@ -58,34 +80,50 @@ const DefectTrend = () => {
     const [customRange, setCustomRange] = useState({ start: null, end: null });
     const [defectPopupOpen, setDefectPopupOpen] = useState(false);
     const [cameraPopupOpen, setCameraPopupOpen] = useState(false);
+    const [customDatePickerOpen, setCustomDatePickerOpen] = useState(false);
     const [selectedDefects, setSelectedDefects] = useState([]);
     const [selectedCameras, setSelectedCameras] = useState([]);
+    
     // 필터 적용 핸들러
     const handleDateRangeChange = (type) => {
       setDateRangeType(type);
       setDateRangeOpen(false);
-      if (type !== 'custom') setCustomRange({ start: null, end: null });
+      
+      if (type === 'custom') {
+        setCustomDatePickerOpen(true);
+      } else {
+        setCustomRange({ start: null, end: null });
+      }
     };
+    
+    const handleCustomDateApply = (range) => {
+      setCustomRange(range);
+      setCustomDatePickerOpen(false);
+    };
+    
     const handleDefectFilter = (defects) => {
         setSelectedDefects(defects);
         setDefectPopupOpen(false);
         setSelectedCameras([]);
     };
+    
     const handleCameraFilter = (cameras) => {
         setSelectedCameras(cameras);
         setDefectPopupOpen(false);
         setSelectedDefects([]);
     };
+    
     const handleReset = () => {
         setDateRangeType('last7');
         setCustomRange({ start: null, end: null });
         setSelectedDefects([]);
         setSelectedCameras([]);
     };
+    
     // x축 생성 및 데이터 필터링
     let xAxisData = [];
     if (dateRangeType === 'last7') xAxisData = getRecentDays(7);
-    else if (dateRangeType === 'month') xAxisData = getRecentDays(new Date().getDate());
+    else if (dateRangeType === 'month') xAxisData = getRecentDays();
     else if (dateRangeType === 'year') xAxisData = getRecentMonths();
     else if (dateRangeType === 'week') xAxisData = getRecentWeeks(20);
     else if (dateRangeType === 'custom' && customRange.start && customRange.end) {
@@ -98,6 +136,7 @@ const DefectTrend = () => {
       }
       xAxisData = arr;
     }
+    
     // 그래프 데이터 생성
     let chartData = [];
     if (selectedDefects.length > 0) {
@@ -105,6 +144,13 @@ const DefectTrend = () => {
             return xAxisData.map(dateStr => {
                 const filtered = dummyDefectData.filter(defect => {
                     const defectDate = defect.timestamp.slice(0, 10);
+                    
+                    // For year view, match by month
+                    if (dateRangeType === 'year') {
+                        const defectMonth = defectDate.slice(0, 7).replace('-', '.');
+                        return defectMonth === dateStr && defect.type.includes(defectType);
+                    }
+                    
                     const dateMatch = defectDate === dateStr;
                     const defectMatch = defect.type.includes(defectType);
                     return dateMatch && defectMatch;
@@ -117,6 +163,13 @@ const DefectTrend = () => {
             return xAxisData.map(dateStr => {
                 const filtered = dummyDefectData.filter(defect => {
                     const defectDate = defect.timestamp.slice(0, 10);
+                    
+                    // For year view, match by month
+                    if (dateRangeType === 'year') {
+                        const defectMonth = defectDate.slice(0, 7).replace('-', '.');
+                        return defectMonth === dateStr && defect.cameraId.toString() === cameraId;
+                    }
+                    
                     const dateMatch = defectDate === dateStr;
                     const cameraMatch = defect.cameraId.toString() === cameraId;
                     return dateMatch && cameraMatch;
@@ -128,12 +181,38 @@ const DefectTrend = () => {
         chartData = xAxisData.map(dateStr => {
             const filtered = dummyDefectData.filter(defect => {
                 const defectDate = defect.timestamp.slice(0, 10);
+                
+                // For year view, match by month
+                if (dateRangeType === 'year') {
+                    const defectMonth = defectDate.slice(0, 7).replace('-', '.');
+                    return defectMonth === dateStr;
+                }
+                
                 const dateMatch = defectDate === dateStr;
                 return dateMatch;
             });
             return { date: dateStr, value: filtered.length };
         });
     }
+    
+    // Calculate total defects for each date
+    const totalDefectsByDate = {};
+    xAxisData.forEach(dateStr => {
+        let filtered = [];
+        if (dateRangeType === 'year') {
+            filtered = dummyDefectData.filter(defect => {
+                const defectMonth = defect.timestamp.slice(0, 7).replace('-', '.');
+                return defectMonth === dateStr;
+            });
+        } else {
+            filtered = dummyDefectData.filter(defect => {
+                const defectDate = defect.timestamp.slice(0, 10);
+                return defectDate === dateStr;
+            });
+        }
+        totalDefectsByDate[dateStr] = filtered.length;
+    });
+    
     // chartWidth 계산: x축 데이터 개수에 따라 최소 60px씩 할당, 카드보다 적으면 카드에 맞게
     const [chartWidth, setChartWidth] = useState(window.innerWidth - 100);
     const dynamicWidth = Math.max(chartWidth, chartData.length * 60);
@@ -144,12 +223,48 @@ const DefectTrend = () => {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+    
     const typeColors = {
         'Crack': '#FF0000',
         'Scratch': '#00FF00',
         'Burr': '#0000FF',
         'Particle': '#FFFF00'
     };
+    
+    // Format date for display based on filter type
+    const formatDate = (dateStr) => {
+        if (dateRangeType === 'year') {
+            return `${dateStr.split('.')[0]}.${dateStr.split('.')[1]}`;
+        } else if (dateRangeType === 'month' || dateRangeType === 'last7') {
+            const date = new Date(dateStr);
+            return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+        } else if (dateRangeType === 'week') {
+            return dateStr;
+        }
+        return dateStr;
+    };
+    
+    // Custom tooltip to show total and individual defect counts
+    const CustomTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+            const date = formatDate(label);
+            const totalDefects = totalDefectsByDate[label] || 0;
+            
+            return (
+                <div className="custom-tooltip">
+                    <p className="tooltip-date">{date}</p>
+                    <p className="tooltip-total">Total: {totalDefects}</p>
+                    {payload.map((entry, index) => (
+                        <p key={index} className="tooltip-item" style={{ color: entry.stroke }}>
+                            {entry.name}: {entry.value}
+                        </p>
+                    ))}
+                </div>
+            );
+        }
+        return null;
+    };
+    
     return (
         <>
             <div className="filters-card">
@@ -164,7 +279,7 @@ const DefectTrend = () => {
                         <span style={{ marginLeft: '10px' }}>⌄</span>
                     </button>
                     <button onClick={() => setDefectPopupOpen(true)} className="filter-btn">
-                        {selectedDefects.length ? selectedDefects.join(', ') : 'Order Type'}
+                        {selectedDefects.length ? selectedDefects.join(', ') : 'Defect Type'}
                         <span style={{ marginLeft: '10px' }}>⌄</span>
                     </button>
                     <button onClick={() => setCameraPopupOpen(true)} className="filter-btn">
@@ -177,18 +292,16 @@ const DefectTrend = () => {
                 </div>
                 {dateRangeOpen && (
                   <div style={{ position: 'absolute', zIndex: 10 }}>
-                    <DateRangeFilter value={dateRangeType} onChange={v => {
-                      setDateRangeType(v);
-                      setDateRangeOpen(false);
-                      if (v !== 'custom') setCustomRange({ start: null, end: null });
-                    }} />
-                    {dateRangeType === 'custom' && (
-                      <div style={{ marginTop: 16, background: '#fff', borderRadius: 8, boxShadow: '0 1px 6px rgba(0,0,0,0.07)', padding: 16 }}>
-                        {/* TODO: 달력 컴포넌트로 교체 */}
-                        <div>Custom Date Picker Here</div>
-                        <button onClick={() => setCustomRange({ start: '2024-04-01', end: '2024-04-10' })}>임시: 4/1~4/10 선택</button>
-                      </div>
-                    )}
+                    <DateRangeFilter value={dateRangeType} onChange={handleDateRangeChange} />
+                  </div>
+                )}
+                {customDatePickerOpen && (
+                  <div style={{ position: 'absolute', zIndex: 10 }}>
+                    <DateFilterPopup 
+                      selected={customRange}
+                      onApply={handleCustomDateApply}
+                      onClose={() => setCustomDatePickerOpen(false)}
+                    />
                   </div>
                 )}
                 {defectPopupOpen && (
@@ -212,76 +325,104 @@ const DefectTrend = () => {
                         width={dynamicWidth}
                         height={300}
                         data={chartData}
-                        margin={{ top: 5, right: 10, left: -30, bottom: 5 }}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                     >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" vertical={false} />
                         <XAxis 
-                            dataKey={dateRangeType === 'year' ? 'date' : dateRangeType === 'month' ? 'date' : dateRangeType === 'week' ? 'date' : 'date'}
+                            dataKey="date"
                             tick={{ fontSize: 12 }}
-                            padding={{ left: 0, right: 0 }}
+                            padding={{ left: 10, right: 10 }}
                             stroke="#999"
                             tickFormatter={(value) => {
-                                if (dateRangeType === 'year') return `${value.split('.')[1]}월`;
-                                if (dateRangeType === 'month') return `${value.split('-')[2]}일`;
-                                if (dateRangeType === 'week') return `W${value.split('-W')[1]}`;
+                                if (dateRangeType === 'year') {
+                                    // Format: 2024.01, 2024.02, etc. -> display as 01, 02, etc.
+                                    return value.split('.')[1];
+                                } else if (dateRangeType === 'month') {
+                                    // Format: 2024-05-01 -> display as 01
+                                    return value.split('-')[2];
+                                } else if (dateRangeType === 'last7') {
+                                    // Format: 2024-05-01 -> display as 05.01
+                                    const parts = value.split('-');
+                                    return `${parts[1]}.${parts[2]}`;
+                                } else if (dateRangeType === 'week') {
+                                    return `W${value.split('-W')[1]}`;
+                                }
                                 return value;
                             }}
                         />
                         <YAxis 
-                            domain={[0, Math.max(...chartData.map(d => d.value)) + 10]}
+                            domain={[0, 'dataMax + 20']}
                             tick={{ fontSize: 12 }}
                             stroke="#999"
                             axisLine={false}
                             tickLine={false}
                         />
-                        <Tooltip 
-                            formatter={(value, name, props) => {
-                                if (!Array.isArray(props.payload)) return [];
-                                const total = props.payload.reduce((acc, curr) => acc + curr.value, 0);
-                                return [
-                                    `total: ${total}`,
-                                    `선택한 결함: ${value}`
-                                ];
-                            }}
-                            labelFormatter={(label) => `날짜: ${label}`}
-                        />
+                        <Tooltip content={<CustomTooltip />} />
                         {selectedDefects.length > 0 && selectedDefects.map((defectType, index) => (
                             <Line
                                 key={index}
-                                type="monotone"
+                                type="linear"
                                 dataKey="value"
                                 data={chartData.filter(data => data.type === defectType)}
                                 stroke={typeColors[defectType] || '#4D4DFF'}
-                                strokeWidth={1.5}
-                                dot={{ r: 3, fill: typeColors[defectType] || '#4D4DFF' }}
-                                activeDot={{ r: 5 }}
+                                strokeWidth={2}
+                                dot={{ r: 4, fill: typeColors[defectType] || '#4D4DFF', strokeWidth: 0 }}
+                                activeDot={{ r: 6, fill: typeColors[defectType] || '#4D4DFF' }}
+                                isAnimationActive={true}
+                                name={defectType}
                             />
                         ))}
                         {selectedCameras.length > 0 && selectedCameras.map((cameraId, index) => (
                             <Line
                                 key={index}
-                                type="monotone"
+                                type="linear"
                                 dataKey="value"
                                 data={chartData.filter(data => data.camera === cameraId)}
                                 stroke="#4D4DFF"
-                                strokeWidth={1.5}
-                                dot={{ r: 3, fill: "#4D4DFF" }}
-                                activeDot={{ r: 5 }}
+                                strokeWidth={2}
+                                dot={{ r: 4, fill: "#4D4DFF", strokeWidth: 0 }}
+                                activeDot={{ r: 6 }}
+                                isAnimationActive={true}
+                                name={`Camera ${cameraId}`}
                             />
                         ))}
                         {selectedDefects.length === 0 && selectedCameras.length === 0 && (
                             <Line
-                                type="monotone"
+                                type="linear"
                                 dataKey="value"
                                 stroke="#4D4DFF"
-                                strokeWidth={1.5}
-                                dot={{ r: 3, fill: "#4D4DFF" }}
-                                activeDot={{ r: 5 }}
+                                strokeWidth={2}
+                                dot={{ r: 4, fill: "#4D4DFF", strokeWidth: 0 }}
+                                activeDot={{ r: 6 }}
+                                isAnimationActive={true}
+                                name="All Defects"
                             />
                         )}
                     </LineChart>
                 </div>
             </div>
+            <style jsx>{`
+                .custom-tooltip {
+                    background-color: white;
+                    border: 1px solid #ccc;
+                    border-radius: 4px;
+                    padding: 10px;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                }
+                .tooltip-date {
+                    margin: 0 0 5px;
+                    font-weight: bold;
+                    border-bottom: 1px solid #eee;
+                    padding-bottom: 5px;
+                }
+                .tooltip-total {
+                    margin: 5px 0;
+                    font-weight: bold;
+                }
+                .tooltip-item {
+                    margin: 3px 0;
+                }
+            `}</style>
         </>
     );
 };

@@ -5,14 +5,11 @@ import DateFilterPopup from '../../components/Customer/Filter/DateFilterPopup';
 import DefectFilterPopup from '../../components/Customer/Filter/DefectFilterPopup';
 import CameraFilterPopup from '../../components/Customer/Filter/CameraFilterPopup';
 //더미데이터
-import dummyDefectData from '../../data/dummyDefectData';
-import { defectStats } from '../../data/dummyDefectData';
-
-
+import dummyDefectData, { defectStats } from '../../data/dummyDefectData';
 
 const Dashboard = () => {
   const [filter, setFilter] = useState({
-    dates: [],
+    dateRange: { start: null, end: null },
     orderType: '',
     cameraId: ''
   });
@@ -20,19 +17,16 @@ const Dashboard = () => {
   const [openFilter, setOpenFilter] = useState(null);
   const [selectedDefects, setSelectedDefects] = useState([]);
   const [selectedCameras, setSelectedCameras] = useState([]);
-  const [selectedDates, setSelectedDates] = useState([]);
 
   const handleReset = () => {
-    setFilter({ dates: [], orderType: '', cameraId: '' });
-    setSelectedDates([]);
+    setFilter({ dateRange: { start: null, end: null }, orderType: '', cameraId: '' });
     setSelectedDefects([]);
     setSelectedCameras([]);
     setOpenFilter(null);
   };
 
-  const handleDateApply = (dates) => {
-    setSelectedDates(dates);
-    setFilter({ ...filter, dates });
+  const handleDateApply = (dateRange) => {
+    setFilter({ ...filter, dateRange });
     setOpenFilter(null);
   };
 
@@ -49,11 +43,10 @@ const Dashboard = () => {
   };
 
   const filteredData = dummyDefectData.filter((defect) => {
-    const dateMatch = selectedDates.length === 0 || selectedDates.some(date => {
-      const defectDate = new Date(defect.timestamp);
-      const filterDate = new Date(date);
-      return defectDate.toDateString() === filterDate.toDateString();
-    });
+    // Date range filtering
+    const dateMatch = !filter.dateRange.start || !filter.dateRange.end || 
+      (new Date(defect.timestamp) >= new Date(filter.dateRange.start) && 
+       new Date(defect.timestamp) <= new Date(filter.dateRange.end));
 
     const defectMatch = selectedDefects.length === 0 || 
       selectedDefects.some(type => defect.type.includes(type));
@@ -106,7 +99,9 @@ const Dashboard = () => {
         <div className="customer-filter-ui">
             <span role="img" aria-label="filter">🔍</span> Filter By    
           <button onClick={() => setOpenFilter('date')} className="filter-btn">
-            {filter.dates.length > 0 ? `${filter.dates.length} dates selected` : 'Select Date'}
+            {filter.dateRange.start && filter.dateRange.end 
+              ? `${filter.dateRange.start} ~ ${filter.dateRange.end}` 
+              : 'Select Date Range'}
             <span style={{ marginLeft: '10px' }}>⌄</span>
           </button>
           <button onClick={() => setOpenFilter('defect')} className="filter-btn">
@@ -124,7 +119,7 @@ const Dashboard = () => {
 
         {openFilter === 'date' && (
           <DateFilterPopup
-            selected={filter.dates}
+            selected={filter.dateRange}
             onApply={handleDateApply}
             onClose={() => setOpenFilter(null)}
           />
