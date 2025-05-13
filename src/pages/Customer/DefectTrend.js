@@ -137,65 +137,65 @@ const DefectTrend = () => {
       xAxisData = arr;
     }
     
-    // 그래프 데이터 생성
-    let chartData = [];
-    if (selectedDefects.length > 0) {
-        chartData = selectedDefects.map(defectType => {
-            return xAxisData.map(dateStr => {
+    // 그래프 데이터 생성 - 고정된 x축 기준의 데이터 구조
+    const baseChartData = xAxisData.map(dateStr => {
+        // 기본 데이터 구조 생성
+        const result = { date: dateStr };
+        
+        // 총 결함 수 계산
+        const totalFiltered = dummyDefectData.filter(defect => {
+            const defectDate = defect.timestamp.slice(0, 10);
+            
+            if (dateRangeType === 'year') {
+                const defectMonth = defectDate.slice(0, 7).replace('-', '.');
+                return defectMonth === dateStr;
+            }
+            
+            return defectDate === dateStr;
+        });
+        
+        result.total = totalFiltered.length;
+        
+        // 선택된 결함 유형별 개수 추가
+        if (selectedDefects.length > 0) {
+            selectedDefects.forEach(defectType => {
                 const filtered = dummyDefectData.filter(defect => {
                     const defectDate = defect.timestamp.slice(0, 10);
                     
-                    // For year view, match by month
                     if (dateRangeType === 'year') {
                         const defectMonth = defectDate.slice(0, 7).replace('-', '.');
                         return defectMonth === dateStr && defect.type.includes(defectType);
                     }
                     
-                    const dateMatch = defectDate === dateStr;
-                    const defectMatch = defect.type.includes(defectType);
-                    return dateMatch && defectMatch;
+                    return defectDate === dateStr && defect.type.includes(defectType);
                 });
-                return { date: dateStr, value: filtered.length, type: defectType };
+                
+                result[defectType] = filtered.length;
             });
-        }).flat();
-    } else if (selectedCameras.length > 0) {
-        chartData = selectedCameras.map(cameraId => {
-            return xAxisData.map(dateStr => {
+        }
+        
+        // 선택된 카메라별 개수 추가
+        if (selectedCameras.length > 0) {
+            selectedCameras.forEach(cameraId => {
                 const filtered = dummyDefectData.filter(defect => {
                     const defectDate = defect.timestamp.slice(0, 10);
                     
-                    // For year view, match by month
                     if (dateRangeType === 'year') {
                         const defectMonth = defectDate.slice(0, 7).replace('-', '.');
                         return defectMonth === dateStr && defect.cameraId.toString() === cameraId;
                     }
                     
-                    const dateMatch = defectDate === dateStr;
-                    const cameraMatch = defect.cameraId.toString() === cameraId;
-                    return dateMatch && cameraMatch;
+                    return defectDate === dateStr && defect.cameraId.toString() === cameraId;
                 });
-                return { date: dateStr, value: filtered.length, camera: cameraId };
-            });
-        }).flat();
-    } else {
-        chartData = xAxisData.map(dateStr => {
-            const filtered = dummyDefectData.filter(defect => {
-                const defectDate = defect.timestamp.slice(0, 10);
                 
-                // For year view, match by month
-                if (dateRangeType === 'year') {
-                    const defectMonth = defectDate.slice(0, 7).replace('-', '.');
-                    return defectMonth === dateStr;
-                }
-                
-                const dateMatch = defectDate === dateStr;
-                return dateMatch;
+                result[`Camera${cameraId}`] = filtered.length;
             });
-            return { date: dateStr, value: filtered.length };
-        });
-    }
+        }
+        
+        return result;
+    });
     
-    // Calculate total defects for each date
+    // Calculate total defects for each date - still used for the tooltip
     const totalDefectsByDate = {};
     xAxisData.forEach(dateStr => {
         let filtered = [];
@@ -215,7 +215,7 @@ const DefectTrend = () => {
     
     // chartWidth 계산: x축 데이터 개수에 따라 최소 60px씩 할당, 카드보다 적으면 카드에 맞게
     const [chartWidth, setChartWidth] = useState(window.innerWidth - 100);
-    const dynamicWidth = Math.max(chartWidth, chartData.length * 60);
+    const dynamicWidth = Math.max(chartWidth, xAxisData.length * 60);
     useEffect(() => {
         const handleResize = () => {
             setChartWidth(window.innerWidth - 100);
@@ -254,11 +254,14 @@ const DefectTrend = () => {
                 <div className="custom-tooltip">
                     <p className="tooltip-date">{date}</p>
                     <p className="tooltip-total">Total: {totalDefects}</p>
-                    {payload.map((entry, index) => (
-                        <p key={index} className="tooltip-item" style={{ color: entry.stroke }}>
-                            {entry.name}: {entry.value}
-                        </p>
-                    ))}
+                    {payload.map((entry, index) => {
+                        if (entry.dataKey === 'total') return null;
+                        return (
+                            <p key={index} className="tooltip-item" style={{ color: entry.stroke }}>
+                                {entry.name}: {entry.value}
+                            </p>
+                        );
+                    })}
                 </div>
             );
         }
@@ -324,7 +327,7 @@ const DefectTrend = () => {
                     <LineChart
                         width={dynamicWidth}
                         height={300}
-                        data={chartData}
+                        data={baseChartData}
                         margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                     >
                         <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" vertical={false} />
@@ -358,38 +361,12 @@ const DefectTrend = () => {
                             tickLine={false}
                         />
                         <Tooltip content={<CustomTooltip />} />
-                        {selectedDefects.length > 0 && selectedDefects.map((defectType, index) => (
-                            <Line
-                                key={index}
-                                type="linear"
-                                dataKey="value"
-                                data={chartData.filter(data => data.type === defectType)}
-                                stroke={typeColors[defectType] || '#4D4DFF'}
-                                strokeWidth={2}
-                                dot={{ r: 4, fill: typeColors[defectType] || '#4D4DFF', strokeWidth: 0 }}
-                                activeDot={{ r: 6, fill: typeColors[defectType] || '#4D4DFF' }}
-                                isAnimationActive={true}
-                                name={defectType}
-                            />
-                        ))}
-                        {selectedCameras.length > 0 && selectedCameras.map((cameraId, index) => (
-                            <Line
-                                key={index}
-                                type="linear"
-                                dataKey="value"
-                                data={chartData.filter(data => data.camera === cameraId)}
-                                stroke="#4D4DFF"
-                                strokeWidth={2}
-                                dot={{ r: 4, fill: "#4D4DFF", strokeWidth: 0 }}
-                                activeDot={{ r: 6 }}
-                                isAnimationActive={true}
-                                name={`Camera ${cameraId}`}
-                            />
-                        ))}
+                        
+                        {/* 필터가 적용되지 않았을 때는 total만 표시 */}
                         {selectedDefects.length === 0 && selectedCameras.length === 0 && (
                             <Line
                                 type="linear"
-                                dataKey="value"
+                                dataKey="total"
                                 stroke="#4D4DFF"
                                 strokeWidth={2}
                                 dot={{ r: 4, fill: "#4D4DFF", strokeWidth: 0 }}
@@ -398,6 +375,36 @@ const DefectTrend = () => {
                                 name="All Defects"
                             />
                         )}
+                        
+                        {/* 선택된 결함 유형에 대한 라인 */}
+                        {selectedDefects.map((defectType, index) => (
+                            <Line
+                                key={defectType}
+                                type="linear"
+                                dataKey={defectType}
+                                stroke={typeColors[defectType] || '#4D4DFF'}
+                                strokeWidth={2}
+                                dot={{ r: 4, fill: typeColors[defectType] || '#4D4DFF', strokeWidth: 0 }}
+                                activeDot={{ r: 6, fill: typeColors[defectType] || '#4D4DFF' }}
+                                isAnimationActive={true}
+                                name={defectType}
+                            />
+                        ))}
+                        
+                        {/* 선택된 카메라에 대한 라인 */}
+                        {selectedCameras.map((cameraId) => (
+                            <Line
+                                key={`Camera${cameraId}`}
+                                type="linear"
+                                dataKey={`Camera${cameraId}`}
+                                stroke="#4D4DFF"
+                                strokeWidth={2}
+                                dot={{ r: 4, fill: "#4D4DFF", strokeWidth: 0 }}
+                                activeDot={{ r: 6 }}
+                                isAnimationActive={true}
+                                name={`Camera ${cameraId}`}
+                            />
+                        ))}
                     </LineChart>
                 </div>
             </div>
