@@ -1,9 +1,10 @@
 // src/components/ProfileModal.jsx
-import { useContext, useState } from 'react';
+import { useContext, useState, useRef } from 'react';
 import { ProfileModalContext } from '../../context/ProfileModalContext';
+import DefaultProfileIcon from './DefaultProfileIcon';
 
 const ProfileModal = () => {
-  const { isProfileOpen, setIsProfileOpen } = useContext(ProfileModalContext);
+  const { isProfileOpen, setIsProfileOpen, profileImage, setProfileImage } = useContext(ProfileModalContext);
   // 상태 추가: 각 필드 값과 수정 가능 여부
   const [address, setAddress] = useState('Korea, Gyunggi-do');
   const [isEditingAddress, setIsEditingAddress] = useState(false);
@@ -11,6 +12,7 @@ const ProfileModal = () => {
   const [isEditingBank, setIsEditingBank] = useState(false);
   const [bankAccount, setBankAccount] = useState('xxxx-0000-xxxxx-000');
   const [isEditingBankAccount, setIsEditingBankAccount] = useState(false);
+  const fileInputRef = useRef(null);
 
   console.log("isProfileOpen:", isProfileOpen);
 
@@ -23,6 +25,21 @@ const ProfileModal = () => {
     setIsEditingBankAccount(false);
     // 실제 저장 로직은 백엔드 연동 시 추가
     console.log('저장됨!', { address, bank, bankAccount });
+  };
+
+  const handleImageClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setProfileImage(event.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -72,18 +89,67 @@ const ProfileModal = () => {
         <div style={{ display: 'flex', gap: '24px' }}>
           {/* 왼쪽: 프로필 사진 */}
           <div style={{ flex: '1', textAlign: 'center' }}>
-            <img
-              src="/default-profile.jpg"
-              alt="프로필 이미지"
+            <div 
+              onClick={handleImageClick}
               style={{
                 width: '100px',
                 height: '100px',
                 borderRadius: '50%',
-                objectFit: 'cover',
+                margin: '0 auto',
                 marginBottom: '8px',
+                overflow: 'hidden',
+                backgroundColor: '#e0e0e0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                position: 'relative'
               }}
+            >
+              {profileImage ? (
+                <img 
+                  src={profileImage} 
+                  alt="프로필" 
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover'
+                  }}
+                />
+              ) : (
+                <DefaultProfileIcon size={60} />
+              )}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '0',
+                  width: '100%',
+                  backgroundColor: 'rgba(0,0,0,0.5)',
+                  color: 'white',
+                  fontSize: '12px',
+                  padding: '4px 0'
+                }}
+              >
+                변경
+              </div>
+            </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageChange}
+              accept="image/*"
+              style={{ display: 'none' }}
             />
-            <button style={{ fontSize: '14px', color: '#007BFF', border: 'none', background: 'none' }}>
+            <button 
+              onClick={handleImageClick}
+              style={{ 
+                fontSize: '14px', 
+                color: '#007BFF', 
+                border: 'none', 
+                background: 'none',
+                cursor: 'pointer'
+              }}
+            >
               사진 변경
             </button>
           </div>
