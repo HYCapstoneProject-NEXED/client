@@ -30,3 +30,141 @@
 .Statistics-chart-card.bar {
   flex: 3;
 }
+
+.defect-summary-container {
+  padding: 20px;
+  width: 100%;
+  background-color: #f9f9f9;
+}
+
+.chart-container {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.chart-card {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  margin-bottom: 20px;
+  flex: 1;
+}
+
+.chart-title {
+  color: #444;
+  font-size: 18px;
+  font-weight: 600;
+  margin-top: 0;
+  margin-bottom: 24px;
+  padding-bottom: 0;
+}
+
+.chart-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.pie-content {
+  justify-content: center;
+}
+
+.pie-chart-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.pie-chart-container {
+  flex: 1;
+  max-width: 250px;
+  display: flex;
+  justify-content: center;
+}
+
+.defect-legend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-left: 50px;
+  min-width: 180px;
+}
+
+.defect-legend-item {
+  display: flex;
+  align-items: center;
+  background-color: #f3f3f3;
+  border-radius: 20px;
+  padding: 8px 16px;
+  min-width: 120px;
+  cursor: pointer;
+  opacity: 0.8;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.defect-legend-item:hover {
+  opacity: 1;
+}
+
+.defect-legend-item.selected {
+  opacity: 1;
+  border: 2px solid #a084ca;
+}
+
+.legend-color {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin-right: 10px;
+  border: 2px solid #e0e0e0;
+}
+
+.legend-name {
+  color: #7b88a8;
+  font-weight: 600;
+  font-size: 16px;
+  margin-right: 8px;
+}
+
+.legend-count {
+  color: #222;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.bar-chart-content {
+  justify-content: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .chart-container {
+    flex-direction: column;
+  }
+  
+  .chart-card {
+    width: 100%;
+  }
+}
+
+@media (min-width: 1400px) {
+  .pie-chart-wrapper {
+    max-width: 700px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .pie-chart-wrapper {
+    max-width: 800px;
+  }
+}

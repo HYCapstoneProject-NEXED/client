@@ -51,3 +51,21 @@
     cursor: pointer;
   }
   
+  .popup-header {
+    position: relative;
+    padding-right: 32px; /* 우측 버튼과 간격 확보 */
+    margin-bottom: 16px;
+  }
+  
+  .close-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: none;
+    border: none;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #444;
+  }
+  

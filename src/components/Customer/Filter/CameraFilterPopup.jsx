@@ -15,8 +15,11 @@ const CameraFilterPopup = ({ selected, onApply, onClose }) => {
 
   return (
     <div className="customer-filter-popup-wrapper" style={{ position: 'relative' }}>
-      <div className="customer-filter-popup">
-        <p>Camera ID</p>
+      <div className="customer-filter-popup" ref={ref}>
+        <div className="popup-header">
+          <p className="popup-title">Camera ID</p>
+          <button className="close-btn" onClick={onClose}>×</button>
+        </div>
         <div className="button-grid">
           {cameras.map(name => (
             <button

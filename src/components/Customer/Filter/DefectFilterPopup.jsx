@@ -15,8 +15,11 @@ const DefectFilterPopup = ({ selected, onApply, onClose }) => {
 
   return (
     <div className="customer-filter-popup-wrapper" style={{ position: 'relative' }}>
-      <div className="customer-filter-popup">
-        <p>Defect Type</p>
+      <div className="customer-filter-popup" ref={ref}>
+        <div className="popup-header">
+          <p className="popup-title">Defect Type</p>
+          <button className="close-btn" onClick={onClose}>×</button>
+        </div>
         <div className="button-grid">
           {options.map(name => (
             <button
