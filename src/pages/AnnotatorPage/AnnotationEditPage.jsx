@@ -93,6 +93,78 @@ const AnnotationEditPage = () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [annotationData.hasUnsavedChanges]);
+  
+  /**
+   * 어노테이션 저장 후 상세 페이지로 이동
+   */
+  const handleSaveAndNavigate = async () => {
+    try {
+      // 저장 함수 호출
+      await annotationData.saveAnnotations();
+      
+      // 저장 성공 후 상세 페이지로 이동 (selectedIds 유지)
+      navigate(`/annotator/detail/${imageId}?selectedIds=${selectedIds.join(',')}&fromEdit=true`);
+    } catch (error) {
+      console.error('Failed to save annotation:', error);
+      // 오류 처리 (실제 구현에서는 사용자에게 알림 표시)
+      alert('저장에 실패했습니다. 다시 시도해 주세요.');
+    }
+  };
+  
+  /**
+   * 뒤로가기 함수 - 무조건 디테일 페이지로 이동
+   */
+  const handleGoBack = () => {
+    if (annotationData.hasUnsavedChanges) {
+      const confirmed = window.confirm('변경 사항이 저장되지 않을 수 있습니다. 계속 진행하시겠습니까?');
+      if (confirmed) {
+        navigate(`/annotator/detail/${imageId}?selectedIds=${selectedIds.join(',')}&fromEdit=true`);
+      }
+    } else {
+      navigate(`/annotator/detail/${imageId}?selectedIds=${selectedIds.join(',')}&fromEdit=true`);
+    }
+  };
+  
+  // Handle browser back button press with improved implementation
+  useEffect(() => {
+    // This function will be called when the back button is pressed
+    const handleBackNavigation = (e) => {
+      // If there are unsaved changes, show confirmation dialog
+      if (annotationData.hasUnsavedChanges) {
+        // Need to prevent default first to show dialog
+        e.preventDefault();
+        
+        const confirmed = window.confirm('변경 사항이 저장되지 않을 수 있습니다. 저장하시겠습니까?');
+        if (confirmed) {
+          // If confirmed, save and navigate to detail page
+          handleSaveAndNavigate();
+        } else {
+          // If not confirmed, navigate to detail page without saving
+          navigate(`/annotator/detail/${imageId}?selectedIds=${selectedIds.join(',')}`);
+        }
+      }
+      // If no unsaved changes, let the browser handle the back navigation normally
+    };
+    
+    // For beforeunload (page refresh, closing tab)
+    const handleBeforeUnload = (e) => {
+      if (annotationData.hasUnsavedChanges) {
+        const message = '변경 사항이 저장되지 않았습니다. 정말 페이지를 떠나시겠습니까?';
+        e.returnValue = message;
+        return message;
+      }
+    };
+    
+    // Add event listeners
+    window.addEventListener('popstate', handleBackNavigation);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('popstate', handleBackNavigation);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [annotationData.hasUnsavedChanges, imageId, selectedIds, navigate, handleSaveAndNavigate]);
 
   /**
    * 클래스 선택 핸들러
@@ -113,37 +185,6 @@ const AnnotationEditPage = () => {
     const newId = annotationData.addBox(coordinates, typeToUse);
     selection.setSelectedDefect(newId);
   };
-  
-  /**
-   * 어노테이션 저장 후 상세 페이지로 이동
-   */
-  const handleSaveAndNavigate = async () => {
-    try {
-      // 저장 함수 호출
-      await annotationData.saveAnnotations();
-      
-      // 저장 성공 후 상세 페이지로 이동 (selectedIds 유지)
-      navigate(`/annotator/detail/${imageId}?selectedIds=${selectedIds.join(',')}`);
-    } catch (error) {
-      console.error('Failed to save annotation:', error);
-      // 오류 처리 (실제 구현에서는 사용자에게 알림 표시)
-      alert('저장에 실패했습니다. 다시 시도해 주세요.');
-    }
-  };
-  
-  /**
-   * 뒤로가기 함수 - 무조건 디테일 페이지로 이동
-   */
-  const handleGoBack = () => {
-    if (annotationData.hasUnsavedChanges) {
-      const confirmed = window.confirm('변경 사항이 저장되지 않을 수 있습니다. 계속 진행하시겠습니까?');
-      if (confirmed) {
-        navigate(`/annotator/detail/${imageId}?selectedIds=${selectedIds.join(',')}`);
-      }
-    } else {
-      navigate(`/annotator/detail/${imageId}?selectedIds=${selectedIds.join(',')}`);
-    }
-  };
 
   // 로딩 중일 때 표시할 내용
   if (annotationData.isLoading) {
@@ -151,7 +192,6 @@ const AnnotationEditPage = () => {
       <div className="annotator-annotation-edit-page">
         <Header
           onSave={handleSaveAndNavigate}
-          onBack={handleGoBack}
         />
         <div className="annotator-loading">
           <div className="loader"></div>
@@ -165,7 +205,6 @@ const AnnotationEditPage = () => {
     <div className="annotator-annotation-edit-page">
       <Header
         onSave={handleSaveAndNavigate}
-        onBack={handleGoBack}
       />
       <div className={`annotator-body-container ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         <div className="annotator-sidebar-wrapper">

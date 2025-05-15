@@ -2,7 +2,7 @@
  * Annotator Dashboard Page
  * Displays overview of annotation tasks and their status
  */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaChevronDown, FaTrash, FaEye, FaThList, FaTh } from 'react-icons/fa';
 import useAnnotatorDashboard from '../../hooks/useAnnotatorDashboard';
@@ -55,6 +55,30 @@ const AnnotatorDashboard = () => {
     status: useRef(null),
     confidenceScore: useRef(null)
   };
+
+  // Disable browser back button on dashboard (improved implementation)
+  useEffect(() => {
+    // This function will be called when the back button is pressed
+    const preventBackNavigation = (e) => {
+      // Cancel the event
+      e.preventDefault();
+      // Push a new state to history to prevent going back
+      window.history.pushState(null, '', window.location.pathname);
+    };
+    
+    // Push two states to the history stack
+    // This ensures there's always a state to go back to, triggering our handler
+    window.history.pushState(null, '', window.location.pathname);
+    window.history.pushState(null, '', window.location.pathname);
+    
+    // Add event listener for popstate (back button) events
+    window.addEventListener('popstate', preventBackNavigation);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('popstate', preventBackNavigation);
+    };
+  }, []);
 
   // 필터 팝업 토글 함수
   const toggleFilter = (filterName, event) => {
@@ -287,7 +311,7 @@ const AnnotatorDashboard = () => {
         <DashboardSidebar activeMenu="dashboard" />
         
         <div className="main-content">
-          <DashboardHeader title={dashboardTitle} />
+          <DashboardHeader />
           
           <div className="dashboard-loading">
             <div className="loader"></div>
@@ -304,7 +328,7 @@ const AnnotatorDashboard = () => {
         <DashboardSidebar activeMenu="dashboard" />
         
         <div className="main-content">
-          <DashboardHeader title={dashboardTitle} />
+          <DashboardHeader />
           
           <div className="dashboard-error">
             <p className="error-message">{error}</p>
@@ -320,7 +344,7 @@ const AnnotatorDashboard = () => {
       <DashboardSidebar activeMenu="dashboard" />
       
       <div className="main-content">
-        <DashboardHeader title={dashboardTitle} />
+        <DashboardHeader />
         
         <div className="dashboard-content">
           <h2 className="section-title">Current Task</h2>

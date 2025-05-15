@@ -9,6 +9,7 @@ import './AdminDashboard.css';
 import AnnotationService from '../../services/AnnotationService';
 import UserService from '../../services/UserService';
 import { FaCaretDown, FaCaretRight, FaCheck, FaGripHorizontal } from 'react-icons/fa';
+import useHistoryControl from '../../hooks/useHistoryControl';
 
 /**
  * Admin task assignments page component
@@ -29,93 +30,68 @@ const TaskAssignments = () => {
   const [dragTargetCamera, setDragTargetCamera] = useState(null);
   const [imagesPerCamera, setImagesPerCamera] = useState({});
   
+  // Use history control to manage back navigation
+  useHistoryControl();
+  
   // Refs for scrolling
   const assignedCamerasRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch images and users
         setIsLoading(true);
-        setErrorMessage(''); // 에러 메시지 초기화
-        
-        console.log('Fetching images data...');
+        setErrorMessage('');
+        // 1. 이미지 정보 fetch
         const allImages = await AnnotationService.getAllImages();
-        console.log('Images fetched:', allImages.length);
         setImages(allImages);
-        
-        // Extract unique camera IDs
         const uniqueCameraIds = [...new Set(allImages.map(img => img.camera_id))];
-        console.log('Unique camera IDs:', uniqueCameraIds);
         setCameraIds(uniqueCameraIds);
-        
-        // Group images by camera ID
         const imagesByCameraId = {};
         uniqueCameraIds.forEach(cameraId => {
           imagesByCameraId[cameraId] = allImages.filter(img => img.camera_id === cameraId);
         });
         setImagesPerCamera(imagesByCameraId);
-        
-        console.log('Fetching users data...');
+        // 2. 유저 정보 fetch
         const allUsers = await UserService.getAllUsers();
         const annotatorUsers = allUsers.filter(user => 
           (user.user_type === 'Annotator' || user.user_type === 'annotator') && user.is_active
         );
-        console.log('Annotators fetched:', annotatorUsers.length);
         setAnnotators(annotatorUsers);
-        
-        // Initialize assignments object (user-to-camera)
-        const initialUserAssignments = {};
-        annotatorUsers.forEach(annotator => {
-          initialUserAssignments[annotator.user_id] = [];
-        });
-        
-        // 로컬 스토리지에서 저장된 할당 정보 불러오기
-        try {
-          const savedAssignments = await AnnotationService.getSavedAssignments();
-          
-          if (savedAssignments.success && savedAssignments.assignments) {
-            console.log('Loading saved assignments:', savedAssignments.assignments);
-            
-            // 카메라 할당 정보 불러오기
-            if (savedAssignments.assignments.cameraAssignments) {
-              setUserAssignments(savedAssignments.assignments.cameraAssignments);
-            } else {
-              setUserAssignments(initialUserAssignments);
-            }
-          } else {
-            setUserAssignments(initialUserAssignments);
-          }
-        } catch (error) {
-          console.error('Error loading saved assignments:', error);
-          setUserAssignments(initialUserAssignments);
-        }
-        
-        // Calculate camera stats
+        // 3. 카메라별 이미지 수 계산
         const camStats = {};
         uniqueCameraIds.forEach(cameraId => {
           camStats[cameraId] = allImages.filter(img => img.camera_id === cameraId).length;
         });
         setCameraStats(camStats);
-        
-        // Set the first annotator as selected by default if available
+        // 4. 서버에서 할당 정보 fetch
+        const initialUserAssignments = {};
+        annotatorUsers.forEach(annotator => {
+          initialUserAssignments[annotator.user_id] = [];
+        });
+        try {
+          const savedAssignments = await AnnotationService.getSavedAssignments();
+          if (savedAssignments.success && savedAssignments.assignments && savedAssignments.assignments.cameraAssignments) {
+            setUserAssignments(savedAssignments.assignments.cameraAssignments);
+          } else {
+            setUserAssignments(initialUserAssignments);
+          }
+        } catch (error) {
+          setUserAssignments(initialUserAssignments);
+        }
+        // 5. 어노테이터 선택
         if (annotatorUsers.length > 0) {
           setSelectedAnnotator(String(annotatorUsers[0].user_id));
         }
-        
         setIsLoading(false);
-        
-        // Make sure to update workload distribution after everything is loaded
+        // 6. 모든 상태가 세팅된 후에만 작업량 분포 계산
         setTimeout(() => {
           updateWorkloadDistribution();
-        }, 100);
+        }, 0);
       } catch (error) {
-        console.error('Error fetching data:', error);
         setErrorMessage(`Failed to load data: ${error.message || 'Unknown error'}`);
         setIsLoading(false);
       }
     };
-    
     fetchData();
   }, []);
   
@@ -377,34 +353,24 @@ const TaskAssignments = () => {
   };
   
   const handleClearAssignments = () => {
-    if (window.confirm("모든 할당을 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
-      setIsLoading(true);
-      
-      // 카메라 할당 초기화
-      const clearedAssignments = {};
-      annotators.forEach(annotator => {
-        clearedAssignments[annotator.user_id] = [];
-      });
-      
-      // 모든 상태 업데이트
-      setUserAssignments(clearedAssignments);
-      
-      // 작업량 분포 업데이트
-      const clearedStats = {
-        annotators: {},
-        totalImages: images.length,
-        totalAssigned: 0
-      };
-      
-      annotators.forEach(annotator => {
-        clearedStats.annotators[annotator.user_id] = 0;
-      });
-      
-      setStats(clearedStats);
-      setIsLoading(false);
-      setSuccessMessage('모든 할당이 초기화되었습니다.');
-      setTimeout(() => setSuccessMessage(''), 5000);
-    }
+    // 상태만 초기화하고 서버에는 반영하지 않음
+    // 저장 버튼을 눌러야 서버에 반영됨
+    // 카메라 할당 초기화
+    const clearedAssignments = {};
+    annotators.forEach(annotator => {
+      clearedAssignments[annotator.user_id] = [];
+    });
+    setUserAssignments(clearedAssignments);
+    // 작업량 분포 업데이트
+    const clearedStats = {
+      annotators: {},
+      totalImages: images.length,
+      totalAssigned: 0
+    };
+    annotators.forEach(annotator => {
+      clearedStats.annotators[annotator.user_id] = 0;
+    });
+    setStats(clearedStats);
   };
   
   const getAnnotatorName = (annotatorId) => {
@@ -437,7 +403,7 @@ const TaskAssignments = () => {
       <AdminSidebar activeMenu="tasks" />
       
       <div className="main-content">
-        <DashboardHeader title="Admin" />
+        <DashboardHeader />
         
         <div className="dashboard-content">
           <div className="admin-controls">
@@ -454,7 +420,7 @@ const TaskAssignments = () => {
                 <div className="summary-stat">
                   <span className="stat-label">할당된 이미지:</span>
                   <span className="stat-value">
-                    {stats.totalAssigned} / {stats.totalImages} ({stats.totalImages ? Math.round(stats.totalAssigned / stats.totalImages * 100) : 0}%)
+                    {stats.totalAssigned} / {stats.totalImages} {stats.totalImages ? `(${Math.round(stats.totalAssigned / stats.totalImages * 100)}%)` : '(-)'}
                   </span>
                 </div>
               </div>
@@ -493,7 +459,7 @@ const TaskAssignments = () => {
                 <button 
                   className="primary-button" 
                   onClick={handleSubmit}
-                  disabled={isLoading || Object.values(userAssignments).every(cameras => cameras.length === 0)}
+                  disabled={isLoading}
                 >
                   작업 할당 저장
                 </button>

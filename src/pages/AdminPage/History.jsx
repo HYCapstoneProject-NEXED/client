@@ -9,6 +9,7 @@ import AdminSidebar from '../../components/Admin/AdminSidebar';
 import { FaEye, FaCheck } from 'react-icons/fa';
 import './AdminDashboard.css';
 import './History.css';
+import useHistoryControl from '../../hooks/useHistoryControl';
 
 /**
  * Admin history page component
@@ -31,6 +32,9 @@ const History = () => {
   });
   const [searchTerm, setSearchTerm] = useState('');
   
+  // Use history control to manage back navigation
+  useHistoryControl();
+
   // Mock data for example purposes
   const mockData = [
     { id: 1, annotator: 'Woo', date: '2025-01-01', details: '/details/1' },
@@ -134,7 +138,7 @@ const History = () => {
       <AdminSidebar activeMenu="history" />
       
       <div className="main-content">
-        <DashboardHeader title="Admin" />
+        <DashboardHeader />
         
         <div className="dashboard-content">
           <div className="admin-controls">
