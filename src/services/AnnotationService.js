@@ -712,43 +712,93 @@ class AnnotationService {
   }
 
   /**
-   * 카메라 ID별로 이미지 어노테이터 할당
-   * @param {Object} assignments - 카메라 ID를 키로, 어노테이터 ID를 값으로 하는 객체
+   * 어노테이터별로 카메라 할당 (어노테이터 ID를 키로, 카메라 ID 배열을 값으로 하는 방식)
+   * @param {Object} assignments - 할당 정보 객체 (카메라 및 이미지 할당 포함)
    * @returns {Promise<Object>} 할당 결과
    */
-  async assignTasksByCameraId(assignments) {
+  async assignTasksByUserId(assignments) {
     try {
       // 실제 API 요청 코드 (현재는 주석 처리)
-      // const response = await axios.post(`${API_URL}/tasks/assign`, assignments);
+      // const response = await axios.post(`${API_URL}/tasks/assign-by-user`, assignments);
       // return response.data;
       
-      console.log('AnnotationService.assignTasksByCameraId called with:', assignments);
+      console.log('AnnotationService.assignTasksByUserId called with:', assignments);
+      
+      // 로컬 스토리지에 저장
+      localStorage.setItem('taskAssignments', JSON.stringify(assignments));
       
       // 비동기 처리 시뮬레이션
       return new Promise((resolve) => {
         setTimeout(() => {
           // 로컬 상태 업데이트 (실제 구현에서는 서버 DB에 저장됨)
           const assignedImages = {};
+          const assignmentsByCameraId = {}; // 기존 형식의 assignments 객체도 생성
           
-          // 할당된 카메라 ID에 해당하는 이미지 개수 계산
-          Object.entries(assignments).forEach(([cameraId, annotatorId]) => {
-            const imagesForCamera = DUMMY_IMAGES.filter(img => img.camera_id === cameraId);
-            assignedImages[cameraId] = imagesForCamera.length;
+          // 어노테이터별 할당된 이미지 수 초기화
+          Object.keys(assignments.cameraAssignments || {}).forEach(annotatorId => {
+            assignedImages[annotatorId] = 0;
           });
           
-          console.log('Assignment successful, images per camera:', assignedImages);
+          // 이미지 할당 기준으로 정확한 카운트 계산
+          if (assignments.imageAssignments) {
+            Object.entries(assignments.imageAssignments).forEach(([imageId, annotatorId]) => {
+              if (annotatorId !== null) {
+                assignedImages[annotatorId] = (assignedImages[annotatorId] || 0) + 1;
+                
+                // 해당 이미지의 카메라 ID 찾기
+                const image = DUMMY_IMAGES.find(img => img.image_id === parseInt(imageId));
+                if (image) {
+                  assignmentsByCameraId[image.camera_id] = parseInt(annotatorId);
+                }
+              }
+            });
+          }
+          
+          console.log('Assignment successful, images per annotator:', assignedImages);
           
           resolve({
             success: true,
             assignments: assignments,
+            assignmentsByCameraId: assignmentsByCameraId,
             assignedImages: assignedImages,
             message: '작업이 성공적으로 할당되었습니다.'
           });
         }, 800);
       });
     } catch (error) {
-      console.error('Error assigning tasks:', error);
+      console.error('Error assigning tasks by user:', error);
       throw new Error(`작업 할당 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
+    }
+  }
+  
+  /**
+   * 저장된 작업 할당 불러오기
+   * @returns {Promise<Object>} 저장된 할당 정보
+   */
+  async getSavedAssignments() {
+    try {
+      // 로컬 스토리지에서 할당 정보 불러오기
+      const savedAssignments = localStorage.getItem('taskAssignments');
+      
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          if (savedAssignments) {
+            resolve({
+              success: true,
+              assignments: JSON.parse(savedAssignments)
+            });
+          } else {
+            resolve({
+              success: false,
+              assignments: null,
+              message: '저장된 할당 정보가 없습니다.'
+            });
+          }
+        }, 300);
+      });
+    } catch (error) {
+      console.error('Error loading saved assignments:', error);
+      throw new Error(`저장된 할당 정보를 불러오는 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
     }
   }
 }
