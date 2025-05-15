@@ -9,6 +9,7 @@ import AdminSidebar from '../../components/Admin/AdminSidebar';
 import UserCard from '../../components/Admin/UserCard';
 import UserService from '../../services/UserService';
 import './AdminDashboard.css';
+import useHistoryControl from '../../hooks/useHistoryControl';
 
 /**
  * Admin members page component
@@ -23,6 +24,9 @@ const Members = () => {
   const [roleFilter, setRoleFilter] = useState('all');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  
+  // Use history control to manage back navigation
+  useHistoryControl();
 
   // Role options
   const roleOptions = [

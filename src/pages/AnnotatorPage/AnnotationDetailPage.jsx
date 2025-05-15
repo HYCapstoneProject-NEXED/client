@@ -11,6 +11,7 @@ import { TOOL_TYPES } from '../../constants/annotationConstants';
 import useAnnotationData from '../../hooks/useAnnotationData';
 import useAnnotationSelection from '../../hooks/useAnnotationSelection';
 import AnnotationService from '../../services/AnnotationService';
+import useHistoryControl from '../../hooks/useHistoryControl';
 import './AnnotationDetailPage.css';
 
 /**
@@ -32,6 +33,9 @@ const AnnotationDetailPage = () => {
   // Check if we're in admin mode based on URL parameter
   const [isAdminMode, setIsAdminMode] = useState(false);
   
+  // History navigation control
+  const { navigateBackToHistory } = useHistoryControl();
+  
   // 사이드바 접힘/펼침 상태
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   
@@ -46,52 +50,27 @@ const AnnotationDetailPage = () => {
   
   // URL에서 selectedIds 쿼리 파라미터 파싱
   useEffect(() => {
-    try {
-      const queryParams = new URLSearchParams(location.search);
-      const selectedIdsParam = queryParams.get('selectedIds');
+    const queryParams = new URLSearchParams(location.search);
+    const selectedIdsParam = queryParams.get('selectedIds');
+    const isAdmin = queryParams.get('isAdmin') === 'true';
+    
+    setIsAdminMode(isAdmin);
+    
+    if (selectedIdsParam) {
+      const ids = selectedIdsParam
+        .split(',')
+        .map(id => parseInt(id))
+        .filter(id => !isNaN(id));
       
-      // Check if we're in admin mode
-      const adminParam = queryParams.get('isAdmin');
-      setIsAdminMode(adminParam === 'true');
-      
-      if (selectedIdsParam) {
-        // 쉼표로 구분된 ID 문자열을 정수 배열로 변환
-        const ids = selectedIdsParam
-          .split(',')
-          .map(id => parseInt(id))
-          .filter(id => !isNaN(id));
-        
-        if (ids.length > 0) {
-          setSelectedIds(ids);
-          
-          // 현재 URL의 이미지 ID가 선택된 이미지 목록에 있는지 확인
-          const currentId = parseInt(imageIdParam);
-          const index = ids.findIndex(id => id === currentId);
-          
-          // 현재 이미지의 인덱스 설정 (없으면 첫 번째 이미지로)
-          if (index !== -1) {
-            setCurrentIndex(index);
-          } else {
-            // 현재 이미지가 목록에 없는 경우, 목록에 추가
-            const newIds = [...ids, currentId];
-            setSelectedIds(newIds);
-            setCurrentIndex(newIds.length - 1);
-          }
-        } else {
-          // 유효한 ID가 없으면 현재 이미지만 사용
-          setSelectedIds([parseInt(imageIdParam)]);
-          setCurrentIndex(0);
-        }
+      if (ids.length > 0) {
+        setSelectedIds(ids);
+        const currentIdIndex = ids.indexOf(parseInt(imageIdParam));
+        setCurrentIndex(currentIdIndex >= 0 ? currentIdIndex : 0);
       } else {
-        // 쿼리 파라미터가 없는 경우 현재 이미지만 포함
         setSelectedIds([parseInt(imageIdParam)]);
-        setCurrentIndex(0);
       }
-    } catch (error) {
-      console.error("Error parsing query parameters:", error);
-      // 오류 발생 시 기본값 사용
+    } else {
       setSelectedIds([parseInt(imageIdParam)]);
-      setCurrentIndex(0);
     }
   }, [location.search, imageIdParam]);
   
@@ -253,6 +232,34 @@ const AnnotationDetailPage = () => {
   
   const statusInfo = getStatusInfo();
 
+  // Add new effect to handle browser back button
+  useEffect(() => {
+    // This history listener will be called on popstate events (browser back/forward buttons)
+    const handlePopState = () => {
+      // Navigate to the dashboard page when back button is pressed
+      if (isAdminMode) {
+        navigateBackToHistory();
+      } else {
+        navigate('/annotator/dashboard');
+      }
+    };
+    
+    // Add event listener for popstate (back button)
+    window.addEventListener('popstate', handlePopState);
+    
+    // Cleanup on unmount
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [isAdminMode, navigateBackToHistory, navigate]);
+
+  /**
+   * Handle back button click to return to admin history page
+   */
+  const handleBackToHistory = () => {
+    navigateBackToHistory();
+  };
+
   // 로딩 중일 때 표시할 내용
   if (annotationData.isLoading) {
     return (
@@ -276,6 +283,15 @@ const AnnotationDetailPage = () => {
     <div className="annotator-annotation-edit-page">
       {/* 헤더 */}
       <div className="annotator-detail-header">
+        {isAdminMode && (
+          <button 
+            className="back-to-history-btn"
+            onClick={handleBackToHistory}
+            title="Back to History"
+          >
+            <FaArrowLeft /> Back to History
+          </button>
+        )}
         <h1>Annotation Details</h1>
         
         <div className="header-actions">
@@ -329,20 +345,6 @@ const AnnotationDetailPage = () => {
                 </span>
               </button>
             </>
-          )}
-          
-          {/* Show Back to History button in admin mode */}
-          {isAdminMode && (
-            <button 
-              className="back-btn"
-              onClick={() => navigate('/admin/history')}
-              title="Back to History"
-              style={{ width: 'auto', padding: '0 15px' }}
-            >
-              <span style={{ fontSize: '14px', display: 'flex', alignItems: 'center' }}>
-                <FaArrowLeft size={16} style={{ marginRight: '5px' }} /> Back to History
-              </span>
-            </button>
           )}
         </div>
       </div>
