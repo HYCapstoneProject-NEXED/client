@@ -29,6 +29,9 @@ const AnnotationDetailPage = () => {
   const [selectedIds, setSelectedIds] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   
+  // Check if we're in admin mode based on URL parameter
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  
   // 사이드바 접힘/펼침 상태
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   
@@ -46,6 +49,10 @@ const AnnotationDetailPage = () => {
     try {
       const queryParams = new URLSearchParams(location.search);
       const selectedIdsParam = queryParams.get('selectedIds');
+      
+      // Check if we're in admin mode
+      const adminParam = queryParams.get('isAdmin');
+      setIsAdminMode(adminParam === 'true');
       
       if (selectedIdsParam) {
         // 쉼표로 구분된 ID 문자열을 정수 배열로 변환
@@ -299,25 +306,44 @@ const AnnotationDetailPage = () => {
             </div>
           )}
           
-          <button 
-            className="start-annotating-btn"
-            onClick={startAnnotating}
-            title="Edit Annotation"
-            style={{ width: 'auto', padding: '0 15px' }}
-          >
-            <FaPen size={16} style={{ marginRight: '5px' }} /> Annotate
-          </button>
+          {/* Only show edit and delete buttons when not in admin mode */}
+          {!isAdminMode && (
+            <>
+              <button 
+                className="start-annotating-btn"
+                onClick={startAnnotating}
+                title="Edit Annotation"
+                style={{ width: 'auto', padding: '0 15px' }}
+              >
+                <FaPen size={16} style={{ marginRight: '5px' }} /> Annotate
+              </button>
+              
+              <button 
+                className="delete-btn"
+                onClick={handleDelete}
+                title="Delete Annotation"
+                style={{ width: 'auto', padding: '0 15px' }}
+              >
+                <span style={{ fontSize: '14px', display: 'flex', alignItems: 'center' }}>
+                  <FaTrash size={16} style={{ marginRight: '5px' }} /> Delete
+                </span>
+              </button>
+            </>
+          )}
           
-          <button 
-            className="delete-btn"
-            onClick={handleDelete}
-            title="Delete Annotation"
-            style={{ width: 'auto', padding: '0 15px' }}
-          >
-            <span style={{ fontSize: '14px', display: 'flex', alignItems: 'center' }}>
-              <FaTrash size={16} style={{ marginRight: '5px' }} /> Delete
-            </span>
-          </button>
+          {/* Show Back to History button in admin mode */}
+          {isAdminMode && (
+            <button 
+              className="back-btn"
+              onClick={() => navigate('/admin/history')}
+              title="Back to History"
+              style={{ width: 'auto', padding: '0 15px' }}
+            >
+              <span style={{ fontSize: '14px', display: 'flex', alignItems: 'center' }}>
+                <FaArrowLeft size={16} style={{ marginRight: '5px' }} /> Back to History
+              </span>
+            </button>
+          )}
         </div>
       </div>
       
