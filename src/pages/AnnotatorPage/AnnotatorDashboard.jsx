@@ -311,7 +311,7 @@ const AnnotatorDashboard = () => {
         <DashboardSidebar activeMenu="dashboard" />
         
         <div className="main-content">
-          <DashboardHeader title={dashboardTitle} />
+          <DashboardHeader />
           
           <div className="dashboard-loading">
             <div className="loader"></div>
@@ -328,7 +328,7 @@ const AnnotatorDashboard = () => {
         <DashboardSidebar activeMenu="dashboard" />
         
         <div className="main-content">
-          <DashboardHeader title={dashboardTitle} />
+          <DashboardHeader />
           
           <div className="dashboard-error">
             <p className="error-message">{error}</p>
@@ -344,7 +344,7 @@ const AnnotatorDashboard = () => {
       <DashboardSidebar activeMenu="dashboard" />
       
       <div className="main-content">
-        <DashboardHeader title={dashboardTitle} />
+        <DashboardHeader />
         
         <div className="dashboard-content">
           <h2 className="section-title">Current Task</h2>

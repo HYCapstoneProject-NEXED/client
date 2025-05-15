@@ -138,7 +138,7 @@ const History = () => {
       <AdminSidebar activeMenu="history" />
       
       <div className="main-content">
-        <DashboardHeader title="Admin" />
+        <DashboardHeader />
         
         <div className="dashboard-content">
           <div className="admin-controls">

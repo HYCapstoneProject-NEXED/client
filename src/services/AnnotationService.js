@@ -2,8 +2,8 @@
 import axios from 'axios';
 import { formatDateTime } from '../utils/annotationUtils';
 
-// 기본 API URL (실제 배포 환경에서는 환경 변수 사용 권장)
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+// 기본 API URL을 실제 서버 URL로 변경
+const API_URL = process.env.REACT_APP_API_URL || 'http://166.104.246.64:8000';
 
 // 더미 데이터: DefectClasses 테이블 (DB 스키마와 일치)
 const DUMMY_DEFECT_CLASSES = [
@@ -383,19 +383,36 @@ class AnnotationService {
   // DefectClasses 목록 가져오기
   async getDefectClasses() {
     try {
-      // 실제 API 요청 코드 (현재는 주석 처리)
-      // const response = await axios.get(`${API_URL}/defect-classes`);
-      // return response.data;
+      // API 요청 URL 로깅
+      const requestUrl = `${API_URL}/defect-classes`;
+      console.log('getDefectClasses API 요청 URL:', requestUrl);
       
-      // 더미 데이터 사용
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(DUMMY_DEFECT_CLASSES);
-        }, 200);
-      });
+      // 설정 옵션
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 5000
+      };
+      
+      let response;
+      try {
+        // 실제 API 요청 코드
+        response = await axios.get(requestUrl, config);
+        console.log('getDefectClasses API 응답:', response.status);
+        console.log('getDefectClasses 데이터:', response.data);
+        return response.data;
+      } catch (directError) {
+        console.log('getDefectClasses API 호출 실패, 더미 데이터 사용:', directError.message);
+        
+        // 더미 데이터 사용 (API 연동 전까지)
+        return DUMMY_DEFECT_CLASSES;
+      }
     } catch (error) {
       console.error('Failed to fetch defect classes:', error);
-      throw error;
+      // 오류 발생 시에도 더미 데이터 반환
+      return DUMMY_DEFECT_CLASSES;
     }
   }
 
@@ -799,6 +816,337 @@ class AnnotationService {
     } catch (error) {
       console.error('Error loading saved assignments:', error);
       throw new Error(`저장된 할당 정보를 불러오는 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
+    }
+  }
+
+  /**
+   * 어노테이터 대시보드 메인 화면 정보 조회
+   * 로그인된 사용자에게 할당된 카메라에 해당하는 모든 이미지 조회
+   * @param {number} userId - 사용자 ID
+   * @returns {Promise<Object>} 대시보드 정보
+   */
+  async getAnnotatorDashboard(userId) {
+    try {
+      // API 요청 URL 로깅
+      const requestUrl = `${API_URL}/annotations/main/${userId}`;
+      console.log('API 요청 URL:', requestUrl);
+      
+      // 실제 API 요청 전 로깅
+      console.log('사용자 ID로 대시보드 데이터 요청 중:', userId);
+      
+      // CORS 및 추가 헤더 옵션 설정
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+          // 인증이 필요한 경우 아래 주석 해제
+          // 'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        // API 호출 시간이 오래 걸릴 수 있으므로 타임아웃 증가
+        timeout: 10000
+      };
+      
+      // 백엔드 서버에 직접 API 요청을 시도하지만 CORS 문제가 있을 수 있음
+      // 실제 API 요청 코드 사용
+      console.log('API 요청 시작...');
+      let response;
+      
+      try {
+        // 직접 호출 시도
+        response = await axios.get(requestUrl, config);
+        console.log('API 응답 받음:', response.status);
+        console.log('API 응답 데이터:', response.data);
+        
+        // API 소스 표시 추가
+        console.log('🟢 실제 API 데이터를 사용합니다.');
+        return {
+          ...response.data,
+          _data_source: 'api' // 디버깅용 소스 표시 (UI에서는 보이지 않음)
+        };
+      } catch (directError) {
+        console.log('직접 호출 실패, 더미 데이터 사용:', directError.message);
+        
+        // 더미 데이터로 폴백 (임시 방편)
+        // 실제 환경에서는 이 부분을 제거하고 적절한 오류 처리를 해야 함
+        console.log('🔴 더미 데이터를 사용합니다.');
+        return {
+          profile_image: null,
+          total_images: 4,
+          pending_images: 3,
+          completed_images: 1,
+          _data_source: 'dummy', // 디버깅용 소스 표시 (UI에서는 보이지 않음)
+          image_list: [
+            {
+              camera_id: 1,
+              image_id: 1,
+              file_path: "images/img_001.jpg",
+              confidence: 0.5,
+              count: 2,
+              status: "completed",
+              bounding_boxes: [
+                {
+                  h: 60,
+                  w: 50,
+                  cx: 100,
+                  cy: 150
+                },
+                {
+                  h: 105,
+                  w: 95,
+                  cx: 200,
+                  cy: 240
+                }
+              ]
+            },
+            {
+              camera_id: 1,
+              image_id: 2,
+              file_path: "images/img_002.jpg",
+              confidence: 0.9,
+              count: 1,
+              status: "pending",
+              bounding_boxes: [
+                {
+                  h: 65,
+                  w: 55,
+                  cx: 120,
+                  cy: 160
+                }
+              ]
+            },
+            {
+              camera_id: 2,
+              image_id: 3,
+              file_path: "images/img_003.jpg",
+              confidence: 0.85,
+              count: 1,
+              status: "pending",
+              bounding_boxes: [
+                {
+                  h: 70,
+                  w: 60,
+                  cx: 130,
+                  cy: 170
+                }
+              ]
+            },
+            {
+              camera_id: 2,
+              image_id: 4,
+              file_path: "images/img_004.jpg",
+              confidence: 0.8,
+              count: 1,
+              status: "pending",
+              bounding_boxes: [
+                {
+                  h: 75,
+                  w: 65,
+                  cx: 140,
+                  cy: 180
+                }
+              ]
+            }
+          ]
+        };
+      }
+    } catch (error) {
+      console.error('Error fetching annotator dashboard:', error);
+      throw new Error(`어노테이터 대시보드 정보를 불러오는 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
+    }
+  }
+  
+  /**
+   * 어노테이터 대시보드 필터링된 이미지 조회
+   * @param {number} userId - 사용자 ID
+   * @param {Object} filters - 필터 옵션 (class_names, status, min_confidence, max_confidence)
+   * @returns {Promise<Object>} 필터링된 이미지 목록
+   */
+  async getFilteredAnnotatorDashboard(userId, filters = {}) {
+    try {
+      // API 요청 URL 로깅
+      const requestUrl = `${API_URL}/annotations/main/${userId}`;
+      console.log('필터링된, API 요청 URL:', requestUrl);
+      console.log('필터링 옵션:', filters);
+
+      // 설정 옵션
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 10000
+      };
+      
+      let response;
+      try {
+        // 필터링된 API가 백엔드에 없으므로, 전체 데이터를 가져와서 프론트엔드에서 필터링
+        response = await axios.get(requestUrl, config);
+        console.log('필터링된 API 응답 받음:', response.status);
+        
+        const data = response.data;
+        let filteredList = [...data.image_list];
+        
+        // 필터 적용
+        if (filters.status) {
+          filteredList = filteredList.filter(img => img.status === filters.status);
+        }
+        
+        if (filters.min_confidence !== undefined) {
+          filteredList = filteredList.filter(img => img.confidence >= filters.min_confidence);
+        }
+        
+        if (filters.max_confidence !== undefined) {
+          filteredList = filteredList.filter(img => img.confidence <= filters.max_confidence);
+        }
+        
+        if (filters.class_names) {
+          // class_names 필터링 로직
+          const classNames = Array.isArray(filters.class_names) 
+            ? filters.class_names 
+            : [filters.class_names];
+          
+          // 클래스 정보 가져오기 (필요한 경우)
+          const defectClasses = await this.getDefectClasses();
+          
+          // 클래스 이름으로 클래스 ID 찾기
+          const classIds = classNames.map(name => {
+            const defectClass = defectClasses.find(
+              dc => dc.class_name.toLowerCase() === name.toLowerCase()
+            );
+            return defectClass ? defectClass.class_id : null;
+          }).filter(Boolean);
+          
+          // 이미지별로 연결된 어노테이션 중에 해당 클래스 ID를 가진 것이 있는지 확인
+          // API 응답에 이미지별 defect_types가 포함되어 있지 않기 때문에
+          // 이미지 ID로 어노테이션 목록을 조회해야 할 수 있음
+          // 이는 성능상 이슈가 있을 수 있으므로 백엔드에서 필터링 API를 제공하는 것이 이상적임
+          
+          // API 응답 구조에서 알 수 있는 정보를 최대한 활용
+          // 현재 구현에서는 각 이미지가 연결된 어노테이션 정보를 포함하지 않으므로 단순 필터링
+          
+          // 대안: 어노테이션 상세 정보 API를 이용하여 각 이미지의 결함 유형 확인
+          // 성능 문제로 인해 실제 환경에서는 백엔드 API 개선 권장
+          filteredList = filteredList.filter(img => {
+            // 참고: API 응답에 defect_types 필드가 있다면 아래와 같이 필터링 가능
+            // return img.defect_types.some(type => classNames.includes(type));
+            
+            // 현재 API 구조에서는 바운딩 박스 정보만 있으므로, 바운딩 박스가 있는 이미지만 포함
+            // 이는 실제 필터링과 다를 수 있으므로 백엔드 API 개선 필요
+            return img.bounding_boxes && img.bounding_boxes.length > 0;
+          });
+        }
+        
+        console.log('🟢 실제 API 데이터를 필터링하여 사용합니다.');
+        return { 
+          ...data,
+          image_list: filteredList,
+          _data_source: 'api_filtered' // 디버깅용 소스 표시
+        };
+      } catch (directError) {
+        console.log('필터링된 데이터 직접 호출 실패, 더미 데이터 사용:', directError.message);
+        
+        // 필터링 조건에 따라 더미 데이터 필터링
+        let dummyData = {
+          image_list: [
+            {
+              camera_id: 1,
+              image_id: 1,
+              file_path: "images/img_001.jpg",
+              confidence: 0.5,
+              count: 2,
+              status: "completed",
+              bounding_boxes: [
+                {
+                  h: 60,
+                  w: 50,
+                  cx: 100,
+                  cy: 150
+                },
+                {
+                  h: 105,
+                  w: 95,
+                  cx: 200,
+                  cy: 240
+                }
+              ]
+            },
+            {
+              camera_id: 1,
+              image_id: 2,
+              file_path: "images/img_002.jpg",
+              confidence: 0.9,
+              count: 1,
+              status: "pending",
+              bounding_boxes: [
+                {
+                  h: 65,
+                  w: 55,
+                  cx: 120,
+                  cy: 160
+                }
+              ]
+            },
+            {
+              camera_id: 2,
+              image_id: 3,
+              file_path: "images/img_003.jpg",
+              confidence: 0.85,
+              count: 1,
+              status: "pending",
+              bounding_boxes: [
+                {
+                  h: 70,
+                  w: 60,
+                  cx: 130,
+                  cy: 170
+                }
+              ]
+            },
+            {
+              camera_id: 2,
+              image_id: 4,
+              file_path: "images/img_004.jpg",
+              confidence: 0.8,
+              count: 1,
+              status: "pending",
+              bounding_boxes: [
+                {
+                  h: 75,
+                  w: 65,
+                  cx: 140,
+                  cy: 180
+                }
+              ]
+            }
+          ]
+        };
+        
+        // 필터 적용
+        let filteredList = [...dummyData.image_list];
+        
+        if (filters.status) {
+          filteredList = filteredList.filter(img => img.status === filters.status);
+        }
+        
+        if (filters.min_confidence !== undefined) {
+          filteredList = filteredList.filter(img => img.confidence >= filters.min_confidence);
+        }
+        
+        if (filters.max_confidence !== undefined) {
+          filteredList = filteredList.filter(img => img.confidence <= filters.max_confidence);
+        }
+        
+        console.log('🔴 더미 데이터를 필터링하여 사용합니다.');
+        return { 
+          image_list: filteredList,
+          _data_source: 'dummy_filtered' // 디버깅용 소스 표시
+        };
+      }
+    } catch (error) {
+      console.error('Error fetching filtered annotator dashboard:', error);
+      
+      // 오류 발생 시 빈 결과 반환 (UI에서 오류 표시)
+      return { image_list: [] };
     }
   }
 }

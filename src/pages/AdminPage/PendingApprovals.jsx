@@ -90,7 +90,7 @@ const PendingApprovals = () => {
         <AdminSidebar activeMenu="members" />
         
         <div className="main-content">
-          <DashboardHeader title="Admin" />
+          <DashboardHeader />
           <div className="admin-loading">
             <div className="loader"></div>
             <p>Loading approval requests...</p>
@@ -105,7 +105,7 @@ const PendingApprovals = () => {
       <AdminSidebar activeMenu="members" />
       
       <div className="main-content">
-        <DashboardHeader title="Admin" />
+        <DashboardHeader />
         
         <div className="dashboard-content">
           <div className="pending-header">

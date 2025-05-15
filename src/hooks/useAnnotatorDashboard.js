@@ -32,6 +32,9 @@ const useAnnotatorDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   
+  // 현재 사용자 ID (실제로는 로그인 상태에서 가져와야 함)
+  const currentUserId = 1001; // 임시 사용자 ID
+  
   /**
    * Applies filters to the annotation data
    */
@@ -99,8 +102,30 @@ const useAnnotatorDashboard = () => {
   /**
    * Calculate statistics from annotation data
    */
-  const calculateStats = useCallback((data) => {
-    return calculateDashboardStats(data);
+  const calculateStats = useCallback((dashboardData) => {
+    // 새로운 API 응답 형식에 맞게 통계 계산
+    return {
+      total: dashboardData.total_images || 0,
+      completed: dashboardData.completed_images || 0,
+      pending: dashboardData.pending_images || 0
+    };
+  }, []);
+  
+  /**
+   * 이미지 목록을 어노테이션 형식으로 변환
+   */
+  const transformImagesToAnnotations = useCallback((imageList) => {
+    return imageList.map(image => {
+      return {
+        id: `IMG_${image.image_id.toString().padStart(3, '0')}`, // IMG_001 형식으로 포맷팅
+        cameraId: `CAM_${image.camera_id}`,
+        confidenceScore: image.confidence,
+        defectCount: image.count,
+        status: image.status,
+        defectTypes: [], // API에서 defect type 정보를 제공하지 않음 (필요시 추가 구현)
+        boundingBoxes: image.bounding_boxes || []
+      };
+    });
   }, []);
   
   /**
@@ -111,17 +136,36 @@ const useAnnotatorDashboard = () => {
     setError(null);
     
     try {
-      // Fetch annotations from service
-      const data = await AnnotationService.getAllAnnotationSummaries();
-      setAnnotations(data);
+      // 새로운 API 사용하여 어노테이터 대시보드 데이터 가져오기
+      const dashboardData = await AnnotationService.getAnnotatorDashboard(currentUserId);
       
-      // Apply filters
-      const filtered = applyFilters(data, filters);
-      setFilteredAnnotations(filtered);
+      // 데이터 소스 확인 (디버깅용)
+      console.log('==== 데이터 소스 디버깅 ====');
+      if (dashboardData.image_list && dashboardData.image_list.length > 0) {
+        console.log('첫 번째 이미지 ID:', dashboardData.image_list[0].image_id);
+        console.log('첫 번째 이미지 경로:', dashboardData.image_list[0].file_path);
+        
+        // 이미지 ID가 1~4 범위이고, 파일 경로가 img_00x.jpg 형식이면 더미 데이터일 가능성이 높음
+        const isDummyData = 
+          dashboardData.image_list[0].image_id <= 4 && 
+          dashboardData.image_list[0].file_path.includes('img_00');
+          
+        console.log('더미 데이터 여부:', isDummyData ? '예 (더미 데이터)' : '아니오 (실제 API 데이터)');
+      } else {
+        console.log('이미지 데이터가 없습니다.');
+      }
+      console.log('전체 이미지 수:', dashboardData.total_images);
+      console.log('=========================');
       
-      // Calculate statistics
-      const newStats = calculateStats(data);
-      setStats(newStats);
+      // 이미지 목록을 어노테이션 형식으로 변환
+      const transformedAnnotations = transformImagesToAnnotations(dashboardData.image_list);
+      setAnnotations(transformedAnnotations);
+      
+      // 필터링된 어노테이션 설정
+      setFilteredAnnotations(transformedAnnotations);
+      
+      // 통계 설정
+      setStats(calculateStats(dashboardData));
       
       setIsLoading(false);
     } catch (err) {
@@ -129,7 +173,7 @@ const useAnnotatorDashboard = () => {
       setError('Error loading data. Please try again.');
       setIsLoading(false);
     }
-  }, [filters, applyFilters, calculateStats]);
+  }, [calculateStats, transformImagesToAnnotations]);
   
   /**
    * Initial data loading
@@ -141,14 +185,66 @@ const useAnnotatorDashboard = () => {
   /**
    * Handle filter change
    */
-  const handleFilterChange = (filterType, value) => {
+  const handleFilterChange = async (filterType, value) => {
     const newFilters = { ...filters, [filterType]: value };
     setFilters(newFilters);
     
-    // Apply new filters to annotations
-    const filtered = applyFilters(annotations, newFilters);
-    setFilteredAnnotations(filtered);
-    setCurrentPage(1); // Reset to first page when filters change
+    setIsLoading(true);
+    try {
+      // 필터 옵션 구성
+      const filterOptions = {};
+      
+      // Defect Type 필터 적용
+      if (newFilters[FILTER_TYPES.DEFECT_TYPE] !== 'all') {
+        const defectTypeFilter = newFilters[FILTER_TYPES.DEFECT_TYPE];
+        if (Array.isArray(defectTypeFilter)) {
+          filterOptions.class_names = defectTypeFilter;
+        } else {
+          filterOptions.class_names = [defectTypeFilter];
+        }
+      }
+      
+      // Status 필터 적용
+      if (newFilters[FILTER_TYPES.STATUS] !== 'all') {
+        const statusFilter = newFilters[FILTER_TYPES.STATUS];
+        if (Array.isArray(statusFilter)) {
+          // 여러 상태가 선택된 경우 첫 번째 상태만 사용 (API가 단일 상태만 지원)
+          filterOptions.status = statusFilter[0];
+        } else {
+          filterOptions.status = statusFilter;
+        }
+      }
+      
+      // Confidence Score 필터 적용
+      if (newFilters[FILTER_TYPES.CONFIDENCE_SCORE] !== 'all') {
+        const confidenceFilter = newFilters[FILTER_TYPES.CONFIDENCE_SCORE];
+        if (confidenceFilter === 'high') {
+          filterOptions.min_confidence = 0.7;
+        } else if (confidenceFilter === 'medium') {
+          filterOptions.min_confidence = 0.4;
+          filterOptions.max_confidence = 0.7;
+        } else if (confidenceFilter === 'low') {
+          filterOptions.max_confidence = 0.4;
+        }
+      }
+      
+      // 필터링된 API 호출
+      const filteredData = await AnnotationService.getFilteredAnnotatorDashboard(
+        currentUserId, 
+        filterOptions
+      );
+      
+      // 이미지 목록을 어노테이션 형식으로 변환
+      const transformedAnnotations = transformImagesToAnnotations(filteredData.image_list);
+      setFilteredAnnotations(transformedAnnotations);
+      
+      setCurrentPage(1); // Reset to first page when filters change
+      setIsLoading(false);
+    } catch (err) {
+      console.error('Error applying filters:', err);
+      setError('Error applying filters. Please try again.');
+      setIsLoading(false);
+    }
   };
   
   /**

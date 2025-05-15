@@ -6,10 +6,10 @@
   height: 70px;
   background: white;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-  padding: 0 30px;
-  border-bottom: 1px solid #E6EFF5;
+  padding: 0 24px;
+  border-bottom: 1px solid #eee;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
   z-index: 10;
   box-sizing: border-box;
@@ -28,9 +28,56 @@
   border: none;
 }
 
+/* 기존 user-profile 스타일 (레거시 지원) */
 .user-profile {
   width: 45px;
   height: 45px;
   background: #C4C4C4;
   border-radius: 9999px;
+}
+
+/* 새로운 프로필 관련 스타일 */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 30px; /* 요소 간 간격 */
+}
+
+.annotator-user-role {
+  font-weight: bold;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.icon {
+  font-size: 20px;
+  color: #1537fb;
+}
+
+.profile-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-icon-container {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+}
+
+.profile-icon-container:hover {
+  transform: scale(1.05);
 } 

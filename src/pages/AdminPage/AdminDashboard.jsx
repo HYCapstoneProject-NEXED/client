@@ -168,7 +168,7 @@ const Members = () => {
         <AdminSidebar activeMenu="members" />
         
         <div className="main-content">
-          <DashboardHeader title="Admin" />
+          <DashboardHeader />
           <div className="admin-loading">
             <div className="loader"></div>
             <p>Loading user data...</p>
@@ -183,7 +183,7 @@ const Members = () => {
       <AdminSidebar activeMenu="members" />
       
       <div className="main-content">
-        <DashboardHeader title="Admin" />
+        <DashboardHeader />
         
         <div className="dashboard-content">
           <div className="admin-controls">
