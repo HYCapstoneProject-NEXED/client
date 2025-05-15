@@ -57,50 +57,60 @@ export const getStatusStyles = (status) => {
 };
 
 /**
- * Format data ID (e.g., 1 -> IMG_001)
+ * Format data ID 
  * @param {number|string} id - Data ID
- * @returns {string} Formatted ID
+ * @returns {number} Integer ID
  */
 export const formatDataId = (id) => {
-  if (typeof id === 'number') {
-    return `IMG_${id.toString().padStart(3, '0')}`;
+  // Convert to number if it's a string containing only digits
+  if (typeof id === 'string' && /^\d+$/.test(id)) {
+    return parseInt(id, 10);
   }
   
-  // If already in string format
-  if (typeof id === 'string' && id.startsWith('IMG_')) {
+  // If it's already a number, return it
+  if (typeof id === 'number') {
     return id;
   }
   
-  return `IMG_${id.toString().padStart(3, '0')}`;
+  // If it's a string in the old format (IMG_XXX), extract the numeric part
+  if (typeof id === 'string' && id.startsWith('IMG_')) {
+    const match = id.match(/IMG_(\d+)/);
+    if (match && match[1]) {
+      return parseInt(match[1], 10);
+    }
+  }
+  
+  // Default fallback
+  return parseInt(id, 10) || 0;
 };
 
 /**
- * Extract numeric ID from formatted ID (e.g., IMG_001 -> 1)
- * @param {string} formattedId - Formatted ID (IMG_001 format)
+ * Extract numeric ID from formatted ID
+ * @param {string|number} formattedId - ID (could be formatted or numeric)
  * @returns {number} Numeric ID
  */
 export const extractNumericId = (formattedId) => {
   console.log('Extracting numeric ID from:', formattedId);
   
-  // 이미 숫자인 경우
+  // Already a number
   if (typeof formattedId === 'number') {
     return formattedId;
   }
   
   if (typeof formattedId !== 'string') {
-    console.error('Invalid ID format (not a string):', formattedId);
+    console.error('Invalid ID format (not a string or number):', formattedId);
     return null;
   }
   
-  // IMG_XXX 형식인 경우
+  // Handle old IMG_XXX format for backward compatibility
   const imgMatch = formattedId.match(/IMG_(\d+)/);
   if (imgMatch && imgMatch[1]) {
-    return parseInt(imgMatch[1]);
+    return parseInt(imgMatch[1], 10);
   }
   
-  // 순수 숫자 문자열인 경우
+  // Pure numeric string
   if (/^\d+$/.test(formattedId)) {
-    return parseInt(formattedId);
+    return parseInt(formattedId, 10);
   }
   
   console.error('Could not extract numeric ID from:', formattedId);
