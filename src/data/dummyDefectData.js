@@ -183,7 +183,7 @@ const defectTypes = [
 ];
 const lines = ['Line-A', 'Line-B', 'Line-C'];
 const cameraIds = [1, 2, 3, 4, 5];
-for (let i = 19; i <= 118; i++) {
+for (let i = 19; i <= 11018; i++) {
   dummyDefectData.push({
     id: i,
     image: '/circle-placeholder.png',
