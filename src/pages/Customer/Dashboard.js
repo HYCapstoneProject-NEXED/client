@@ -5,14 +5,11 @@ import DateFilterPopup from '../../components/Customer/Filter/DateFilterPopup';
 import DefectFilterPopup from '../../components/Customer/Filter/DefectFilterPopup';
 import CameraFilterPopup from '../../components/Customer/Filter/CameraFilterPopup';
 //더미데이터
-import dummyDefectData from '../../data/dummyDefectData';
-import { defectStats } from '../../data/dummyDefectData';
-
-
+import dummyDefectData, { defectStats } from '../../data/dummyDefectData';
 
 const Dashboard = () => {
   const [filter, setFilter] = useState({
-    dates: [],
+    dateRange: { start: null, end: null },
     orderType: '',
     cameraId: ''
   });
@@ -20,46 +17,56 @@ const Dashboard = () => {
   const [openFilter, setOpenFilter] = useState(null);
   const [selectedDefects, setSelectedDefects] = useState([]);
   const [selectedCameras, setSelectedCameras] = useState([]);
-  const [selectedDates, setSelectedDates] = useState([]);
 
   const handleReset = () => {
-    setFilter({ dates: [], orderType: '', cameraId: '' });
-    setSelectedDates([]);
+    setFilter({ dateRange: { start: null, end: null }, orderType: '', cameraId: '' });
     setSelectedDefects([]);
     setSelectedCameras([]);
     setOpenFilter(null);
   };
 
-  const handleDateApply = (dates) => {
-    setSelectedDates(dates);
-    setFilter({ ...filter, dates });
+  const handleDateApply = (dateRange) => {
+    setFilter({ ...filter, dateRange });
     setOpenFilter(null);
   };
 
   const handleDefectApply = (orderType) => {
-    setSelectedDefects(orderType.split(', '));
-    setFilter({ ...filter, orderType });
+    setSelectedDefects(orderType);
+    setFilter({ ...filter, orderType: orderType.join(', ') });
     setOpenFilter(null);
   };
 
   const handleCameraApply = (cameraId) => {
-    setSelectedCameras(cameraId.split(', '));
-    setFilter({ ...filter, cameraId });
+    setSelectedCameras(cameraId);
+    setFilter({ ...filter, cameraId: cameraId.join(', ') });
     setOpenFilter(null);
   };
 
+  // Safely check if an array includes a value
+  const safeArrayIncludes = (arr, value) => {
+    if (!Array.isArray(arr)) return false;
+    return arr.includes(value);
+  };
+
+  // Safely check if arrays have common elements
+  const hasCommonElement = (arr1, arr2) => {
+    if (!Array.isArray(arr1) || !Array.isArray(arr2)) return false;
+    return arr1.some(item => arr2.includes(item));
+  };
+
   const filteredData = dummyDefectData.filter((defect) => {
-    const dateMatch = selectedDates.length === 0 || selectedDates.some(date => {
-      const defectDate = new Date(defect.timestamp);
-      const filterDate = new Date(date);
-      return defectDate.toDateString() === filterDate.toDateString();
-    });
+    // Date range filtering
+    const dateMatch = !filter.dateRange.start || !filter.dateRange.end || 
+      (new Date(defect.timestamp) >= new Date(filter.dateRange.start) && 
+       new Date(defect.timestamp) <= new Date(filter.dateRange.end));
 
+    // Defect type filtering - safely handle array types
     const defectMatch = selectedDefects.length === 0 || 
-      selectedDefects.some(type => defect.type.includes(type));
+      hasCommonElement(selectedDefects, Array.isArray(defect.type) ? defect.type : [defect.type]);
 
+    // Camera ID filtering
     const cameraMatch = selectedCameras.length === 0 || 
-      selectedCameras.includes(defect.cameraId.toString());
+      safeArrayIncludes(selectedCameras, defect.cameraId.toString());
 
     return dateMatch && defectMatch && cameraMatch;
   });
@@ -106,7 +113,9 @@ const Dashboard = () => {
         <div className="customer-filter-ui">
             <span role="img" aria-label="filter">🔍</span> Filter By    
           <button onClick={() => setOpenFilter('date')} className="filter-btn">
-            {filter.dates.length > 0 ? `${filter.dates.length} dates selected` : 'Select Date'}
+            {filter.dateRange.start && filter.dateRange.end 
+              ? `${filter.dateRange.start} ~ ${filter.dateRange.end}` 
+              : 'Select Date Range'}
             <span style={{ marginLeft: '10px' }}>⌄</span>
           </button>
           <button onClick={() => setOpenFilter('defect')} className="filter-btn">
@@ -124,7 +133,7 @@ const Dashboard = () => {
 
         {openFilter === 'date' && (
           <DateFilterPopup
-            selected={filter.dates}
+            selected={filter.dateRange}
             onApply={handleDateApply}
             onClose={() => setOpenFilter(null)}
           />
@@ -133,8 +142,7 @@ const Dashboard = () => {
           <DefectFilterPopup
             selected={selectedDefects}
             onApply={(list) => {
-              setSelectedDefects(list);
-              handleDefectApply(list.join(', '));
+              handleDefectApply(list);
             }}
             onClose={() => setOpenFilter(null)}
           />
@@ -143,8 +151,7 @@ const Dashboard = () => {
           <CameraFilterPopup
             selected={selectedCameras}
             onApply={(list) => {
-              setSelectedCameras(list);
-              handleCameraApply(list.join(', '));
+              handleCameraApply(list);
             }}
             onClose={() => setOpenFilter(null)}
           />
@@ -193,7 +200,7 @@ const Dashboard = () => {
                       second: '2-digit',
                       hour12: false
                     })}</td>
-                    <td>{defect.type.join(', ')}</td>
+                    <td>{Array.isArray(defect.type) ? defect.type.join(', ') : defect.type}</td>
                   </tr>
                 ))}
               </tbody>

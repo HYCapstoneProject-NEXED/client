@@ -2,68 +2,76 @@ import React, { useRef, useState } from 'react';
 import useOutsideClick from '../../../hooks/useOutsideClick';
 import './FilterPopup.css';
 
-const DateFilterPopup = ({ selected = [], onApply, onClose }) => {
+const DateFilterPopup = ({ selected, onApply, onClose }) => {
   const ref = useRef();
   useOutsideClick(ref, onClose);
 
-  const [selectedDates, setSelectedDates] = useState([...selected]);
-  const [currentDate, setCurrentDate] = useState('');
+  // Handle selected as either object or null/undefined
+  const initialStart = selected && typeof selected === 'object' && selected.start ? selected.start : '';
+  const initialEnd = selected && typeof selected === 'object' && selected.end ? selected.end : '';
+  
+  const [startDate, setStartDate] = useState(initialStart);
+  const [endDate, setEndDate] = useState(initialEnd);
 
-  const handleDateChange = (e) => {
-    setCurrentDate(e.target.value);
-  };
-
-  const addDate = () => {
-    if (currentDate && !selectedDates.includes(currentDate)) {
-      setSelectedDates([...selectedDates, currentDate]);
-      setCurrentDate('');
+  const handleStartDateChange = (e) => {
+    setStartDate(e.target.value);
+    // Reset end date if start date is after it
+    if (endDate && e.target.value > endDate) {
+      setEndDate('');
     }
   };
 
-  const removeDate = (dateToRemove) => {
-    setSelectedDates(selectedDates.filter(date => date !== dateToRemove));
+  const handleEndDateChange = (e) => {
+    setEndDate(e.target.value);
+  };
+
+  const handleApply = () => {
+    if (startDate && endDate) {
+      onApply({ start: startDate, end: endDate });
+    }
   };
 
   return (
     <div className="customer-filter-popup-wrapper" style={{ position: 'relative' }}>
-      <div className="customer-filter-popup">
-        <p>Select Dates</p>
-        <div style={{ marginBottom: '12px' }}>
-          <input
-            type="date"
-            value={currentDate}
-            onChange={handleDateChange}
-            className="popup-input"
-          />
-          <button 
-            onClick={addDate}
-            className="popup-btn"
-            style={{ marginTop: '8px', width: '100%' }}
-          >
-            Add Date
-          </button>
+      <div className="customer-filter-popup" ref={ref}>
+        <div className="popup-header">
+          <h3>Select Date Range</h3>
+          <button className="close-btn" onClick={onClose}>×</button>
+        </div>
+        
+        <div className="date-range-inputs">
+          <div className="date-input-group">
+            <label>Start Date</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={handleStartDateChange}
+              className="popup-input"
+            />
+          </div>
+          
+          <div className="date-input-group">
+            <label>End Date</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={handleEndDateChange}
+              min={startDate}
+              className="popup-input"
+              disabled={!startDate}
+            />
+          </div>
         </div>
 
-        {selectedDates.length > 0 && (
-          <div style={{ marginBottom: '12px' }}>
-            <p style={{ fontSize: '14px', marginBottom: '8px' }}>Selected Dates:</p>
-            <div className="button-grid">
-              {selectedDates.map(date => (
-                <button
-                  key={date}
-                  className="popup-btn active"
-                  onClick={() => removeDate(date)}
-                >
-                  {date} ×
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <button onClick={() => onApply(selectedDates)} className="popup-apply-btn">
-          Apply Now
-        </button>
+        <div className="popup-footer">
+          <button 
+            onClick={handleApply} 
+            className="popup-apply-btn"
+            disabled={!startDate || !endDate}
+          >
+            Apply
+          </button>
+        </div>
       </div>
     </div>
   );

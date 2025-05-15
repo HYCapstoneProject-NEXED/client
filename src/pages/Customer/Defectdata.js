@@ -3,43 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import CustomerLayout from '../../components/Customer/CustomerLayout';
 import './Defectdata.css';
-
-// 팝업 import
-import DateFilterPopup from '../../components/Customer/Filter/DateFilterPopup';
+import dummyDefectData from '../../data/dummyDefectData';
 import DefectFilterPopup from '../../components/Customer/Filter/DefectFilterPopup';
 import CameraFilterPopup from '../../components/Customer/Filter/CameraFilterPopup';
-
-// 더미데이터 정의
-const dummyDefectData = [
-  {
-    id: 1,
-    image: '/circle-placeholder.png',
-    line: 'Line-A',
-    cameraId: 1,
-    timestamp: '2025-04-19T10:00:00',
-    type: 'Crack'
-  },
-  {
-    id: 2,
-    image: '/circle-placeholder.png',
-    line: 'Line-B',
-    cameraId: 2,
-    timestamp: '2025-04-19T10:05:00',
-    type: 'Scratch'
-  },
-  {
-    id: 3,
-    image: '/circle-placeholder.png',
-    line: 'Line-A',
-    cameraId: 3,
-    timestamp: '2025-04-19T10:10:00',
-    type: 'Burr'
-  }
-];
+import DateFilterPopup from '../../components/Customer/Filter/DateFilterPopup';
 
 const Defectdata = () => {
   const [classList, setClassList] = useState([]);
-  const [selectedDate, setSelectedDate] = useState('');
+  const [dateRange, setDateRange] = useState({ start: null, end: null });
   const [selectedDefects, setSelectedDefects] = useState([]);
   const [selectedCameras, setSelectedCameras] = useState([]);
   const [openFilter, setOpenFilter] = useState(null);
@@ -57,38 +28,48 @@ const Defectdata = () => {
     }, 500);
   }, []);
 
+  // Helper functions for safe type checking
+  const hasCommonElement = (arr1, arr2) => {
+    if (!Array.isArray(arr1) || !Array.isArray(arr2)) return false;
+    return arr1.some(item => arr2.includes(item));
+  };
+
   // 필터링 로직
   useEffect(() => {
     let filteredData = [...dummyDefectData];
 
-    // 날짜 필터링
-    if (selectedDate) {
-      const selectedDateObj = new Date(selectedDate);
+    // 날짜 범위 필터링
+    if (dateRange.start && dateRange.end) {
+      const startDate = new Date(dateRange.start);
+      const endDate = new Date(dateRange.end);
+      // Set end date to end of day
+      endDate.setHours(23, 59, 59, 999);
+      
       filteredData = filteredData.filter(defect => {
         const defectDate = new Date(defect.timestamp);
-        return defectDate.toDateString() === selectedDateObj.toDateString();
+        return defectDate >= startDate && defectDate <= endDate;
       });
     }
 
     // 불량 유형 필터링
     if (selectedDefects.length > 0) {
       filteredData = filteredData.filter(defect => 
-        selectedDefects.includes(defect.type)
+        hasCommonElement(selectedDefects, Array.isArray(defect.type) ? defect.type : [defect.type])
       );
     }
 
     // 카메라 ID 필터링
     if (selectedCameras.length > 0) {
       filteredData = filteredData.filter(defect => 
-        selectedCameras.includes(defect.cameraId)
+        selectedCameras.includes(defect.cameraId.toString())
       );
     }
 
     setDefectData(filteredData);
-  }, [selectedDate, selectedDefects, selectedCameras]);
+  }, [dateRange, selectedDefects, selectedCameras]);
 
   const handleReset = () => {
-    setSelectedDate('');
+    setDateRange({ start: null, end: null });
     setSelectedDefects([]);
     setSelectedCameras([]);
     setOpenFilter(null);
@@ -126,13 +107,16 @@ const Defectdata = () => {
               style={{ position: 'relative' }}
             >
               <span>📅</span>
-              Select Date
+              {dateRange.start && dateRange.end 
+                ? `${dateRange.start} ~ ${dateRange.end}` 
+                : 'Select Date Range'}
               <span style={{ fontSize: '12px', marginLeft: '4px' }}>⌄</span>
             </button>
             {openFilter === 'date' && (
               <DateFilterPopup
-                onApply={(date) => {
-                  setSelectedDate(date);
+                selected={dateRange}
+                onApply={(range) => {
+                  setDateRange(range);
                   setOpenFilter(null);
                 }}
                 onClose={() => setOpenFilter(null)}
@@ -143,7 +127,9 @@ const Defectdata = () => {
           <div className="filter-btn-wrapper">
             <button className="filter-btn" onClick={() => setOpenFilter('defect')}>
               <span>🔍</span>
-              Defect Type
+              {selectedDefects.length > 0 
+                ? selectedDefects.join(', ') 
+                : 'Defect Type'}
               <span style={{ fontSize: '12px', marginLeft: '4px' }}>⌄</span>
             </button>
             {openFilter === 'defect' && (
@@ -161,7 +147,9 @@ const Defectdata = () => {
           <div className="filter-btn-wrapper">
             <button className="filter-btn" onClick={() => setOpenFilter('camera')}>
               <span>📸</span>
-              Camera ID
+              {selectedCameras.length > 0 
+                ? selectedCameras.join(', ') 
+                : 'Camera ID'}
               <span style={{ fontSize: '12px', marginLeft: '4px' }}>⌄</span>
             </button>
             {openFilter === 'camera' && (
@@ -181,8 +169,6 @@ const Defectdata = () => {
             Reset Filter
           </button>
         </div>
-
-
 
         {/* 테이블 영역 */}
         <div className="table-container">
@@ -218,7 +204,7 @@ const Defectdata = () => {
                     second: '2-digit',
                     hour12: false
                   })}</td>
-                  <td>{defect.type}</td>
+                  <td>{Array.isArray(defect.type) ? defect.type.join(', ') : defect.type}</td>
                 </tr>
               ))}
             </tbody>

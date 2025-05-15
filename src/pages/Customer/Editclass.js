@@ -92,89 +92,90 @@ const Editclass = () => {
     <CustomerLayout>
       <div className="editclass-container">
         <button className="edit-add-button" onClick={handleAddNewDefect}>Add New Defect</button>
-
-        <table className="edit-defect-table">
-          <thead>
-            <tr>
-              <th className="edit-th-type">Defect Type</th>
-              <th>Box Color</th>
-              <th>Setting</th>
-            </tr>
-          </thead>
-          
-          <tbody>
-            {defectData.map((item, index) => (
-              <tr key={index} className="edit-defect-row">
-                <td className="edit-td-type">
-                  {editingIndex === index ? (
-                    <div className="edit-name-container">
-                      <input
-                        type="text"
-                        value={editingName}
-                        onChange={(e) => setEditingName(e.target.value)}
-                        className="edit-name-input"
-                        placeholder="Enter defect type"
-                        autoFocus
-                      />
-                      <button onClick={handleNameSave} className="edit-save-btn">저장</button>
-                    </div>
-                  ) : (
-                    item.name || '(이름 없음)'
-                  )}
-                </td>
-                <td className="edit-td-color">
-                  <div className="edit-color-wrapper">
-                    {editingIndex === index && showColorPicker ? (
-                      <div className="edit-color-picker">
-                        {colorOptions.map((option) => (
-                          <div
-                            key={option.value}
-                            className="edit-color-option"
-                            style={{ backgroundColor: option.value }}
-                            onClick={() => handleColorChange(option.value)}
-                          />
-                        ))}
+        <div className="edit-table-wrapper">
+          <table className="edit-defect-table">
+            <thead>
+              <tr>
+                <th className="edit-th-type">Defect Type</th>
+                <th>Box Color</th>
+                <th>Setting</th>
+              </tr>
+            </thead>
+            
+            <tbody>
+              {defectData.map((item, index) => (
+                <tr key={index} className="edit-defect-row">
+                  <td className="edit-td-type">
+                    {editingIndex === index ? (
+                      <div className="edit-name-container">
+                        <input
+                          type="text"
+                          value={editingName}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          className="edit-name-input"
+                          placeholder="Enter defect type"
+                          autoFocus
+                        />
+                        <button onClick={handleNameSave} className="edit-save-btn">저장</button>
                       </div>
                     ) : (
-                      <div
-                        className="edit-color-box"
-                        style={{ backgroundColor: item.color }}
-                        onClick={() => {
-                          if (editingIndex === index) {
-                            setShowColorPicker(true);
-                          }
-                        }}
-                      />
+                      item.name || '(이름 없음)'
                     )}
-                  </div>
-                </td>
-                <td className="edit-td-setting">
-                  <div className="edit-setting-buttons">
-                    <button 
-                      className="edit-setting-btn"
-                      onClick={() => handleEdit(index)}
-                    >
-                      ✏️
-                    </button>
-                    <button 
-                      className="edit-setting-btn"
-                      onClick={() => handleDelete(index)}
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  </td>
+                  <td className="edit-td-color">
+                    <div className="edit-color-wrapper">
+                      {editingIndex === index && showColorPicker ? (
+                        <div className="edit-color-picker">
+                          {colorOptions.map((option) => (
+                            <div
+                              key={option.value}
+                              className="edit-color-option"
+                              style={{ backgroundColor: option.value }}
+                              onClick={() => handleColorChange(option.value)}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div
+                          className="edit-color-box"
+                          style={{ backgroundColor: item.color }}
+                          onClick={() => {
+                            if (editingIndex === index) {
+                              setShowColorPicker(true);
+                            }
+                          }}
+                        />
+                      )}
+                    </div>
+                  </td>
+                  <td className="edit-td-setting">
+                    <div className="edit-setting-buttons">
+                      <button 
+                        className="edit-setting-btn"
+                        onClick={() => handleEdit(index)}
+                      >
+                        ✏️
+                      </button>
+                      <button 
+                        className="edit-setting-btn"
+                        onClick={() => handleDelete(index)}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-        <DeleteConfirmPopup
-          isOpen={deleteIndex !== null}
-          onClose={handleDeleteCancel}
-          onConfirm={handleDeleteConfirm}
-          itemName={deleteIndex !== null ? defectData[deleteIndex].name : ''}
-        />
+          <DeleteConfirmPopup
+            isOpen={deleteIndex !== null}
+            onClose={handleDeleteCancel}
+            onConfirm={handleDeleteConfirm}
+            itemName={deleteIndex !== null ? defectData[deleteIndex].name : ''}
+          />
+        </div>
       </div>
     </CustomerLayout>
   );

@@ -9,18 +9,33 @@
     border-radius: 8px;
     padding: 10px 20px;
     float: right;
-    margin-bottom: 16px;
+    margin-bottom: 24px;
     font-weight: bold;
     cursor: pointer;
 }
+.edit-table-wrapper {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 24px;
+    margin-top: 50px;
+    transition: box-shadow 0.2s ease;
+  }
   
-
+  .edit-table-wrapper:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+  
 .edit-defect-table {
     width: 100%;
     border-collapse: separate;
-    border-spacing: 0 16px;
-    table-layout: fixed; /* 🔥 핵심: width 강제 적용 */
+    border-spacing: 0;
+    table-layout: fixed; 
 }
+.edit-defect-table th {
+    padding: 16px 0;
+    border-bottom: 1px solid #e0e0e0; 
+  }
   
 .edit-defect-table th:nth-child(1),
 .edit-defect-table td:nth-child(1) {
@@ -40,10 +55,29 @@
   width: 30%;
   text-align: center;
 }
+
+.edit-defect-table thead {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.edit-defect-table th {
+  padding: 16px 0;
+}
   
 .edit-defect-row {
     background-color: #ffffff;
     border-radius: 12px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.edit-defect-row td {
+    border-bottom: 1px solid #e0e0e0;
+    padding: 16px 0;
+  }
+  
+
+.edit-defect-row:last-child {
+    border-bottom: none;
 }
   
 .edit-td-type {
@@ -139,4 +173,3 @@
 .edit-setting-btn:hover {
     background-color: #f5f5f5;
 }
-  
