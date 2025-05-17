@@ -5,19 +5,22 @@ import './Editclass.css'
 
 // 색상 선택지
 const colorOptions = [
-  { label: 'Blue', value: '#dbe4ff' },
-  { label: 'Pink', value: '#fde2e2' },
-  { label: 'Yellow', value: '#fff3b0' },
-  { label: 'Mint', value: '#cbf1f5' },
+  { label: 'Blue', value: '#2c3efd' },
+  { label: 'Pink', value: '#ff6b6b' },
+  { label: 'Yellow', value: '#ffd700' },
+  { label: 'Mint', value: '#5CFFD1' },
+  { label: 'Red', value: '#ff0000' },
+  { label: 'Green', value: '#00ff00' },
+  { label: 'Gray', value: '#c4c4c4' },
 ];
 
 // 더미 데이터
 const initialDefectData = [
-  { name: 'Scratch', color: '#dbe4ff' },
-  { name: 'Burr', color: '#fde2e2' },
-  { name: 'Crack', color: '#fff3b0' },
-  { name: 'Paticle', color: '#cbf1f5' },
-  { name: 'Dent', color: '#c4c4c4' },
+  { name: 'Scratch', color: '#2c3efd' },
+  { name: 'Burr', color: '#ff6b6b' },
+  { name: 'Crack', color: '#ffd700' },
+  { name: 'Paticle', color: '#5CFFD1' },
+  { name: 'Dent', color: '#ff0000' },
 ]; 
 
 const Editclass = () => {
