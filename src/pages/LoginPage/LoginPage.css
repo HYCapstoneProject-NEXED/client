@@ -75,8 +75,7 @@
   /* 로그인 박스 (흰색 네모) - 데스크탑 기본 */
   .login-container {
     background: #fff;
-    width: 90%;
-    max-width: 600px;
+    width: 600px;
     height: 600px; /* 고정 높이 */
     margin: 200px 20px 40px;
     padding: 40px;
@@ -95,8 +94,10 @@
     color: #202124;
     font-family: 'Zen Kaku Gothic Antique', sans-serif;
     font-weight: 900;
-    margin-bottom: 32px;
-    text-align: center;
+    margin-bottom: 60px;
+    text-align: left;
+    width: 100%;
+    padding-left: 10px;
   }
   
   /* 소셜 버튼 컨테이너 */
