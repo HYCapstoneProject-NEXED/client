@@ -4,7 +4,7 @@ import './FilterPopup.css';
 /**
  * Defect Type 필터 팝업 컴포넌트
  * @param {Object} props
- * @param {Array} props.options - 선택 가능한 결함 유형 목록
+ * @param {Array} props.options - 선택 가능한 결함 유형 목록 (문자열 또는 결함 클래스 객체)
  * @param {Array} props.selectedOptions - 현재 선택된 결함 유형 목록
  * @param {Function} props.onApply - 적용 버튼 클릭 시 호출될 함수
  * @param {Function} props.onClose - 팝업 외부 클릭 시 호출될 함수
@@ -40,20 +40,60 @@ const DefectTypeFilter = ({
     onClose && onClose();
   };
 
+  // 옵션이 객체인지 확인
+  const isObjectOptions = options.length > 0 && typeof options[0] === 'object';
+  
+  // 옵션 표시 값과 ID 가져오기
+  const getOptionLabel = (option) => {
+    if (isObjectOptions) {
+      return option.class_name;
+    }
+    return option;
+  };
+  
+  const getOptionId = (option) => {
+    if (isObjectOptions) {
+      return option.class_id.toString();
+    }
+    return option;
+  };
+  
+  // 결함 유형별 색상 스타일 (객체일 경우)
+  const getColorStyle = (option) => {
+    if (isObjectOptions && option.class_color) {
+      return {
+        backgroundColor: option.class_color,
+        display: 'inline-block',
+        width: '12px',
+        height: '12px',
+        borderRadius: '50%',
+        marginRight: '8px'
+      };
+    }
+    return null;
+  };
+
   return (
     <div className="filter-popup" ref={popupRef} onClick={handlePopupClick}>
       <div className="filter-popup-title">Defect Type</div>
       
       <div className="filter-options">
-        {options.map(option => (
-          <div
-            key={option}
-            className={`filter-option ${selected.includes(option) ? 'active' : ''}`}
-            onClick={(e) => toggleOption(option, e)}
-          >
-            {option}
-          </div>
-        ))}
+        {options.map(option => {
+          const optionId = getOptionId(option);
+          const optionLabel = getOptionLabel(option);
+          const colorStyle = getColorStyle(option);
+          
+          return (
+            <div
+              key={optionId}
+              className={`filter-option ${selected.includes(optionId) ? 'active' : ''}`}
+              onClick={(e) => toggleOption(optionId, e)}
+            >
+              {colorStyle && <span style={colorStyle}></span>}
+              {optionLabel}
+            </div>
+          );
+        })}
       </div>
       
       <div className="filter-popup-divider"></div>

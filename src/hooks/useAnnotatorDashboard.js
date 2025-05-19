@@ -14,6 +14,9 @@ const useAnnotatorDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
+  // 결함 클래스 상태 추가
+  const [defectClasses, setDefectClasses] = useState([]);
+  
   // Statistics
   const [stats, setStats] = useState({
     total: 0,
@@ -34,6 +37,17 @@ const useAnnotatorDashboard = () => {
   
   // 현재 사용자 ID (실제로는 로그인 상태에서 가져와야 함)
   const currentUserId = 1001; // 임시 사용자 ID
+  
+  // 결함 클래스 데이터 로드 함수
+  const loadDefectClasses = useCallback(async () => {
+    try {
+      const classes = await AnnotationService.getDefectClasses();
+      console.log('결함 클래스 데이터 로드됨:', classes);
+      setDefectClasses(classes);
+    } catch (err) {
+      console.error('결함 클래스 로드 오류:', err);
+    }
+  }, []);
   
   /**
    * Applies filters to the annotation data
@@ -180,7 +194,8 @@ const useAnnotatorDashboard = () => {
    */
   useEffect(() => {
     loadAnnotations();
-  }, [loadAnnotations]);
+    loadDefectClasses(); // 결함 클래스 데이터 로드
+  }, [loadAnnotations, loadDefectClasses]);
   
   /**
    * Handle filter change
@@ -285,6 +300,7 @@ const useAnnotatorDashboard = () => {
     error,
     stats,
     filters,
+    defectClasses, // 결함 클래스 정보 추가
     currentPage,
     itemsPerPage,
     handleFilterChange,

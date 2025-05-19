@@ -37,6 +37,7 @@ const AnnotatorDashboard = () => {
     error,
     stats,
     filters,
+    defectClasses,
     handleFilterChange,
     handleDelete,
     refreshData
@@ -305,6 +306,17 @@ const AnnotatorDashboard = () => {
     }, 150);
   };
   
+  // DEFECT_TYPE_FILTERS에서 결함 클래스 ID와 일치하는지 확인하는 함수
+  const mapDefectClassIdToFilterId = (classId) => {
+    // 기본 필터 ID가 있는지 확인
+    const matchingFilter = DEFECT_TYPE_FILTERS.find(f => f.id === classId.toString().toLowerCase());
+    if (matchingFilter) {
+      return matchingFilter.id;
+    }
+    // 없으면 classId를 문자열로 변환하여 반환
+    return classId.toString();
+  };
+
   if (isLoading) {
     return (
       <div className="annotator-dashboard-page" ref={dashboardRef}>
@@ -412,12 +424,18 @@ const AnnotatorDashboard = () => {
               
               {openFilter.defectType && (
                 <DefectTypeFilter
-                  options={DEFECT_TYPE_FILTERS.filter(f => f.id !== 'all').map(f => f.id)}
+                  // 실제 API에서 가져온 결함 클래스를 사용
+                  options={defectClasses && defectClasses.length > 0 ? defectClasses : DEFECT_TYPE_FILTERS.filter(f => f.id !== 'all').map(f => ({ class_id: f.id, class_name: f.label }))}
                   selectedOptions={
                     filters[FILTER_TYPES.DEFECT_TYPE] === 'all' 
                       ? [] 
                       : Array.isArray(filters[FILTER_TYPES.DEFECT_TYPE])
-                        ? filters[FILTER_TYPES.DEFECT_TYPE]
+                        ? filters[FILTER_TYPES.DEFECT_TYPE].map(id => 
+                            // defectClasses에서 찾아보고 없으면 그대로 사용
+                            defectClasses.find(dc => dc.class_id.toString() === id)
+                              ? id
+                              : id
+                          )
                         : [filters[FILTER_TYPES.DEFECT_TYPE]]
                   }
                   onApply={applyDefectTypeFilter}

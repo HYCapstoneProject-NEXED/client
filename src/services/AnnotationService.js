@@ -9,35 +9,31 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://166.104.246.64:8000';
 const DUMMY_DEFECT_CLASSES = [
   {
     class_id: 1,
-    class_name: 'Scratch',
-    class_color: '#00B69B',
-    created_at: '2023-04-10T08:00:00Z',
-    updated_at: '2023-04-10T08:00:00Z',
-    is_active: true
+    class_name: "Scratch",
+    class_color: "#dbe4ff",
+    created_at: "2025-04-12T20:23:45",
+    updated_at: "2025-04-12T20:23:45"
   },
   {
     class_id: 2,
-    class_name: 'Dent',
-    class_color: '#5A8CFF',
-    created_at: '2023-04-10T08:10:00Z',
-    updated_at: '2023-04-10T08:10:00Z',
-    is_active: true
+    class_name: "Dent",
+    class_color: "#ffd6d6",
+    created_at: "2025-04-12T20:23:45",
+    updated_at: "2025-04-12T20:23:45"
   },
   {
     class_id: 3,
-    class_name: 'Discoloration',
-    class_color: '#EF3826',
-    created_at: '2023-04-10T08:20:00Z',
-    updated_at: '2023-04-10T08:20:00Z',
-    is_active: true
+    class_name: "Crack",
+    class_color: "#fff3cd",
+    created_at: "2025-04-12T20:23:45",
+    updated_at: "2025-04-12T20:23:45"
   },
   {
     class_id: 4,
-    class_name: 'Contamination',
-    class_color: '#FCAA0B',
-    created_at: '2023-04-10T08:30:00Z',
-    updated_at: '2023-04-10T08:30:00Z',
-    is_active: true
+    class_name: "Particle",
+    class_color: "#b2f2bb",
+    created_at: "2025-04-12T20:23:45",
+    updated_at: "2025-04-12T20:23:45"
   }
 ];
 
