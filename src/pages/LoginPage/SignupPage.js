@@ -19,6 +19,7 @@ function SignupPage() {
     bank: '',
     accountNumber: '',
     agreed: false,
+    gender: '',
   });
 
   // 🚀 API에서 사용자 이메일 가져오기
@@ -79,12 +80,12 @@ function SignupPage() {
           </div>
 
           <div className="input-box">
-            <label>Factory Name</label>
+            <label>Factory / Company Name</label>
             <select name="factoryName" value={form.factoryName} onChange={handleChange} required>
-              <option value="">Select Factory</option>
-              <option value="Factory A">Factory A</option>
-              <option value="Factory B">Factory B</option>
-              <option value="Factory C">Factory C</option>
+              <option value="">Select Factory / Company</option>
+              <option value="A Factory/1 Company">A Factory / 1 Company</option>
+              <option value="A Factory/2 Company">A Factory / 2 Company</option>
+              <option value="A Factory/3 Company">A Factory / 3 Company</option>
             </select>
           </div>
 
@@ -92,7 +93,8 @@ function SignupPage() {
             <label>Role</label>
             <select name="role" value={form.role} onChange={handleChange} required>
               <option value="">Select Role</option>
-              <option value="customer">Customer</option>
+              <option value="Admin">Admin</option>
+              <option value="Customer">Customer</option>
               <option value="Annotator">Annotator</option>
               <option value="MLengineer">ML Engineer</option>
               
@@ -102,6 +104,15 @@ function SignupPage() {
           <div className="input-box">
             <label>Nationality</label>
             <input type="text" name="nationality" value={form.nationality} onChange={handleChange}  placeholder="Korea" required />
+          </div>
+
+          <div className="input-box">
+            <label>Gender</label>
+            <select name="gender" value={form.gender} onChange={handleChange} required>
+              <option value="">Select Gender</option>
+              <option value="Female">Female</option>
+              <option value="Male">Male</option>
+            </select>
           </div>
 
           <div className="input-box">
