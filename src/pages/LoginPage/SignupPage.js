@@ -93,10 +93,10 @@ function SignupPage() {
             <label>Role</label>
             <select name="role" value={form.role} onChange={handleChange} required>
               <option value="">Select Role</option>
-              <option value="Admin">Admin</option>
-              <option value="Customer">Customer</option>
-              <option value="Annotator">Annotator</option>
-              <option value="MLengineer">ML Engineer</option>
+              <option value="admin">Admin</option>
+              <option value="customer">Customer</option>
+              <option value="annotator">Annotator</option>
+              <option value="ml_engineer">ML Engineer</option>
               
             </select>
           </div>
@@ -110,8 +110,8 @@ function SignupPage() {
             <label>Gender</label>
             <select name="gender" value={form.gender} onChange={handleChange} required>
               <option value="">Select Gender</option>
-              <option value="Female">Female</option>
-              <option value="Male">Male</option>
+              <option value="female">Female</option>
+              <option value="male">Male</option>
             </select>
           </div>
 
