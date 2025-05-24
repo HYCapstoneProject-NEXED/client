@@ -1,28 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import axios from 'axios';
 import './DefectSummary.css';
 
-const defectTypeData = [
-  { name: 'Scratch', color: '#7B84A1', count: 600 },
-  { name: 'Burr', color: '#E07642', count: 60 },
-  { name: 'Crack', color: '#E879D3', count: 1750 },
-  { name: 'Particle', color: '#8BA2E5', count: 820 }
-];
-const totalDefects = defectTypeData.reduce((sum, d) => sum + d.count, 0);
-
-const weeklyData = [
-  { day: 'Sat', total: 50, scratch: 15, burr: 10, crack: 18, particle: 7 },
-  { day: 'Sun', total: 35, scratch: 10, burr: 8, crack: 12, particle: 5 },
-  { day: 'Mon', total: 32, scratch: 8, burr: 8, crack: 10, particle: 6 },
-  { day: 'Tue', total: 48, scratch: 12, burr: 10, crack: 16, particle: 10 },
-  { day: 'Wed', total: 38, scratch: 9, burr: 7, crack: 15, particle: 7 },
-  { day: 'Thu', total: 38, scratch: 10, burr: 8, crack: 12, particle: 8 },
-  { day: 'Fri', total: 40, scratch: 11, burr: 9, crack: 13, particle: 7 },
-];
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 const DefectSummary = () => {
-  const [selectedDefect, setSelectedDefect] = useState('Burr');
-  
+  const [defectTypeData, setDefectTypeData] = useState([]);
+  const [weeklyData, setWeeklyData] = useState([]);
+  const [selectedDefect, setSelectedDefect] = useState('');
+
+  useEffect(() => {
+    const fetchDefectTypeData = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/annotations/statistics/defect-type`);
+        const data = res.data.map(item => ({
+          name: item.class_name,
+          count: item.count,
+          color: item.class_color,
+          percentage: item.percentage
+        }));
+        
+        setDefectTypeData(data);
+        setSelectedDefect(data[0]?.name || '');
+      } catch (err) {
+        console.error('불량 통계 데이터를 불러오지 못했습니다:', err);
+      }
+    };
+
+    const fetchWeeklyData = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/annotations/statistics/weekly-defect`);
+        const raw = res.data.result;
+
+        // 가능한 모든 class_name 추출
+        const classNames = new Set();
+        raw.forEach(dayData => {
+          dayData.defect_counts.forEach(d => classNames.add(d.class_name));
+        });
+
+        const formatted = raw.map(dayData => {
+          const dayObj = { day: dayData.day, total: dayData.total };
+          classNames.forEach(name => {
+            const found = dayData.defect_counts.find(d => d.class_name === name);
+            dayObj[name] = found ? found.count : 0;
+          });
+          return dayObj;
+        });
+
+        setWeeklyData(formatted);
+      } catch (err) {
+        console.error('주간 결함 데이터 로딩 실패:', err);
+      }
+    };
+
+    fetchDefectTypeData();
+    fetchWeeklyData();
+  }, []);
+
   const handleDefectSelect = (defectName) => {
     setSelectedDefect(defectName);
   };
@@ -33,9 +68,24 @@ const DefectSummary = () => {
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
     const defect = defectTypeData.find(d => d.name === name);
-    const percentValue = ((defect.count / totalDefects) * 100).toFixed(0);
+    const percentValue = defect ? defect.percentage.toFixed(1) : 0;
+
+    // 텍스트 배경을 위한 계산
+    const textWidth = percentValue.toString().length * 18; // 텍스트 크기에 맞춰 너비 증가
+    const backgroundWidth = textWidth + 14; // 패딩도 약간 증가
+    const backgroundHeight = 32; // 높이도 약간 증가
+
     return (
       <g>
+        <rect
+          x={x - backgroundWidth / 2}
+          y={y - backgroundHeight / 2}
+          width={backgroundWidth}
+          height={backgroundHeight}
+          fill="rgba(0, 0, 0, 0.5)"
+          rx={4}
+          ry={4}
+        />
         <text
           x={x}
           y={y}
@@ -44,6 +94,9 @@ const DefectSummary = () => {
           dominantBaseline="middle"
           fontSize={20}
           fontWeight="bold"
+          style={{
+            textShadow: '1px 1px 2px rgba(0,0,0,0.5)'
+          }}
         >
           {percentValue}%
         </text>
@@ -62,14 +115,14 @@ const DefectSummary = () => {
           <div className="chart-content pie-content">
             <div className="pie-chart-wrapper">
               <div className="pie-chart-container">
-                <PieChart width={250} height={250}>
+                <PieChart width={350} height={350}>
                   <Pie
                     data={defectTypeData}
-                    cx={125}
-                    cy={125}
+                    cx={175}
+                    cy={175}
                     innerRadius={0}
-                    outerRadius={100}
-                    paddingAngle={0}
+                    outerRadius={165}
+                    paddingAngle={2}
                     dataKey="count"
                     label={renderCustomizedLabel}
                     labelLine={false}
@@ -107,8 +160,8 @@ const DefectSummary = () => {
               width={700} 
               height={280} 
               data={weeklyData} 
-              barGap="10%"             // 요일 내 막대 간 간격
-              barCategoryGap="30%"     // 요일 간 그룹 간 간격
+              barGap="10%"
+              barCategoryGap="30%"
               margin={{ top: 20, right: 30, bottom: 20, left: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" vertical={false} />
@@ -119,7 +172,6 @@ const DefectSummary = () => {
                 tick={{ fontSize: 12 }}
               />
               <YAxis 
-                domain={[0, 50]}
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 12 }}
@@ -138,13 +190,15 @@ const DefectSummary = () => {
                 radius={[5, 5, 0, 0]} 
                 maxBarSize={20}
               />
-              <Bar 
-                dataKey={selectedDefect.toLowerCase()} 
-                fill={selectedDefectColor} 
-                name={selectedDefect} 
-                radius={[5, 5, 0, 0]}
-                maxBarSize={20}
-              />
+              {selectedDefect && (
+                <Bar 
+                  dataKey={selectedDefect} 
+                  fill={selectedDefectColor} 
+                  name={selectedDefect} 
+                  radius={[5, 5, 0, 0]}
+                  maxBarSize={20}
+                />
+              )}
             </BarChart>
           </div>
         </div>
