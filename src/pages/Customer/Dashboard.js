@@ -29,25 +29,22 @@ const Dashboard = () => {
   const [selectedDefects, setSelectedDefects] = useState([]);
   const [selectedCameras, setSelectedCameras] = useState([]);
   const [error, setError] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     const fetchSummary = async () => {
       try {
-        const res = await axios.get(`${BASE_URL}/annotations/class-summary`);
-        // 응답 데이터가 배열 형태이므로, 첫 번째 항목을 사용
-        const summaryData = res.data[0] || { class_name: '', class_color: '', count: 0 };
+        const res = await axios.get(`${BASE_URL}/annotations/summary`);
+        const data = res.data;
+
         setSummary({
-          total_defect_count: summaryData.count || 0,
-          most_frequent_defect: summaryData.class_name || 'N/A',
-          defect_counts_by_type: res.data.reduce((acc, item) => {
-            acc[item.class_name] = {
-              color: item.class_color,
-              count: item.count,
-              change: 0 // 변경량은 현재 API에서 제공하지 않음
-            };
-            return acc;
-          }, {})
+          total_defect_count: data.total_defect_count || 0,
+          most_frequent_defect: Array.isArray(data.most_frequent_defect)
+            ? data.most_frequent_defect.join(', ')
+            : data.most_frequent_defect || 'N/A',
+          defect_counts_by_type: data.defect_counts_by_type || {}
         });
+
         setError(null);
       } catch (err) {
         console.error('Summary API Error:', err);
@@ -63,14 +60,19 @@ const Dashboard = () => {
       try {
         const body = {};
 
+        // 날짜가 모두 선택된 경우에만 날짜 필터 적용
         if (filter.dateRange.start && filter.dateRange.end) {
-          const start = new Date(filter.dateRange.start).toISOString().split('T')[0];
-          const end = new Date(filter.dateRange.end).toISOString().split('T')[0];
-          body.dates = Array.from(new Set([start, end]));
+          const formatDate = (date) => {
+            const d = new Date(date);
+            return d.toISOString().split('T')[0];
+          };
+
+          body.start_date = formatDate(filter.dateRange.start);
+          body.end_date = formatDate(filter.dateRange.end);
         }
 
         if (selectedDefects.length > 0) {
-          body.class_ids = selectedDefects;
+          body.class_ids = selectedDefects.map(id => parseInt(id));
         }
 
         if (selectedCameras.length > 0) {
@@ -213,18 +215,24 @@ const Dashboard = () => {
           <div className="customer-stats-box">
             <p>Compared to the previous day</p>
             <div className="customer-stats-content">
-              {Object.entries(summary.defect_counts_by_type).map(([defectType, data], index) => (
-                <div key={index} className="customer-stats-item">
-                  <div className="customer-color-circle" style={{ backgroundColor: data.color }}></div>
-                  <div className="customer-info">
-                    <p>{defectType}</p>
-                    <p className="customer-count">{data.count}</p>
+              {Object.entries(summary.defect_counts_by_type).map(([defectType, data], index) => {
+                const changeValue = data.change || 0;
+                const changeClass = changeValue > 0 ? 'positive' : changeValue < 0 ? 'negative' : 'zero';
+                const changeText = changeValue === 0 ? '0' : (changeValue > 0 ? `+${changeValue}` : changeValue.toString());
+
+                return (
+                  <div key={index} className="customer-stats-item">
+                    <div className="customer-color-circle" style={{ backgroundColor: data.color }}></div>
+                    <div className="customer-info">
+                      <p>{defectType}</p>
+                      <p className="customer-count">{data.count}</p>
+                    </div>
+                    <div className={`customer-change ${changeClass}`}>
+                      {changeText}
+                    </div>
                   </div>
-                  <div className="customer-change">
-                    {data.change === 0 ? '0' : (data.change > 0 ? `+${data.change}` : data.change)}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -309,12 +317,13 @@ const Dashboard = () => {
                     <tr key={defect.image_id}>
                       <td>
                         <img 
-                          src={`${BASE_URL}/${defect.file_path}`}
+                          src={defect.file_path}
                           alt={`defect-${defect.image_id}`}
                           className="customer-table-image"
+                          onClick={() => setSelectedImage(defect.file_path)}
                           onError={(e) => {
                             e.target.onerror = null;
-                            e.target.src = '/placeholder-image.png'; // 기본 이미지로 대체
+                            e.target.src = '/placeholder-image.png';
                           }}
                         />
                       </td>
@@ -343,6 +352,26 @@ const Dashboard = () => {
             </table>
           </div>
         </div>
+
+        {/* 이미지 모달 */}
+        {selectedImage && (
+          <div className="image-modal-overlay" onClick={() => setSelectedImage(null)}>
+            <div className="image-modal-content">
+              <img 
+                src={selectedImage} 
+                alt="확대된 이미지" 
+                className="image-modal-img"
+                onClick={(e) => e.stopPropagation()}
+              />
+              <button 
+                className="image-modal-close" 
+                onClick={() => setSelectedImage(null)}
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </CustomerLayout>
   );
