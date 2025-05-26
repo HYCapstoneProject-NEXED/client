@@ -40,18 +40,18 @@ function LoginPage() {
 
   return (
     <div className="login-page">
-      <header className="header">
-        <div className="header__title">Defectect.</div>
-        <div className="header__signup">
-          <button className="header__signup-button">SIGN UP</button>
+      <header className="login-header">
+        <div className="login-header__title">Defectect.</div>
+        <div className="login-header__signup">
+          <button className="login-header__signup-button">SIGN UP</button>
         </div>
       </header>
 
       <div className="login-container">
         <h2 className="login-container__title">Sign in</h2>
         <div className="login-container__buttons">
-          <button className="btn btn--google" onClick={handleGoogleLogin}>
-            <span className="btn__icon">
+          <button className="login-btn login-btn--google" onClick={handleGoogleLogin}>
+            <span className="login-btn__icon">
               {/* 구글 아이콘 SVG */}
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                 xmlns="http://www.w3.org/2000/svg">
@@ -61,17 +61,17 @@ function LoginPage() {
                 <path d="M12 10.1818H21.3182C21.4545 10.7727 21.5455 11.4091 21.5455 12C21.5455 15.2593 20.3531 17.8032 18.5179 19.5095L15.325 17.0375C16.369 16.3786 17.0953 15.3626 17.3636 14.0455H12V10.1818Z" fill="#4285F4"/>
               </svg>
             </span>
-            <span className="btn__text">Sign in with Google</span>
+            <span className="login-btn__text">Sign in with Google</span>
           </button>
 
-          <button className="btn btn--naver" onClick={handleNaverLogin}>
-            <span className="btn__icon">
+          <button className="login-btn login-btn--naver" onClick={handleNaverLogin}>
+            <span className="login-btn__icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                 xmlns="http://www.w3.org/2000/svg">
                 <path d="M14.6817 4.8125V12.1218L9.31831 4.8125H3.5625V19.1875H9.31831V12L14.6817 19.1875H20.4375V4.8125H14.6817Z" fill="#02BB24"/>
               </svg>
             </span>
-            <span className="btn__text">Sign in with NAVER</span>
+            <span className="login-btn__text">Sign in with NAVER</span>
           </button>
         </div>
 

@@ -21,7 +21,7 @@
   }
   
   /* 헤더 영역: 화면 상단에 고정, 전체 너비 */
-  .header {
+  .login-header {
     width: 100%;
     padding: 20px 40px;
     display: flex;
@@ -35,22 +35,22 @@
     z-index: 1000;
   }
   
-  .header__logo {
+  .login-header__logo {
     flex: 1;
   }
   
-  .header__title {
+  .login-header__title {
     font-size: 2rem;
     color: #343C6A;
     font-family: 'Lalezar', cursive;
     text-align: left;
   }
   
-  .header__signup {
+  .login-header__signup {
     flex-shrink: 0;
   }
   
-  .header__signup-button {
+  .login-header__signup-button {
     padding: 8px 16px;
     font-size: 0.875rem;
     border: 1.5px solid #212121;
@@ -62,7 +62,7 @@
   }
   
   /* 콘텐츠 영역: 헤더 높이만큼 여백 추가 */
-  .content {
+  .login-content {
     width: 100%;
     flex: 1;
     display: flex;
@@ -75,8 +75,8 @@
   /* 로그인 박스 (흰색 네모) - 데스크탑 기본 */
   .login-container {
     background: #fff;
-    width: 90%;
-    max-width: 600px;
+    width: 95%;
+    max-width: 800px;
     height: 600px; /* 고정 높이 */
     margin: 200px 20px 40px;
     padding: 40px;
@@ -109,7 +109,7 @@
   }
   
   /* 공통 버튼 스타일 */
-  .btn {
+  .login-btn {
     width: 100%;
     display: flex;
     align-items: center;
@@ -121,29 +121,29 @@
     transition: background 0.3s;
   }
   
-  .btn:hover {
+  .login-btn:hover {
     background: #f7f7f7;
   }
   
-  .btn__icon {
+  .login-btn__icon {
     display: flex;
     align-items: center;
     margin-right: 12px;
   }
   
-  .btn__text {
+  .login-btn__text {
     font-size: 1rem;
     color: #000;
   }
   
   /* 네이버 버튼, 구글과 동일하게 스타일 */
-  .btn--naver {
+  .login-btn--naver {
     border: 1px solid rgba(30,36,50,0.23);
     background: #fff;
     color: #000;
   }
   
-  .btn--naver:hover {
+  .login-btn--naver:hover {
     background: #f7f7f7;
   }
   
@@ -163,7 +163,7 @@
   
   /* 반응형 조정: 화면 너비 780px 이하 */
   @media (max-width: 780px) {
-    .header {
+    .login-header {
       /* 헤더는 데스크탑과 동일하게 유지 */
       padding: 20px 40px;
       flex-direction: row;
@@ -171,24 +171,24 @@
       align-items: center;
     }
     
-    .header__title {
+    .login-header__title {
       font-size: 2rem; /* 데스크탑과 동일 */
     }
     
-    .header__signup-button {
+    .login-header__signup-button {
       font-size: 0.875rem;
       padding: 8px 16px;
     }
     
     /* 콘텐츠 영역: 상단 여백 약간 줄임 (헤더 고정 높이 고려) */
-    .content {
+    .login-content {
       margin-top: 80px;
       padding: 20px;
     }
     
     /* 로그인 박스: 상단 마진을 늘려서 헤더 아래 충분히 내려가게 함 */
     .login-container {
-        max-width: 80%;
+        max-width: 90%;
         margin: 250px 20px 40px;
         height: 500px; /* 모바일에서는 약간 낮은 고정 높이 */
         padding: 20px;
@@ -200,7 +200,7 @@
       font-size: 2.5rem;
     }
     
-    .btn__text {
+    .login-btn__text {
       font-size: 0.9rem;
     }
   }

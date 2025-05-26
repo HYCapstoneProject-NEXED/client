@@ -357,7 +357,7 @@ const DefectTrend = () => {
         
         const date = new Date(dateStr);
         if (dateRangeType === 'year') {
-            return `${String(date.getMonth() + 1).padStart(2, '0')}`;
+            return `${String(date.getMonth() + 1).padStart(2, '0')}월`;
         } else if (dateRangeType === 'week') {
             // 주간 데이터인 경우 요일 표시 추가
             const days = ['일', '월', '화', '수', '목', '금', '토'];
@@ -485,7 +485,11 @@ const DefectTrend = () => {
         return null;
     };
 
-    const dynamicWidth = Math.max(chartWidth, (chartData.length || 1) * 60);
+    // 데이터가 적을 때는 화면 너비에 맞추고, 많을 때만 스크롤 가능하도록 조정
+    const minPointSpacing = 100; // 데이터 포인트 간 최소 간격
+    const dynamicWidth = chartData.length <= 5 
+        ? chartWidth  // 데이터가 5개 이하면 화면 너비에 맞춤
+        : Math.max(chartWidth, (chartData.length || 1) * minPointSpacing); // 5개 초과면 스크롤 가능
 
     return (
         <>
@@ -564,7 +568,7 @@ const DefectTrend = () => {
                                 padding={{ left: 10, right: 10 }}
                                 stroke="#999"
                                 tickFormatter={formatDate}
-                                interval={dateRangeType === 'month' ? 2 : 0}
+                                interval={0}
                             />
                             <YAxis 
                                 domain={[0, 'dataMax + 2']}

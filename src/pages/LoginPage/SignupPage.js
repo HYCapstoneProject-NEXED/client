@@ -59,9 +59,9 @@ function SignupPage() {
 
   return (
     <div className="signup-page">
-      <header className="header">
-        <div className="header__title">Defectect.</div>
-        <button className="header__signin-button" onClick={() => navigate('/signin')}>
+      <header className="signup-header">
+        <div className="signup-header__title">Defectect.</div>
+        <button className="signup-header__signin-button" onClick={() => navigate('/signin')}>
           SIGN IN
         </button>
       </header>
@@ -69,17 +69,17 @@ function SignupPage() {
       <div className="signup-container">
         <h2 className="signup-container__title"><u>Sign up</u></h2>
         <form className="signup-form" onSubmit={handleSubmit}>
-          <div className="input-box">
+          <div className="signup-input-box">
             <label>Name (Use the same name as your bank account name.)</label>
             <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="Kim BoKyung" required />
           </div>
 
-          <div className="input-box">
+          <div className="signup-input-box">
             <label>이메일 주소</label>
             <input type="email" name="email" value={form.email} onChange={handleChange} readOnly required />
           </div>
 
-          <div className="input-box">
+          <div className="signup-input-box">
             <label>Factory / Company Name</label>
             <select name="factoryName" value={form.factoryName} onChange={handleChange} required>
               <option value="">Select Factory / Company</option>
@@ -89,7 +89,7 @@ function SignupPage() {
             </select>
           </div>
 
-          <div className="input-box">
+          <div className="signup-input-box">
             <label>Role</label>
             <select name="role" value={form.role} onChange={handleChange} required>
               <option value="">Select Role</option>
@@ -101,12 +101,12 @@ function SignupPage() {
             </select>
           </div>
 
-          <div className="input-box">
+          <div className="signup-input-box">
             <label>Nationality</label>
             <input type="text" name="nationality" value={form.nationality} onChange={handleChange}  placeholder="Korea" required />
           </div>
 
-          <div className="input-box">
+          <div className="signup-input-box">
             <label>Gender</label>
             <select name="gender" value={form.gender} onChange={handleChange} required>
               <option value="">Select Gender</option>
@@ -115,22 +115,22 @@ function SignupPage() {
             </select>
           </div>
 
-          <div className="input-box">
+          <div className="signup-input-box">
             <label>Date of Birth</label>
             <input type="date" name="birthdate" value={form.birthdate} onChange={handleChange} required />
           </div>
 
-          <div className="input-box">
+          <div className="signup-input-box">
             <label>Bank</label>
             <input type="text" name="bank" value={form.bank} onChange={handleChange} placeholder="신한은행" required />
           </div>
 
-          <div className="input-box">
+          <div className="signup-input-box">
             <label>Bank Account Number</label>
             <input type="text" name="accountNumber" value={form.accountNumber} onChange={handleChange} placeholder="XXXX-XX-XXX-XXXXX" required />
           </div>
 
-          <div className="terms-box">
+          <div className="signup-terms-box">
             <input type="checkbox" name="agreed" checked={form.agreed} onChange={handleChange} />
             <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</span>
           </div>
