@@ -10,9 +10,16 @@ body, html {
     height: 100%;
     font-family: 'Roboto', sans-serif;
     background: #E4F3FC; /* 연한 하늘색 배경 */
+}
+
+/* 전체 페이지 컨테이너 */
+.signup-page {
+    background: #E4F3FC;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
 }
 
 /* 헤더 스타일 */
@@ -20,54 +27,69 @@ body, html {
     width: 100%;
     padding: 20px 40px;
     background: #fff;
-    border-bottom: 1px solid #E6EFF5;
-    font-size: 2rem;
-    color: #343C6A;
-    font-family: 'Lalezar', cursive;
-    text-align: left;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+}
+
+.signup-header__title {
+    font-size: 1.8rem;
+    color: #343C6A;
+    font-weight: bold;
 }
 
 /* SIGN IN 버튼 스타일 */
 .signup-header__signin-button {
-    padding: 8px 16px;
+    padding: 10px 20px;
     font-size: 0.875rem;
-    border: 1.5px solid #000;
+    border: 1px solid #000;
     background: transparent;
     color: #000;
     cursor: pointer;
-    font-weight: 700;
+    font-weight: 600;
     transition: all 0.3s ease;
 }
 
 .signup-header__signin-button:hover {
-    background: #000;
-    color: #fff;
+    background: #f5f5f5;
 }
-
 
 /* 회원가입 박스 (중앙 정렬) */
 .signup-container {
     background: #fff;
     width: 90%;
-    max-width: 700px; 
+    max-width: 550px;
+    margin: 100px auto 40px;
+    border-radius: 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     padding: 40px;
-    margin: 200px 70px 100px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     align-items: center;
-    text-align: center;
 }
 
 /* 회원가입 타이틀 */
 .signup-container__title {
     font-size: 2rem;
     font-weight: bold;
+    margin-bottom: 30px;
+    text-decoration: none;
+}
+
+/* 에러 메시지 */
+.signup-error {
+    width: 100%;
+    color: #d32f2f;
+    background-color: #ffebee;
+    padding: 10px;
     margin-bottom: 20px;
+    border-radius: 4px;
+    text-align: center;
 }
 
 /* 폼 스타일 */
@@ -75,80 +97,71 @@ body, html {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 15px;
 }
 
-
-
-
-/* 입력 필드를 감싸는 네모 박스 스타일 */
-.signup-input-box {
-    width: 100%;
-    border: 0.5px solid #aba9a9; /* 네모 테두리 */
-    border-radius: 1px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    text-align: left;
-    font-weight: normal;
-    margin: 0; /* 상하 마진 제거 */
+/* 입력 필드 레이블 */
+.signup-input-box label {
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 5px;
+    color: #333;
 }
 
-/* 폼 전체에서 입력 칸 간격 조정 */
-.signup-form {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 0; /* 빈틈 없애기 */
-}
-
-/* 입력 필드 내부 스타일 */
+/* 입력 필드 스타일 */
 .signup-input-box input,
 .signup-input-box select {
     width: 100%;
-    border: none;
-    outline: none;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 0;
     font-size: 1rem;
-    padding: 0;
+    background-color: #fff;
 }
 
-
-/* 입력 필드 placeholder 스타일 */
-.signup-input-box input::placeholder {
-    color: #a59e9e; /* 내부 글자 검은색 */
-    font-weight: normal;
-    font-size: 1rem; /* 글자 크기 조정 */
+/* 읽기 전용 필드 스타일 */
+.signup-input-box input[readonly] {
+    background-color: #f9f9f9;
 }
 
-/* 체크박스 영역도 감싸기 */
+/* 셀렉트 박스 스타일링 */
+.signup-input-box select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+}
+
+/* 도움말 텍스트 */
+.signup-input-box small {
+    display: block;
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 5px;
+}
+
+/* 약관 동의 체크박스 */
 .signup-terms-box {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
-    font-size: 0.8rem;
-    font-weight: bold;
+    margin-top: 10px;
 }
 
-
-
-
-
-/* 이용 약관 */
-.signup-form__terms {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.8rem;
-    color: #555;
+.signup-terms-box input[type="checkbox"] {
+    margin-top: 3px;
+    width: 16px;
+    height: 16px;
 }
 
-.signup-form__terms input {
-    width: 18px;
-    height: 18px;
+.signup-terms-box span {
+    font-size: 0.85rem;
+    color: #333;
 }
 
-.signup-form__terms a {
-    color: #007bff;
+.signup-terms-box a {
+    color: #4285F4;
     text-decoration: underline;
 }
 
@@ -156,35 +169,40 @@ body, html {
 .signup-form__submit {
     width: 100%;
     padding: 14px;
-    background: #000;
+    background: #222;
     color: #fff;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: bold;
     border: none;
-    border-radius: 6px;
+    border-radius: 0;
     cursor: pointer;
     margin-top: 15px;
+    text-transform: uppercase;
     transition: background 0.3s;
 }
 
 .signup-form__submit:hover {
-    background: #333;
+    background: #000;
+}
+
+.signup-form__submit:disabled {
+    background: #999;
+    cursor: not-allowed;
 }
 
 /* 반응형 */
 @media (max-width: 780px) {
     .signup-container {
-        width: 100%;
-        max-width: 90%;
-        padding: 20px;
+        width: 95%;
+        padding: 30px 20px;
+        margin-top: 80px;
+    }
+
+    .signup-header {
+        padding: 15px 20px;
     }
 
     .signup-container__title {
         font-size: 1.8rem;
-    }
-
-    .signup-form input,
-    .signup-form select {
-        font-size: 0.9rem;
     }
 }
