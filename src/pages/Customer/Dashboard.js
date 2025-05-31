@@ -1,13 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CustomerLayout from '../../components/Customer/CustomerLayout';
 import './Dashboard.css';
 import DateFilterPopup from '../../components/Customer/Filter/DateFilterPopup';
 import DefectFilterPopup from '../../components/Customer/Filter/DefectFilterPopup';
 import CameraFilterPopup from '../../components/Customer/Filter/CameraFilterPopup';
+import axios from 'axios';
 //더미데이터
 import dummyDefectData, { defectStats } from '../../data/dummyDefectData';
 
+const BASE_URL = process.env.REACT_APP_API_URL;
+
 const Dashboard = () => {
+  const [summary, setSummary] = useState({
+    total_defect_count: 0,
+    most_frequent_defect: '',
+    defect_counts_by_type: {}
+  });
+
+  const [defectData, setDefectData] = useState([]);
+  const [defectTypes, setDefectTypes] = useState([]);
   const [filter, setFilter] = useState({
     dateRange: { start: null, end: null },
     orderType: '',
@@ -17,6 +28,119 @@ const Dashboard = () => {
   const [openFilter, setOpenFilter] = useState(null);
   const [selectedDefects, setSelectedDefects] = useState([]);
   const [selectedCameras, setSelectedCameras] = useState([]);
+  const [error, setError] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/annotations/summary`);
+        const data = res.data;
+
+        setSummary({
+          total_defect_count: data.total_defect_count || 0,
+          most_frequent_defect: Array.isArray(data.most_frequent_defect)
+            ? data.most_frequent_defect.join(', ')
+            : data.most_frequent_defect || 'N/A',
+          defect_counts_by_type: data.defect_counts_by_type || {}
+        });
+
+        setError(null);
+      } catch (err) {
+        console.error('Summary API Error:', err);
+        setError('결함 통계 데이터를 불러오는데 실패했습니다.');
+      }
+    };
+
+    fetchSummary();
+  }, []);
+
+  useEffect(() => {
+    const fetchDefectData = async () => {
+      try {
+        const body = {};
+
+        // 날짜가 모두 선택된 경우에만 날짜 필터 적용
+        if (filter.dateRange.start && filter.dateRange.end) {
+          const formatDate = (date) => {
+            const d = new Date(date);
+            return d.toISOString().split('T')[0];
+          };
+
+          body.start_date = formatDate(filter.dateRange.start);
+          body.end_date = formatDate(filter.dateRange.end);
+        }
+
+        if (selectedDefects.length > 0) {
+          body.class_ids = selectedDefects.map(id => parseInt(id));
+        }
+
+        if (selectedCameras.length > 0) {
+          body.camera_ids = selectedCameras.map(id => parseInt(id));
+        }
+
+        console.log('Sending request with body:', body);
+        const res = await axios.post(`${BASE_URL}/annotations/defect-data/list`, body, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+        console.log('Received response:', res.data);
+
+        // 응답 데이터가 배열인지 확인
+        const defects = Array.isArray(res.data) ? res.data : [];
+        
+        // 데이터 형식 검증
+        const validDefects = defects.filter(defect => 
+          defect.image_id !== undefined &&
+          defect.file_path &&
+          defect.line_name &&
+          defect.camera_id !== undefined &&
+          defect.captured_at &&
+          Array.isArray(defect.defect_types)
+        );
+
+        setDefectData(validDefects);
+        if (validDefects.length === 0) {
+          setError('표시할 결함 데이터가 없습니다.');
+        } else {
+          setError(null);
+        }
+      } catch (err) {
+        console.error('Defect Data API Error:', err);
+        if (err.response) {
+          console.error('Error response:', err.response.data);
+          setError(`결함 데이터를 불러오는데 실패했습니다: ${err.response.data.detail || '알 수 없는 오류'}`);
+        } else {
+          setError('서버 연결에 실패했습니다.');
+        }
+        setDefectData([]);
+      }
+    };
+
+    fetchDefectData();
+  }, [filter, selectedDefects, selectedCameras]);
+
+  // 결함 유형 목록 조회
+  const fetchDefectTypes = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/defect-classes`);
+      const activeDefects = res.data.filter(defect => !defect.is_deleted);
+      setDefectTypes(activeDefects);
+      setError(null);
+    } catch (err) {
+      console.error('Defect Types API Error:', err);
+      setError('결함 유형 목록을 불러오는데 실패했습니다.');
+    }
+  };
+
+  // 필터 팝업이 열릴 때 결함 유형 목록 갱신
+  useEffect(() => {
+    if (openFilter === 'defect') {
+      fetchDefectTypes();
+    }
+  }, [openFilter]);
 
   const handleReset = () => {
     setFilter({ dateRange: { start: null, end: null }, orderType: '', cameraId: '' });
@@ -74,38 +198,42 @@ const Dashboard = () => {
   return (
     <CustomerLayout>
       <div style={{ padding: '32px' }}>
-        <div style={{ display: 'flex', gap: '24px' }}>
-
+        <div className="dashboard-cards-container">
           {/* 왼쪽 요약 박스 */}
           <div className="customer-summary-box">
             <div className="summary-section">
               <h2>Today's Total defect count</h2>
-              <h1>46</h1>
+              <h1>{summary.total_defect_count}</h1>
             </div>
             <div className="summary-section">
               <h2>Today's Most frequent defect</h2>
-              <h1>Crack</h1>
+              <h1>{summary.most_frequent_defect}</h1>
             </div>
           </div>
 
           {/* 오른쪽 통계 박스 */}
           <div className="customer-stats-box">
             <p>Compared to the previous day</p>
+            <div className="customer-stats-content">
+              {Object.entries(summary.defect_counts_by_type).map(([defectType, data], index) => {
+                const changeValue = data.change || 0;
+                const changeClass = changeValue > 0 ? 'positive' : changeValue < 0 ? 'negative' : 'zero';
+                const changeText = changeValue === 0 ? '0' : (changeValue > 0 ? `+${changeValue}` : changeValue.toString());
 
-            {defectStats.map((item, index) => (
-              <div key={index} className="customer-stats-item">
-                <div className="customer-color-circle" style={{ backgroundColor: item.class_color }}></div>
-
-                <div className="customer-info">
-                  <p>{item.class_name}</p>
-                  <p className="customer-count">{item.count}</p>
-                </div>
-
-                <div className="customer-change" style={{ color: item.change > 0 ? '#D9534F' : item.change < 0 ? '#28A745' : '#888' }}>
-                  {item.change > 0 ? `+${item.change}` : `${item.change}`}
-                </div>
-              </div>
-            ))}
+                return (
+                  <div key={index} className="customer-stats-item">
+                    <div className="customer-color-circle" style={{ backgroundColor: data.color }}></div>
+                    <div className="customer-info">
+                      <p>{defectType}</p>
+                      <p className="customer-count">{data.count}</p>
+                    </div>
+                    <div className={`customer-change ${changeClass}`}>
+                      {changeText}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -119,7 +247,9 @@ const Dashboard = () => {
             <span style={{ marginLeft: '10px' }}>⌄</span>
           </button>
           <button onClick={() => setOpenFilter('defect')} className="filter-btn">
-            {filter.orderType || 'Order Type'}
+            {selectedDefects.length > 0 
+              ? `Defect Type (${selectedDefects.length})` 
+              : 'Defect Type'}
             <span style={{ marginLeft: '10px' }}>⌄</span>
           </button>
           <button onClick={() => setOpenFilter('camera')} className="filter-btn">
@@ -140,6 +270,7 @@ const Dashboard = () => {
         )}
         {openFilter === 'defect' && (
           <DefectFilterPopup
+            defectTypes={defectTypes}
             selected={selectedDefects}
             onApply={(list) => {
               handleDefectApply(list);
@@ -159,6 +290,7 @@ const Dashboard = () => {
 
         {/* 테이블 영역 */}
         <div style={{ marginTop: '32px' }}>
+          {error && <div className="error-message" style={{ color: 'red', marginBottom: '16px' }}>{error}</div>}
           <div
             className="customer-table-container"
             style={{
@@ -180,33 +312,66 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredData.map((defect) => (
-                  <tr key={defect.id}>
-                    <td>
-                      <img 
-                        src={defect.image}
-                        alt={`defect-${defect.id}`}
-                        className="customer-table-image"
-                      />
+                {defectData && defectData.length > 0 ? (
+                  defectData.map((defect) => (
+                    <tr key={defect.image_id}>
+                      <td>
+                        <img 
+                          src={defect.file_path}
+                          alt={`defect-${defect.image_id}`}
+                          className="customer-table-image"
+                          onClick={() => setSelectedImage(defect.file_path)}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = '/placeholder-image.png';
+                          }}
+                        />
+                      </td>
+                      <td>{defect.line_name}</td>
+                      <td>{defect.camera_id}</td>
+                      <td>{new Date(defect.captured_at).toLocaleString('ko-KR', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                      })}</td>
+                      <td>{defect.defect_types.join(', ')}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>
+                      {error || '데이터가 없습니다.'}
                     </td>
-                    <td>{defect.line}</td>
-                    <td>{defect.cameraId}</td>
-                    <td>{new Date(defect.timestamp).toLocaleString('ko-KR', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit',
-                      hour12: false
-                    })}</td>
-                    <td>{Array.isArray(defect.type) ? defect.type.join(', ') : defect.type}</td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
         </div>
+
+        {/* 이미지 모달 */}
+        {selectedImage && (
+          <div className="image-modal-overlay" onClick={() => setSelectedImage(null)}>
+            <div className="image-modal-content">
+              <img 
+                src={selectedImage} 
+                alt="확대된 이미지" 
+                className="image-modal-img"
+                onClick={(e) => e.stopPropagation()}
+              />
+              <button 
+                className="image-modal-close" 
+                onClick={() => setSelectedImage(null)}
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </CustomerLayout>
   );

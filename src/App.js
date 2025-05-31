@@ -28,10 +28,10 @@ function App() {
         <Route path="/*" element={<LoginRoutes />} />
 
         {/* 네이버 콜백 URL */}
-        <Route path="/naverLogin" element={<AuthCallback />} />
+        <Route path="/naverCallback" element={<AuthCallback />} />
 
         {/* 구글 콜백 URL */}
-        <Route path="/googleLogin" element={<AuthCallback />} />
+        <Route path="/googleCallback" element={<AuthCallback />} />
 
         {/* 보호된 메인 페이지 */}
         <Route
