@@ -1,8 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 
-import ProtectedRoute from './ProtectedRoute';
-
 import Dashboard from '../pages/Customer/Dashboard';
 import Defectdata from '../pages/Customer/Defectdata';
 import Editclass from '../pages/Customer/Editclass';
@@ -12,35 +10,19 @@ const CustomerRoutes = () => (
   <Routes>
     <Route
       path="dashboard"
-      element={
-        <ProtectedRoute allowedRoles={['customer']}>
-          <Dashboard />
-        </ProtectedRoute>
-      }
+      element={<Dashboard />}
     />
     <Route
       path="defectdata"
-      element={
-        <ProtectedRoute allowedRoles={['customer']}>
-          <Defectdata />
-        </ProtectedRoute>
-      }
+      element={<Defectdata />}
     />
     <Route
       path="editclass"
-      element={
-        <ProtectedRoute allowedRoles={['customer']}>
-          <Editclass />
-        </ProtectedRoute>
-      }
+      element={<Editclass />}
     />
     <Route
       path="statistics"
-      element={
-        <ProtectedRoute allowedRoles={['customer']}>
-          <Statistics />
-        </ProtectedRoute>
-      }
+      element={<Statistics />}
     />
     
   </Routes>

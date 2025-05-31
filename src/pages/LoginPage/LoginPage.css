@@ -9,6 +9,7 @@
     width: 100%;
     height: 100%;
     font-family: 'Roboto', sans-serif;
+    background: #E4F3FC; /* 연한 하늘색 배경 */
   }
   
   /* 전체 페이지 컨테이너 */
@@ -18,51 +19,56 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    position: relative;
   }
   
   /* 헤더 영역: 화면 상단에 고정, 전체 너비 */
-  .header {
+  .login-header {
     width: 100%;
     padding: 20px 40px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     background: #fff;
-    border-bottom: 1px solid #E6EFF5;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     position: fixed;
     top: 0;
     left: 0;
     z-index: 1000;
   }
   
-  .header__logo {
+  .login-header__logo {
     flex: 1;
   }
   
-  .header__title {
-    font-size: 2rem;
+  .login-header__title {
+    font-size: 1.8rem;
     color: #343C6A;
-    font-family: 'Lalezar', cursive;
-    text-align: left;
+    font-weight: bold;
   }
   
-  .header__signup {
+  .login-header__signup {
     flex-shrink: 0;
   }
   
-  .header__signup-button {
-    padding: 8px 16px;
+  .login-header__signup-button {
+    padding: 10px 20px;
     font-size: 0.875rem;
-    border: 1.5px solid #212121;
+    border: 1px solid #000;
     background: transparent;
-    color: #212121;
+    color: #000;
     cursor: pointer;
-    font-weight: 900;
-    font-family: 'Zen Kaku Gothic Antique', sans-serif;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  
+  .login-header__signup-button:hover {
+    background: #f5f5f5;
   }
   
   /* 콘텐츠 영역: 헤더 높이만큼 여백 추가 */
-  .content {
+  .login-content {
     width: 100%;
     flex: 1;
     display: flex;
@@ -75,11 +81,14 @@
   /* 로그인 박스 (흰색 네모) - 데스크탑 기본 */
   .login-container {
     background: #fff;
-    width: 600px;
-    height: 600px; /* 고정 높이 */
-    margin: 200px 20px 40px;
+    width: 95%;
+    max-width: 550px;
+    height: auto; /* 내용에 맞게 자동 조정 */
+    min-height: 600px; /* 최소 높이 설정 */
+    margin: 0 auto;
+    margin-top: 100px; /* 헤더 높이 고려 */
     padding: 40px;
-    border-radius: 8px;
+    border-radius: 0;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     display: flex;
     flex-direction: column;
@@ -90,19 +99,104 @@
   
   /* 로그인 타이틀 */
   .login-container__title {
-    font-size: 3rem;
-    color: #202124;
-    font-family: 'Zen Kaku Gothic Antique', sans-serif;
-    font-weight: 900;
-    margin-bottom: 60px;
-    text-align: left;
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+
+  /* 이메일/비밀번호 로그인 폼 */
+  .login-form {
     width: 100%;
-    padding-left: 10px;
+    max-width: 400px;
+    margin-bottom: 24px;
+  }
+
+  .login-form__error {
+    color: #d32f2f;
+    font-size: 0.875rem;
+    margin-bottom: 16px;
+    padding: 8px;
+    background-color: #ffebee;
+    border-radius: 4px;
+    text-align: center;
+  }
+
+  .login-form__input-group {
+    margin-bottom: 16px;
+  }
+
+  .login-form__input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.875rem;
+    color: #555;
+  }
+
+  .login-form__input-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 0;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+  }
+
+  .login-form__input-group input:focus {
+    border-color: #4285F4;
+    outline: none;
+  }
+
+  .login-form__submit-btn {
+    width: 100%;
+    padding: 14px;
+    background-color: #222;
+    color: white;
+    border: none;
+    border-radius: 0;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background-color 0.3s;
+  }
+
+  .login-form__submit-btn:hover {
+    background-color: #000;
+  }
+
+  .login-form__submit-btn:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+  }
+
+  /* 구분선 */
+  .login-container__divider {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    align-items: center;
+    margin: 24px 0;
+    color: #757575;
+    font-size: 0.875rem;
+  }
+
+  .login-container__divider::before,
+  .login-container__divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: #ddd;
+  }
+
+  .login-container__divider span {
+    padding: 0 16px;
   }
   
   /* 소셜 버튼 컨테이너 */
   .login-container__buttons {
     width: 100%;
+    max-width: 400px;
     display: flex;
     flex-direction: column;
     gap: 32px;
@@ -110,41 +204,41 @@
   }
   
   /* 공통 버튼 스타일 */
-  .btn {
+  .login-btn {
     width: 100%;
     display: flex;
     align-items: center;
     padding: 12px 20px;
-    border-radius: 8px;
+    border-radius: 0;
     border: 1px solid rgba(30,36,50,0.23);
     background: #fff;
     cursor: pointer;
     transition: background 0.3s;
   }
   
-  .btn:hover {
+  .login-btn:hover {
     background: #f7f7f7;
   }
   
-  .btn__icon {
+  .login-btn__icon {
     display: flex;
     align-items: center;
     margin-right: 12px;
   }
   
-  .btn__text {
+  .login-btn__text {
     font-size: 1rem;
     color: #000;
   }
   
   /* 네이버 버튼, 구글과 동일하게 스타일 */
-  .btn--naver {
+  .login-btn--naver {
     border: 1px solid rgba(30,36,50,0.23);
     background: #fff;
     color: #000;
   }
   
-  .btn--naver:hover {
+  .login-btn--naver:hover {
     background: #f7f7f7;
   }
   
@@ -157,52 +251,51 @@
   }
   
   .login-container__signup-link {
-    color: #007bff;
+    color: #4285F4;
     text-decoration: underline;
     cursor: pointer;
   }
   
   /* 반응형 조정: 화면 너비 780px 이하 */
   @media (max-width: 780px) {
-    .header {
-      /* 헤더는 데스크탑과 동일하게 유지 */
-      padding: 20px 40px;
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
+    .login-header {
+      padding: 15px 20px;
     }
     
-    .header__title {
-      font-size: 2rem; /* 데스크탑과 동일 */
+    .login-header__title {
+      font-size: 1.8rem; 
     }
     
-    .header__signup-button {
+    .login-header__signup-button {
       font-size: 0.875rem;
-      padding: 8px 16px;
+      padding: 10px 20px;
     }
     
     /* 콘텐츠 영역: 상단 여백 약간 줄임 (헤더 고정 높이 고려) */
-    .content {
+    .login-content {
       margin-top: 80px;
       padding: 20px;
     }
     
     /* 로그인 박스: 상단 마진을 늘려서 헤더 아래 충분히 내려가게 함 */
     .login-container {
-        max-width: 80%;
-        margin: 250px 20px 40px;
-        height: 500px; /* 모바일에서는 약간 낮은 고정 높이 */
-        padding: 20px;
-        justify-content: center;
-        overflow: auto;
+        width: 95%;
+        padding: 30px 20px;
+        margin-top: 80px;
     }
     
     .login-container__title {
-      font-size: 2.5rem;
+      font-size: 1.8rem;
     }
     
-    .btn__text {
+    .login-btn__text {
       font-size: 0.9rem;
+    }
+
+    .login-form,
+    .login-container__buttons,
+    .login-container__divider {
+      max-width: 100%;
     }
   }
   
