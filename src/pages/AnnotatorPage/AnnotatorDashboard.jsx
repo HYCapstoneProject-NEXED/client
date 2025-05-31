@@ -21,6 +21,7 @@ import DefectTypeFilter from '../../components/Annotator/Filter/DefectTypeFilter
 import StatusFilter from '../../components/Annotator/Filter/StatusFilter';
 import ConfidenceScoreFilter from '../../components/Annotator/Filter/ConfidenceScoreFilter';
 import './AnnotatorDashboard.css';
+import AnnotationService from '../../services/AnnotationService';
 
 const AnnotatorDashboard = () => {
   // 대시보드 타이틀
@@ -149,21 +150,12 @@ const AnnotatorDashboard = () => {
   };
 
   const applyConfidenceScoreFilter = (range) => {
-    // 범위가 없거나 빈 값이면 'all'로 처리
-    if (!range || (!range.min && !range.max)) {
+    // 범위가 없거나 빈 객체이면 'all'로 처리
+    if (!range || Object.keys(range).length === 0) {
       handleFilterChange(FILTER_TYPES.CONFIDENCE_SCORE, 'all');
     } else {
-      // 범위에 따라 적절한 필터 값을 설정
-      let filterValue = 'all';
-      if (range.min >= 0.8 || (range.min && !range.max)) {
-        filterValue = 'high';
-      } else if (range.min >= 0.5 || (range.min && range.max && range.max < 0.8)) {
-        filterValue = 'medium';
-      } else if (range.max && range.max <= 0.5) {
-        filterValue = 'low';
-      }
-      
-      handleFilterChange(FILTER_TYPES.CONFIDENCE_SCORE, filterValue);
+      // 사용자가 직접 입력한 범위 값 사용
+      handleFilterChange(FILTER_TYPES.CONFIDENCE_SCORE, range);
     }
     closeAllFilters();
   };
@@ -196,6 +188,13 @@ const AnnotatorDashboard = () => {
       const option = filterOptions.find(opt => opt.id === value);
       return option ? option.label : 'All';
     } else if (filterType === FILTER_TYPES.CONFIDENCE_SCORE) {
+      // 객체인 경우 (사용자가 직접 입력한 범위)
+      if (typeof value === 'object') {
+        const min = value.min !== undefined ? `${Math.round(value.min * 100)}%` : '0%';
+        const max = value.max !== undefined ? `${Math.round(value.max * 100)}%` : '100%';
+        return `${min} ~ ${max}`;
+      }
+      // 문자열인 경우 (미리 정의된 범위 - high, medium, low)
       const option = CONFIDENCE_SCORE_FILTERS.find(opt => opt.id === value);
       return option ? option.label : 'All';
     }
@@ -285,9 +284,34 @@ const AnnotatorDashboard = () => {
       return;
     }
     
-    if (window.confirm(`Are you sure you want to delete ${selectedIds.length} selected item(s)?`)) {
-      selectedIds.forEach(id => handleDelete(id));
-      setSelectedItems({});
+    if (window.confirm(`정말로 선택한 ${selectedIds.length}개의 이미지를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) {
+      // 이미지 ID 추출 (IMG_001 형식에서 숫자만 추출)
+      const numericIds = selectedIds
+        .map(id => extractNumericId(id))
+        .filter(id => id !== null);
+      
+      if (numericIds.length === 0) {
+        alert('유효한 이미지 ID가 없습니다.');
+        return;
+      }
+      
+      // 한번에 여러 이미지 삭제 API 호출
+      AnnotationService.deleteImages(numericIds)
+        .then(response => {
+          if (response.success) {
+            console.log('이미지 삭제 성공:', response);
+            alert(`${response.deleted_ids.length}개의 이미지가 삭제되었습니다.`);
+            setSelectedItems({});  // 선택 상태 초기화
+            refreshData();  // 데이터 새로고침
+          } else {
+            console.error('이미지 삭제 실패:', response.message);
+            alert(`이미지 삭제에 실패했습니다: ${response.message}`);
+          }
+        })
+        .catch(error => {
+          console.error('이미지 삭제 중 오류 발생:', error);
+          alert('이미지 삭제 중 오류가 발생했습니다.');
+        });
     }
   };
 
@@ -361,7 +385,7 @@ const AnnotatorDashboard = () => {
         <div className="dashboard-content">
           <h2 className="section-title">Current Task</h2>
           
-          {/* Task Statistics Card */}
+          {/* Task Statistics Card - 사용자 ID 2 기준의 Task 통계 */}
           <div className="task-stats-card">
             <div className="stats-item">
               <div className="stats-label">Total datas</div>
@@ -566,6 +590,7 @@ const AnnotatorDashboard = () => {
               </div>
             ) : (
               viewMode === 'list' ? (
+                /* 사용자 ID 2 기준으로 /annotations/list/{user_id} API를 사용하여 데이터 가져옴 */
                 <AnnotationTable 
                   annotations={annotations}
                   onViewDetails={handleViewDetails}
@@ -574,6 +599,7 @@ const AnnotatorDashboard = () => {
                   setSelectedItems={setSelectedItems}
                 />
               ) : (
+                /* 사용자 ID 2 기준으로 /annotations/list/{user_id} API를 사용하여 데이터 가져옴 */
                 <AnnotationGrid 
                   annotations={annotations}
                   onViewDetails={handleViewDetails}

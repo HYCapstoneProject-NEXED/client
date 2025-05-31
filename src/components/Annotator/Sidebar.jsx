@@ -168,7 +168,7 @@ const Sidebar = ({
               <div className="info-row">
                 <span className="info-label">Confidence Score</span>
                 <span className="info-value score">
-                  {dataInfo.confidenceScore ? dataInfo.confidenceScore.toFixed(2) : '-'}
+                  {dataInfo.confidenceScore === null || dataInfo.confidenceScore === 0 ? '-' : dataInfo.confidenceScore.toFixed(2)}
                 </span>
               </div>
               
@@ -303,7 +303,7 @@ const Sidebar = ({
               </div>
               <div className="annotator-detail-item">
                 <span className="detail-label">Confidence Score:</span>
-                <span className="detail-value confidence">{selectedDefectDetail.confidence === null || selectedDefectDetail.confidence === 0.9 ? '-' : selectedDefectDetail.confidence.toFixed(2)}</span>
+                <span className="detail-value confidence">{selectedDefectDetail.confidence === null || selectedDefectDetail.confidence === 0 ? '-' : selectedDefectDetail.confidence.toFixed(2)}</span>
               </div>
               <div className="annotator-detail-item">
                 <span className="detail-label">Position:</span>
@@ -345,7 +345,7 @@ const Sidebar = ({
                   ></div>
                   <span className="annotator-defect-id">#{defect.id}</span>
                   <span className="annotator-defect-name">{getDefectTypeName(defect.type)}</span>
-                  <span className="annotator-confidence">{defect.confidence === null || defect.confidence === 0.9 ? '-' : defect.confidence.toFixed(2)}</span>
+                  <span className="annotator-confidence">{defect.confidence === null || defect.confidence === 0 ? '-' : defect.confidence.toFixed(2)}</span>
                   
                   {/* Toggle indicator icon - only shown in edit mode */}
                   {!readOnly && (
@@ -380,7 +380,7 @@ const Sidebar = ({
                       </div>
                       <div className="detail-item-inline">
                         <span className="detail-label-inline">Confidence Score:</span>
-                        <span className="detail-value-inline confidence">{selectedDefectDetail.confidence === null || selectedDefectDetail.confidence === 0.9 ? '-' : selectedDefectDetail.confidence.toFixed(2)}</span>
+                        <span className="detail-value-inline confidence">{selectedDefectDetail.confidence === null || selectedDefectDetail.confidence === 0 ? '-' : selectedDefectDetail.confidence.toFixed(2)}</span>
                       </div>
                       <div className="detail-item-inline">
                         <span className="detail-label-inline">Position:</span>
@@ -416,7 +416,7 @@ const Sidebar = ({
                       </div>
                       <div className="detail-item-inline">
                         <span className="detail-label-inline">Confidence Score:</span>
-                        <span className="detail-value-inline confidence">{selectedDefectDetail.confidence === null || selectedDefectDetail.confidence === 0.9 ? '-' : selectedDefectDetail.confidence.toFixed(2)}</span>
+                        <span className="detail-value-inline confidence">{selectedDefectDetail.confidence === null || selectedDefectDetail.confidence === 0 ? '-' : selectedDefectDetail.confidence.toFixed(2)}</span>
                       </div>
                       <div className="detail-item-inline">
                         <span className="detail-label-inline">Position:</span>

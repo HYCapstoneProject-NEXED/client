@@ -49,12 +49,26 @@ const ConfidenceScoreFilter = ({
   const handleApply = (e) => {
     e.stopPropagation();
     
-    // 퍼센트 값을 소수점 값으로 변환하여 전달
-    onApply && onApply({
-      min: minValue === '' ? '' : parseFloat(minValue) / 100,
-      max: maxValue === '' ? '' : parseFloat(maxValue) / 100
-    });
+    // 필터 범위 객체 생성
+    const filterRange = {};
     
+    // 최소값이 있으면 추가 (빈 문자열이 아닐 경우)
+    if (minValue !== '') {
+      filterRange.min = parseFloat(minValue) / 100;
+    }
+    
+    // 최대값이 있으면 추가 (빈 문자열이 아닐 경우)
+    if (maxValue !== '') {
+      filterRange.max = parseFloat(maxValue) / 100;
+    }
+    
+    // 빈 필터 범위에 대한 처리 (둘 다 비어있을 경우)
+    if (Object.keys(filterRange).length === 0) {
+      // 빈 객체를 전달 (전체 범위에 필터를 적용하지 않음)
+    }
+    
+    // 콜백 함수 호출
+    onApply && onApply(filterRange);
     onClose && onClose();
   };
 
@@ -88,7 +102,7 @@ const ConfidenceScoreFilter = ({
       
       <div className="filter-popup-divider"></div>
       
-      <div className="filter-popup-note">*Enter values between 0% and 100%</div>
+      <div className="filter-popup-note">*Min 또는 Max 값 하나만 입력해도 됩니다.</div>
       
       <div className="filter-actions">
         <button className="filter-cancel-btn" onClick={onClose}>

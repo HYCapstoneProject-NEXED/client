@@ -6,6 +6,9 @@ import AnnotationService from '../services/AnnotationService';
 import { ACTION_TYPES, setLoadedDefectClasses } from '../constants/annotationConstants';
 import { formatDateTime } from '../utils/annotationUtils';
 
+// AnnotationService에서 API_URL 가져오기
+const API_URL = process.env.REACT_APP_API_URL || 'http://166.104.246.64:8000';
+
 /**
  * 어노테이션 데이터 로딩 및 관리를 위한 커스텀 훅
  * @param {number} imageId - 이미지 ID
@@ -22,6 +25,7 @@ const useAnnotationData = (imageId, addToHistory) => {
     state: 'pending',
     captureDate: '',
     lastModified: '',
+    filePath: '',
     dimensions: {
       width: 0,
       height: 0
@@ -33,6 +37,8 @@ const useAnnotationData = (imageId, addToHistory) => {
   const [defectClasses, setDefectClasses] = useState([]);
   // 변경 사항 추적 플래그
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  // 초기 로드된 어노테이션 ID 추적
+  const [initialAnnotationIds, setInitialAnnotationIds] = useState(new Set());
 
   /**
    * DefectClasses 데이터 불러오기
@@ -59,73 +65,281 @@ const useAnnotationData = (imageId, addToHistory) => {
   const loadAnnotationData = useCallback(async () => {
     try {
       setIsLoading(true);
+      console.log(`=== 이미지 ID ${imageId}에 대한 어노테이션 데이터 로딩 시작 ===`);
       
       // DefectClasses 먼저 로드
       const classes = await loadDefectClasses();
+      console.log('결함 클래스 로드 완료:', classes.length, '개');
       
-      // 이미지 관련 어노테이션 데이터 가져오기
-      const annotations = await AnnotationService.getAnnotationsByImageId(imageId);
+      // 현재 페이지가 편집 페이지인지 확인
+      const isEditPage = window.location.pathname.includes('/edit/');
+      console.log('현재 페이지 타입:', isEditPage ? '편집 페이지' : '상세 페이지');
       
-      // 백엔드 데이터를 프론트엔드 포맷으로 변환 (defectClasses 정보 활용)
-      const transformedData = annotations.map(anno => 
-        AnnotationService.transformToFrontendModel(anno, classes)
-      );
+      let imageDetail = null;
       
-      setDefects(transformedData);
+      try {
+        if (isEditPage) {
+          // 편집 페이지: GET /annotations/detail/{image_id} 사용
+          console.log('편집 페이지: 단일 이미지 상세 정보 API 사용');
+          const annotationDetail = await AnnotationService.getAnnotationsByImageId(imageId);
+          console.log('어노테이션 상세 정보 로드 성공, 개수:', annotationDetail.length);
       
       // 이미지 상세 정보 가져오기
-      const imageDetail = await AnnotationService.getImageDetailById(imageId);
+          imageDetail = await AnnotationService.getImageDetailById(imageId);
+          
       if (imageDetail) {
-        // 어노테이션 목록에서 이 이미지에 대한 어노테이션을 찾아 신뢰도 점수 계산
-        const confidenceScores = annotations.map(anno => anno.conf_score);
-        const minConfidence = confidenceScores.length > 0 
-          ? Math.min(...confidenceScores) 
-          : null;
+            // 어노테이션 상세 정보를 defects 배열로 변환
+            const transformedData = annotationDetail.map(defect => {
+              return transformDefectToFrontendModel(defect, classes, imageDetail);
+            });
+            
+            // 초기 로드된 어노테이션 ID 저장
+            const initialIds = new Set(transformedData.map(defect => defect.id));
+            setInitialAnnotationIds(initialIds);
+            console.log('초기 로드된 어노테이션 ID 저장:', Array.from(initialIds));
+            
+            setDefects(transformedData);
         
         // 이미지 데이터 포맷팅
         setDataInfo({
           dataId: `IMG_${imageDetail.image_id}`,
-          confidenceScore: minConfidence,
+              confidenceScore: calculateMinConfidence(annotationDetail),
           captureDate: imageDetail.capture_date_formatted,
           lastModified: imageDetail.last_modified_formatted,
           state: imageDetail.status || 'pending',
+          filePath: imageDetail.file_path,
           dimensions: {
-            width: imageDetail.width,
-            height: imageDetail.height
+                width: imageDetail.width || 640,
+                height: imageDetail.height || 640
           }
         });
+          }
+        } else {
+          // 상세 페이지: POST /annotations/details 사용
+          console.log('상세 페이지: 여러 이미지 상세 정보 API 사용');
+          const detailsResult = await AnnotationService.getMultipleAnnotationDetails([imageId]);
+          console.log('어노테이션 상세 정보 결과:', detailsResult);
+          
+          // 결과에서 해당 이미지의 상세 정보 추출 (배열의 첫 번째 항목)
+          imageDetail = detailsResult.length > 0 ? detailsResult[0] : null;
+          
+          if (imageDetail) {
+            // 어노테이션 상세 정보를 defects 배열로 변환
+            const transformedData = imageDetail.defects.map(defect => {
+              return transformDefectToFrontendModel(defect, classes, imageDetail);
+            });
+            
+            // 초기 로드된 어노테이션 ID 저장
+            const initialIds = new Set(transformedData.map(defect => defect.id));
+            setInitialAnnotationIds(initialIds);
+            console.log('초기 로드된 어노테이션 ID 저장:', Array.from(initialIds));
+            
+            setDefects(transformedData);
+            
+            // 이미지 데이터 포맷팅
+            setDataInfo({
+              dataId: `IMG_${imageDetail.image_id}`,
+              confidenceScore: calculateMinConfidence(imageDetail.defects),
+              captureDate: formatDateTime(imageDetail.date),
+              lastModified: formatDateTime(imageDetail.date),
+              state: imageDetail.status || 'pending',
+              filePath: imageDetail.file_path,
+              dimensions: {
+                width: imageDetail.width || 640,
+                height: imageDetail.height || 640
+              }
+            });
+          }
+        }
+      } catch (apiError) {
+        console.error('API 호출 실패:', apiError);
+        throw apiError;
       }
       
       setIsLoading(false);
       // 데이터 로드 후 변경 사항 없음으로 설정
       setHasUnsavedChanges(false);
+      console.log('=== 데이터 로딩 완료 ===');
     } catch (error) {
-      console.error('Failed to load annotation data:', error);
+      console.error('어노테이션 데이터 로드 중 오류 발생:', error);
       setIsLoading(false);
     }
-  }, [imageId, loadDefectClasses]);
+  }, [imageId, loadDefectClasses, formatDateTime]);
+
+  // 최소 신뢰도 점수 계산 헬퍼 함수
+  const calculateMinConfidence = (defects) => {
+    if (!defects || defects.length === 0) return null;
+    
+    const confidenceScores = defects
+      .map(defect => defect.conf_score)
+      .filter(score => score !== null && score !== undefined);
+    
+    return confidenceScores.length > 0 ? Math.min(...confidenceScores) : null;
+  };
+
+  // 백엔드 defect 객체를 프론트엔드 모델로 변환
+  const transformDefectToFrontendModel = (defect, classes, imageDetail) => {
+    // 클래스 정보 찾기
+    const defectClass = classes.find(c => c.class_id === defect.class_id) || {};
+    
+    // 바운딩 박스 좌표 처리
+    let coordinates = {};
+    const imageWidth = imageDetail.width || 640;
+    const imageHeight = imageDetail.height || 640;
+    
+    // 바운딩 박스 형식에 따라 처리
+    const boundingBox = defect.bounding_box;
+    
+    if (boundingBox) {
+      // API 형식에 따라 처리 (additionalProp1 키가 있는 경우)
+      if (boundingBox.additionalProp1) {
+        const boxData = boundingBox.additionalProp1;
+        
+        // 정규화된 좌표를 픽셀 좌표로 변환
+        if (boxData.cx !== undefined && boxData.cy !== undefined) {
+          const width = boxData.w * imageWidth;
+          const height = boxData.h * imageHeight;
+          const x = (boxData.cx * imageWidth) - (width / 2);
+          const y = (boxData.cy * imageHeight) - (height / 2);
+          
+          coordinates = { x, y, width, height };
+        }
+      }
+      // 직접 좌표가 있는 경우 (cx, cy, w, h)
+      else if (boundingBox.cx !== undefined && boundingBox.cy !== undefined) {
+        const width = boundingBox.w * imageWidth;
+        const height = boundingBox.h * imageHeight;
+        const x = (boundingBox.cx * imageWidth) - (width / 2);
+        const y = (boundingBox.cy * imageHeight) - (height / 2);
+        
+        coordinates = { x, y, width, height };
+      }
+      // 이미 픽셀 좌표인 경우
+      else if (boundingBox.x !== undefined && boundingBox.y !== undefined) {
+        coordinates = {
+          x: boundingBox.x,
+          y: boundingBox.y,
+          width: boundingBox.width,
+          height: boundingBox.height
+        };
+      }
+    }
+    
+    // 프론트엔드 모델로 변환
+    return {
+      id: String(defect.annotation_id),
+      type: defect.class_name || defectClass.class_name || 'Unknown',
+      typeId: defect.class_id,
+      confidence: defect.conf_score,
+      coordinates: coordinates,
+      color: defect.class_color || defectClass.class_color,
+      date: imageDetail.date,
+      status: imageDetail.status || 'pending',
+      userId: defect.user_id
+    };
+  };
 
   /**
    * 어노테이션 저장
    */
   const saveAnnotations = useCallback(async () => {
     try {
-      // 각 결함(defect)을 백엔드 모델로 변환하고 저장
-      const updatePromises = defects.map(defect => {
-        const backendModel = AnnotationService.transformToBackendModel(defect);
-        // imageId 추가
-        backendModel.image_id = imageId;
+      console.log('=== 어노테이션 저장 시작 ===');
+      // API 엔드포인트 호출에는 사용자 ID 2를 사용 (어노테이터 ID)
+      const userId = 2;
+      
+      // 저장 진행 중 상태 표시
+      setIsLoading(true);
+      
+      // 새 어노테이션과 기존 어노테이션을 분리
+      const newAnnotations = [];
+      const existingAnnotations = [];
+      
+      // defects 목록이 비어있는 경우 처리
+      if (!defects || defects.length === 0) {
+        console.log('저장할 defects가 없습니다.');
+        setIsLoading(false);
+        alert('저장할 어노테이션이 없습니다.');
+        return false;
+      }
+      
+      console.log(`저장할 defects 개수: ${defects.length}`);
+      console.log('초기 로드된 어노테이션 ID:', Array.from(initialAnnotationIds));
+      
+      defects.forEach(defect => {
+        // pixelCoords가 없는 경우 스킵
+        if (!defect.coordinates) {
+          console.warn('좌표 정보가 없는 defect 무시:', defect.id);
+          return;
+        }
         
-        // 이미 ID가 있으면 업데이트, 없으면 생성
-        if (defect.id && !isNaN(parseInt(defect.id))) {
-          return AnnotationService.updateAnnotation(parseInt(defect.id), backendModel);
+        // 픽셀 좌표를 정규화된 좌표로 변환 (cx, cy, w, h 형식)
+        const pixelCoords = defect.coordinates;
+        const imageWidth = dataInfo.dimensions.width || 640;
+        const imageHeight = dataInfo.dimensions.height || 640;
+        
+        // 정규화된 좌표 계산 (0~1 사이 값)
+        const boundingBoxForApi = {
+          // 중심점 좌표 (cx, cy)
+          cx: (pixelCoords.x + pixelCoords.width / 2) / imageWidth,
+          cy: (pixelCoords.y + pixelCoords.height / 2) / imageHeight,
+          // 너비, 높이 (w, h)
+          w: pixelCoords.width / imageWidth,
+          h: pixelCoords.height / imageHeight
+        };
+        
+        // 초기 로드된 어노테이션 ID 집합에 포함된 경우 기존 어노테이션으로 처리
+        if (initialAnnotationIds.has(defect.id)) {
+          console.log(`기존 어노테이션으로 처리: ID=${defect.id}, 타입=${defect.type}`);
+          
+          // API 요청 스키마에 맞게 필수 필드만 포함
+          existingAnnotations.push({
+            class_id: defect.typeId,
+            bounding_box: boundingBoxForApi,
+            annotation_id: parseInt(defect.id)
+          });
         } else {
-          return AnnotationService.createAnnotation(backendModel);
+          // 초기 로드 목록에 없는 경우 새 어노테이션으로 처리
+          console.log(`새 어노테이션으로 처리: ID=${defect.id}, 타입=${defect.type}`);
+          
+          // API 요청 스키마에 맞게 필수 필드만 포함
+          newAnnotations.push({
+            class_id: defect.typeId,
+            bounding_box: boundingBoxForApi
+          });
         }
       });
       
-      // 모든 업데이트 완료 대기
-      await Promise.all(updatePromises);
+      console.log('새 어노테이션 개수:', newAnnotations.length);
+      console.log('기존 어노테이션 개수:', existingAnnotations.length);
+      
+      if (newAnnotations.length === 0 && existingAnnotations.length === 0) {
+        console.log('저장할 어노테이션이 없습니다.');
+        setIsLoading(false);
+        alert('저장할 어노테이션이 없습니다.');
+        return false;
+      }
+      
+      try {
+        // API 호출 시작, 요청 데이터 로깅
+        console.log('API 호출 시작, 이미지 ID:', imageId, '사용자 ID:', userId);
+        console.log('API 요청 형식:', {
+          annotations: newAnnotations,
+          existing_annotations: existingAnnotations
+      });
+      
+      // API 호출하여 어노테이션 업데이트
+      const updatedAnnotations = await AnnotationService.updateImageAnnotations(
+          userId,
+        imageId,
+        newAnnotations,
+        existingAnnotations
+      );
+      
+        console.log('API 호출 성공! 응답 데이터 개수:', updatedAnnotations.length);
+        
+        // 저장 성공 후 지연 설정 (API 처리 시간 확보)
+        await new Promise(resolve => setTimeout(resolve, 1000));
       
       // 마지막 수정 날짜 업데이트
       const now = new Date();
@@ -138,30 +352,81 @@ const useAnnotationData = (imageId, addToHistory) => {
       
       // 저장 후 변경 사항 없음으로 설정
       setHasUnsavedChanges(false);
+        
+        // 로딩 상태 해제
+        setIsLoading(false);
       
       // 성공 알림
       alert('어노테이션이 성공적으로 저장되었습니다!');
       return true;
+      } catch (apiError) {
+        console.error('API 호출 오류:', apiError);
+        
+        // 더 자세한 오류 정보 표시
+        if (apiError.response) {
+          console.error('오류 상태 코드:', apiError.response.status);
+          console.error('오류 응답 데이터:', apiError.response.data);
+        }
+        
+        // 네트워크 관련 디버깅 정보
+        console.log('API 호출 정보:', {
+          API_URL: API_URL,
+          endpoint: `/annotations/detail/${userId}/${imageId}`,
+          method: 'PUT'
+        });
+        
+        // 로딩 상태 해제
+        setIsLoading(false);
+        
+        // 오류 알림 (오류 세부 정보 포함)
+        const errorDetail = apiError.response?.data?.detail 
+          ? JSON.stringify(apiError.response.data.detail) 
+          : apiError.message || '알 수 없는 오류';
+        
+        alert(`어노테이션 저장 중 오류가 발생했습니다:\n${errorDetail}`);
+        return false;
+      }
     } catch (error) {
-      console.error('Failed to save annotations:', error);
-      alert('어노테이션 저장 중 오류가 발생했습니다.');
+      // 예외 처리
+      console.error('어노테이션 저장 중 예외 발생:', error);
+      
+      // 로딩 상태 해제
+      setIsLoading(false);
+      
+      // 오류 알림
+      alert('어노테이션 저장 중 오류가 발생했습니다: ' + (error.message || '알 수 없는 오류'));
       return false;
     }
-  }, [defects, imageId]);
+  }, [defects, imageId, dataInfo.dimensions, formatDateTime, setIsLoading, initialAnnotationIds]);
 
   /**
    * 새 바운딩 박스 추가
    * @param {Object} coordinates - 좌표 정보
    * @param {string} defectType - 결함 유형
    */
-  const addBox = useCallback((coordinates, defectType) => {
+  const addBox = useCallback(async (coordinates, defectType) => {
+    try {
     // 새 ID 생성 (현재 최대 ID + 1)
     const maxId = Math.max(...defects.map(d => parseInt(d.id) || 0), 0);
     const newId = String(maxId + 1);
     
+    console.log('Adding new box with type:', defectType, 'coordinates:', coordinates);
+      
+      // API에서 최신 결함 클래스 정보 가져오기
+      console.log('GET /defect-classes API를 호출하여 최신 결함 클래스 정보 조회');
+      const latestDefectClasses = await AnnotationService.getDefectClasses();
+      console.log('조회된 결함 클래스:', latestDefectClasses);
+    
     // defectType에 해당하는 defectClass 찾기
-    const defectClass = defectClasses.find(dc => dc.class_name === defectType);
+      const defectClass = latestDefectClasses.find(dc => dc.class_name === defectType);
+    if (!defectClass) {
+      console.warn('Could not find defect class for type:', defectType, 'Using default class');
+    }
+    
     const typeId = defectClass ? defectClass.class_id : 1; // 기본값은 Scratch (1)
+    const color = defectClass ? defectClass.class_color : null;
+    
+    console.log('Found defect class:', defectClass, 'typeId:', typeId, 'color:', color);
     
     // 새 defect 객체 생성
     const newDefect = {
@@ -171,10 +436,13 @@ const useAnnotationData = (imageId, addToHistory) => {
       confidence: null, // 사용자가 생성한 바운딩 박스의 confidence 값 - null로 설정하여 '-'로 표시
       coordinates: coordinates,
       imageId: imageId,
-      color: defectClass ? defectClass.class_color : null,
+      color: color,
       date: new Date().toISOString(),
-      status: 'pending'
+      status: 'pending',
+      userId: 2 // 새 어노테이션의 경우 userId를 2로 설정 (어노테이터 ID)
     };
+    
+    console.log('Created new defect:', newDefect);
     
     // defects 배열에 추가
     setDefects(prev => [...prev, newDefect]);
@@ -191,7 +459,12 @@ const useAnnotationData = (imageId, addToHistory) => {
     });
     
     return newId; // 새로 생성된 ID 반환
-  }, [defects, imageId, addToHistory, defectClasses]);
+    } catch (error) {
+      console.error('바운딩 박스 추가 중 오류 발생:', error);
+      alert(`바운딩 박스 추가 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
+      return null;
+    }
+  }, [defects, imageId, addToHistory]);
 
   /**
    * 결함 좌표 업데이트
@@ -204,7 +477,10 @@ const useAnnotationData = (imageId, addToHistory) => {
     
     // 이전 좌표 저장
     const defect = defects.find(d => String(d.id) === defectIdStr);
-    if (!defect) return;
+    if (!defect) {
+      console.error('Cannot update coordinates for non-existent defect:', defectIdStr);
+      return;
+    }
     
     const prevCoordinates = {...defect.coordinates};
     
@@ -221,8 +497,13 @@ const useAnnotationData = (imageId, addToHistory) => {
       prevCoordinates.width === fullNewCoordinates.width &&
       prevCoordinates.height === fullNewCoordinates.height
     ) {
+      console.log('Coordinates unchanged, skipping history update');
       return;
     }
+    
+    console.log('Updating coordinates for defect:', defectIdStr);
+    console.log('Previous coordinates:', prevCoordinates);
+    console.log('New coordinates:', fullNewCoordinates);
     
     // defects 업데이트
     setDefects(currentDefects => 
@@ -244,6 +525,8 @@ const useAnnotationData = (imageId, addToHistory) => {
       ? ACTION_TYPES.RESIZE_BOX
       : ACTION_TYPES.MOVE_BOX;
     
+    console.log('Adding to history as:', actionType);
+    
     // 히스토리에 작업 추가
     addToHistory({
       type: actionType,
@@ -260,48 +543,101 @@ const useAnnotationData = (imageId, addToHistory) => {
    * @param {string} defectId - 결함 ID
    * @param {string} newClass - 새 결함 유형
    */
-  const updateDefectClass = useCallback((defectId, newClass) => {
+  const updateDefectClass = useCallback(async (defectId, newClass) => {
+    try {
     // 문자열 ID 처리
     const defectIdStr = String(defectId);
     
     // 현재 defect 찾기
     const defect = defects.find(d => String(d.id) === defectIdStr);
-    if (!defect || defect.type === newClass) return;
+    if (!defect) {
+      console.error('Cannot update class for non-existent defect:', defectIdStr);
+      return;
+    }
     
-    // 이전 클래스 저장
+    if (defect.type === newClass) {
+      console.log('Class already set to', newClass, 'for defect', defectIdStr, '. No change needed.');
+      return;
+    }
+    
+    // 이전 클래스 정보 저장
     const prevClass = defect.type;
+    const prevTypeId = defect.typeId;
+    const prevColor = defect.color;
+    
+    console.log('Updating defect class:', {
+      defectId: defectIdStr,
+      prevClass,
+      prevTypeId,
+      prevColor,
+      newClass
+    });
+      
+      // API에서 최신 결함 클래스 정보 가져오기
+      console.log('GET /defect-classes API를 호출하여 최신 결함 클래스 정보 조회');
+      const latestDefectClasses = await AnnotationService.getDefectClasses();
+      console.log('조회된 결함 클래스:', latestDefectClasses);
     
     // newClass에 해당하는 defectClass 찾기
-    const defectClass = defectClasses.find(dc => dc.class_name === newClass);
-    const typeId = defectClass ? defectClass.class_id : 1; // 기본값은 Scratch (1)
+      const defectClass = latestDefectClasses.find(dc => dc.class_name === newClass);
+    if (!defectClass) {
+      console.warn('Could not find defect class for type:', newClass, 'Using default values');
+    }
     
-    // defects 업데이트
-    setDefects(currentDefects => 
-      currentDefects.map(defect => 
-        String(defect.id) === defectIdStr 
-          ? {
-              ...defect,
-              type: newClass,
-              typeId: typeId,
-              color: defectClass ? defectClass.class_color : defect.color
-            }
-          : defect
-      )
-    );
+    // 새 클래스 정보
+    const newTypeId = defectClass ? defectClass.class_id : 1; // 기본값은 Scratch (1)
+    const newColor = defectClass ? defectClass.class_color : prevColor; // 기존 색상 유지 (없으면)
+    
+    console.log('New class details:', {
+      defectClass, 
+      newTypeId, 
+      newColor
+    });
+    
+    // defects 업데이트 - 클래스 변경
+    setDefects(currentDefects => {
+      const updated = currentDefects.map(d => {
+        if (String(d.id) === defectIdStr) {
+          const updatedDefect = {
+            ...d,
+            type: newClass,
+            typeId: newTypeId,
+            color: newColor
+          };
+          
+          console.log('Updated defect:', updatedDefect);
+          return updatedDefect;
+        }
+        return d;
+      });
+      
+      return updated;
+    });
     
     // 변경 사항 있음으로 표시
     setHasUnsavedChanges(true);
     
-    // 히스토리에 작업 추가
-    addToHistory({
+    // 히스토리에 작업 추가 - 모든 필요한 정보를 포함
+    const historyAction = {
       type: ACTION_TYPES.CHANGE_CLASS,
       data: {
         defectId: defectIdStr,
         prevClass,
-        newClass
+        prevTypeId,
+        prevColor,
+        newClass,
+        newTypeId,
+        newColor
       }
-    });
-  }, [defects, addToHistory, defectClasses]);
+    };
+    
+    console.log('Adding class change to history:', historyAction);
+    addToHistory(historyAction);
+    } catch (error) {
+      console.error('결함 클래스 업데이트 중 오류 발생:', error);
+      alert(`결함 클래스 변경 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
+    }
+  }, [defects, addToHistory]);
 
   /**
    * 결함 삭제
@@ -313,25 +649,37 @@ const useAnnotationData = (imageId, addToHistory) => {
     
     // 삭제할 defect 저장
     const defectToDelete = defects.find(d => String(d.id) === defectIdStr);
-    if (!defectToDelete) return;
+    if (!defectToDelete) {
+      console.error('Cannot delete non-existent defect:', defectIdStr);
+      return;
+    }
     
-    // defects 업데이트
-    setDefects(currentDefects => 
-      currentDefects.filter(defect => 
+    console.log('Deleting defect:', defectToDelete);
+    
+    // defects 업데이트 - 삭제
+    setDefects(currentDefects => {
+      const filteredDefects = currentDefects.filter(defect => 
         String(defect.id) !== defectIdStr
-      )
     );
+      console.log('Defects after deletion:', filteredDefects);
+      return filteredDefects;
+    });
     
     // 변경 사항 있음으로 표시
     setHasUnsavedChanges(true);
     
-    // 히스토리에 작업 추가
-    addToHistory({
+    // 히스토리 액션 생성
+    const deleteAction = {
       type: ACTION_TYPES.DELETE_BOX,
       data: {
         defect: defectToDelete
       }
-    });
+    };
+    
+    console.log('Adding delete action to history:', deleteAction);
+    
+    // 히스토리에 작업 추가
+    addToHistory(deleteAction);
   }, [defects, addToHistory]);
 
   /**
@@ -359,7 +707,8 @@ const useAnnotationData = (imageId, addToHistory) => {
     deleteDefect,
     saveAnnotations,
     checkUnsavedChanges,
-    hasUnsavedChanges
+    hasUnsavedChanges,
+    setHasUnsavedChanges
   };
 };
 

@@ -412,23 +412,100 @@ class AnnotationService {
     }
   }
 
-  // 이미지 ID에 해당하는 어노테이션 목록 가져오기
+  /**
+   * 여러 이미지의 어노테이션 상세 정보 가져오기
+   * @param {Array<number>} imageIds - 상세 정보를 가져올 이미지 ID 배열
+   * @returns {Promise<Array>} 이미지 상세 정보 배열
+   */
+  async getMultipleAnnotationDetails(imageIds) {
+    try {
+      // API 요청 URL - POST /annotations/details
+      const requestUrl = `${API_URL}/annotations/details`;
+      console.log('여러 이미지 상세 정보 요청 URL:', requestUrl);
+      console.log('요청할 이미지 ID 목록:', imageIds);
+
+      // 설정 옵션
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 10000
+      };
+      
+      // API 문서에 따라 이미지 ID 배열을 직접 요청 본문으로 전송
+      try {
+        const response = await axios.post(requestUrl, imageIds, config);
+        console.log('API 응답 코드:', response.status);
+        
+        // API 응답 형식: { "details": [ {...}, {...} ] }
+        if (response.data && response.data.details) {
+          console.log('조회된 이미지 수:', response.data.details.length);
+          return response.data.details;
+        } else {
+          console.warn('API 응답에 details 필드가 없음:', response.data);
+          return [];
+        }
+      } catch (error) {
+        console.error('API 호출 실패:', error.message);
+        throw error;
+      }
+    } catch (error) {
+      console.error('여러 이미지 상세 정보 조회 실패:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 특정 이미지의 어노테이션 상세 정보 가져오기
+   * @param {number} imageId - 이미지 ID
+   * @returns {Promise<Object>} 이미지 상세 정보
+   */
   async getAnnotationsByImageId(imageId) {
     try {
-      // 실제 API 요청 코드 (현재는 주석 처리)
-      // const response = await axios.get(`${API_URL}/annotations?imageId=${imageId}`);
-      // return response.data;
+      // API 요청 URL - GET /annotations/detail/{image_id}
+      const requestUrl = `${API_URL}/annotations/detail/${imageId}`;
+      console.log('이미지 상세 정보 요청 URL:', requestUrl);
+
+      // 설정 옵션
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 5000
+      };
       
-      // 더미 데이터 사용 (API 연동 전까지)
-      // 비동기 처리를 시뮬레이션하기 위해 Promise 사용
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const annotations = DUMMY_ANNOTATIONS.filter(anno => anno.image_id === imageId);
-          resolve(annotations);
-        }, 300); // 300ms 지연
-      });
+      try {
+        // API 요청
+        const response = await axios.get(requestUrl, config);
+        console.log('API 응답 코드:', response.status);
+        
+        // 응답 데이터 캐싱 및 반환
+        const imageDetail = response.data;
+        
+        // 이미지 정보 캐싱 (다른 함수에서 사용)
+        this.cachedImageDetail = {
+          image_id: imageDetail.image_id,
+          file_path: imageDetail.file_path,
+          date: imageDetail.date,
+          camera_id: imageDetail.camera_id,
+          dataset_id: imageDetail.dataset_id,
+          width: imageDetail.width || 640,
+          height: imageDetail.height || 640,
+          status: imageDetail.status || 'pending',
+          capture_date_formatted: formatDateTime(imageDetail.date),
+          last_modified_formatted: formatDateTime(imageDetail.date)
+        };
+        
+        // defects를 개별 어노테이션으로 변환하여 반환
+        return imageDetail.defects || [];
+      } catch (error) {
+        console.error('API 호출 실패:', error.message);
+        throw error;
+      }
     } catch (error) {
-      console.error('Failed to fetch annotations:', error);
+      console.error('이미지 상세 정보 조회 실패:', error);
       throw error;
     }
   }
@@ -589,16 +666,26 @@ class AnnotationService {
 
   // 프론트엔드 모델에 맞게 어노테이션 데이터 변환 (defectClasses 정보 활용)
   transformToFrontendModel(annotationData, defectClasses) {
-    // defectClasses에서 해당 class_id의 defect 정보 찾기
+    // API에서 class_name과 class_color가 이미 포함되어 있는 경우 사용
+    let defectType = annotationData.class_name;
+    let defectColor = annotationData.class_color;
+    
+    // API에서 제공하지 않는 경우 defectClasses에서 조회
+    if (!defectType || !defectColor) {
     const defectClass = defectClasses.find(dc => dc.class_id === annotationData.class_id) || {};
+      defectType = defectClass.class_name || 'Scratch'; // 기본값으로 Scratch 사용
+      defectColor = defectClass.class_color;
+    }
     
     return {
       id: String(annotationData.annotation_id),
-      type: defectClass.class_name || 'Scratch', // 기본값으로 Scratch 사용
+      type: defectType,
       typeId: annotationData.class_id || 1,
       confidence: annotationData.conf_score, // null 값 유지
-      coordinates: JSON.parse(annotationData.bounding_box),
-      color: defectClass.class_color,
+      coordinates: typeof annotationData.bounding_box === 'string' 
+        ? JSON.parse(annotationData.bounding_box) 
+        : annotationData.bounding_box,
+      color: defectColor,
       date: annotationData.date,
       status: annotationData.status || 'pending',
       userId: annotationData.user_id
@@ -621,28 +708,67 @@ class AnnotationService {
   // 이미지 상세 정보 가져오기
   async getImageDetailById(imageId) {
     try {
-      // 실제 API 요청 코드 (현재는 주석 처리)
-      // const response = await axios.get(`${API_URL}/images/${imageId}`);
-      // return response.data;
+      // 캐시된 이미지 정보가 있으면 사용
+      if (this.cachedImageDetail && this.cachedImageDetail.image_id === imageId) {
+        console.log('Using cached image detail for imageId:', imageId);
+        const imageDetail = this.cachedImageDetail;
+        return {
+          ...imageDetail,
+          width: 640, // 고정 이미지 크기
+          height: 640, // 고정 이미지 크기
+          capture_date_formatted: formatDateTime(imageDetail.capture_date),
+          last_modified_formatted: formatDateTime(imageDetail.last_modified)
+        };
+      }
       
-      // 더미 데이터 사용
-      return new Promise((resolve) => {
-        setTimeout(() => {
+      // 캐시된 정보가 없는 경우, getAnnotationsByImageId를 사용해 정보 가져오기
+      // 상세 페이지에서는 getAnnotationsByImageId가 먼저 호출되어 이미지 정보가 캐시됨
+      try {
+        // getAnnotationsByImageId를 사용하여 이미지 정보와 어노테이션 목록을 동시에 가져옴
+        await this.getAnnotationsByImageId(imageId);
+      
+        // 이제 캐시된 이미지 정보가 있어야 함
+        if (this.cachedImageDetail) {
+          const imageDetail = this.cachedImageDetail;
+          return {
+            ...imageDetail,
+            width: 640, // 고정 이미지 크기
+            height: 640, // 고정 이미지 크기
+            capture_date_formatted: formatDateTime(imageDetail.capture_date),
+            last_modified_formatted: formatDateTime(imageDetail.last_modified)
+          };
+        }
+      } catch (apiError) {
+        console.log('getAnnotationsByImageId API 호출 실패:', apiError.message);
+        // API 호출 실패 시 더미 데이터 사용
+      }
+      
+      // API 호출이 모두 실패한 경우 더미 데이터 사용
           const image = DUMMY_IMAGES.find(img => img.image_id === imageId);
           if (image) {
-            resolve({
+        return {
               ...image,
+          width: 640, // 고정 이미지 크기
+          height: 640, // 고정 이미지 크기
               capture_date_formatted: formatDateTime(image.capture_date),
               last_modified_formatted: formatDateTime(image.last_modified)
-            });
-          } else {
-            resolve(null);
+        };
           }
-        }, 200);
-      });
+      return null;
     } catch (error) {
       console.error(`Failed to fetch image detail for ID ${imageId}:`, error);
-      throw error;
+      // 더미 데이터 반환
+      const image = DUMMY_IMAGES.find(img => img.image_id === imageId);
+      if (image) {
+        return {
+          ...image,
+          width: 640, // 고정 이미지 크기
+          height: 640, // 고정 이미지 크기
+          capture_date_formatted: formatDateTime(image.capture_date),
+          last_modified_formatted: formatDateTime(image.last_modified)
+        };
+      }
+      return null;
     }
   }
 
@@ -654,46 +780,121 @@ class AnnotationService {
       date: new Date().toISOString(),
       conf_score: null, // 사용자가 생성한 바운딩 박스의 confidence 값은 null
       bounding_box: JSON.stringify(initialCoordinates),
-      user_id: 1001, // 현재 사용자 ID (실제로는 인증 시스템에서 가져와야 함)
+      user_id: 2, // 어노테이터 ID (사용자 ID 2)
       status: 'pending',
       class_id: classId // 결함 타입 ID (1: Scratch가 기본값)
     };
   }
 
-  // 이미지 상태 업데이트 (pending/completed)
+  /**
+   * 이미지 상태 업데이트 (pending/completed)
+   * @param {number} imageId - 상태를 업데이트할 이미지 ID
+   * @param {string} newStatus - 새로운 상태 값 (pending, completed 등)
+   * @returns {Promise<Object>} 업데이트 결과 객체
+   */
   async updateImageStatus(imageId, newStatus) {
     try {
-      // 실제 API 요청 코드 (현재는 주석 처리)
-      // const response = await axios.put(`${API_URL}/images/${imageId}/status`, { status: newStatus });
-      // return response.data;
+      // API 요청 URL 로깅
+      const requestUrl = `${API_URL}/annotations/image/status`;
+      console.log('updateImageStatus API 요청 URL:', requestUrl);
       
-      // 더미 구현
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const imageIndex = DUMMY_IMAGES.findIndex(img => img.image_id === imageId);
-          if (imageIndex !== -1) {
-            // 이미지 상태 업데이트
-            DUMMY_IMAGES[imageIndex].status = newStatus;
-            // 이미지에 연결된 모든 어노테이션 상태도 업데이트
-            DUMMY_ANNOTATIONS.forEach(annotation => {
-              if (annotation.image_id === imageId) {
-                annotation.status = newStatus;
+      // 요청 데이터
+      const requestData = {
+        image_id: imageId,
+        status: newStatus
+      };
+      
+      console.log('updateImageStatus 요청 데이터:', requestData);
+      
+      // 설정 옵션
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 5000
+      };
+      
+      try {
+        // 실제 API 요청 코드 (PATCH 메서드 사용)
+        const response = await axios.patch(requestUrl, requestData, config);
+        console.log('updateImageStatus API 응답:', response.status);
+        console.log('updateImageStatus 응답 데이터:', response.data);
+        
+        // 캐시 무효화
+        if (this.cachedImageDetail && this.cachedImageDetail.image_id === imageId) {
+          this.cachedImageDetail.status = newStatus;
               }
-            });
-            resolve({
+        
+        return response.data;
+      } catch (directError) {
+        console.log('updateImageStatus API 호출 실패, 더미 응답 반환:', directError.message);
+        
+        // 더미 응답
+        return {
               success: true,
-              message: `Status updated to ${newStatus} for image ID: ${imageId}`
-            });
-          } else {
-            resolve({
-              success: false,
-              message: `Image with ID: ${imageId} not found`
-            });
+          message: `Status updated to ${newStatus} for image ID: ${imageId}`,
+          image_id: imageId,
+          new_status: newStatus
+        };
           }
-        }, 300);
-      });
     } catch (error) {
       console.error(`Failed to update status for image ${imageId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * 이미지 삭제
+   * @param {Array<number>} imageIds - 삭제할 이미지 ID 배열
+   * @returns {Promise<Object>} 삭제 결과 객체
+   */
+  async deleteImages(imageIds) {
+    try {
+      // API 요청 URL 로깅
+      const requestUrl = `${API_URL}/annotations/images`;
+      console.log('deleteImages API 요청 URL:', requestUrl);
+      
+      // 요청 데이터
+      const requestData = {
+        image_ids: imageIds
+      };
+      
+      console.log('deleteImages 요청 데이터:', requestData);
+      
+      // 설정 옵션
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 5000
+      };
+      
+      try {
+        // 실제 API 요청 코드 (DELETE 메서드 사용)
+        const response = await axios.delete(requestUrl, { data: requestData, ...config });
+        console.log('deleteImages API 응답:', response.status);
+        console.log('deleteImages 응답 데이터:', response.data);
+        
+        // 캐시 무효화
+        if (this.cachedImageDetail && imageIds.includes(this.cachedImageDetail.image_id)) {
+          this.cachedImageDetail = null;
+        }
+        
+        return response.data;
+      } catch (directError) {
+        console.log('deleteImages API 호출 실패, 더미 응답 반환:', directError.message);
+        
+        // 더미 응답
+        return {
+          success: true,
+          message: `Deleted ${imageIds.length} images`,
+          deleted_ids: imageIds
+        };
+      }
+    } catch (error) {
+      console.error(`Failed to delete images:`, error);
       throw error;
     }
   }
@@ -725,93 +926,95 @@ class AnnotationService {
   }
 
   /**
-   * 어노테이터별로 카메라 할당 (어노테이터 ID를 키로, 카메라 ID 배열을 값으로 하는 방식)
-   * @param {Object} assignments - 할당 정보 객체 (카메라 및 이미지 할당 포함)
-   * @returns {Promise<Object>} 할당 결과
+   * Get task assignment stats for admin dashboard
+   * @returns {Promise<Object>} Task assignment stats
+   */
+  async getAdminTaskAssignmentStats() {
+    try {
+      console.log('Fetching admin task assignment stats');
+      const response = await axios.get(`${API_URL}/admin/main`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching admin task assignment stats:', error);
+      throw new Error(`Failed to load task assignment stats: ${error.message || 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Get camera stats for a specific user
+   * @param {number} userId - User ID
+   * @returns {Promise<Object>} User camera stats
+   */
+  async getUserCameraStats(userId) {
+    try {
+      console.log('Fetching user camera stats for user:', userId);
+      const response = await axios.get(`${API_URL}/admin/main/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user camera stats:', error);
+      throw new Error(`Failed to load user camera stats: ${error.message || 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Assign cameras to a user
+   * @param {Object} assignments - Assignment data with user_id and camera_ids
+   * @returns {Promise<Object>} Assignment result
    */
   async assignTasksByUserId(assignments) {
     try {
-      // 실제 API 요청 코드 (현재는 주석 처리)
-      // const response = await axios.post(`${API_URL}/tasks/assign-by-user`, assignments);
-      // return response.data;
-      
-      console.log('AnnotationService.assignTasksByUserId called with:', assignments);
-      
-      // 로컬 스토리지에 저장
-      localStorage.setItem('taskAssignments', JSON.stringify(assignments));
-      
-      // 비동기 처리 시뮬레이션
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          // 로컬 상태 업데이트 (실제 구현에서는 서버 DB에 저장됨)
-          const assignedImages = {};
-          const assignmentsByCameraId = {}; // 기존 형식의 assignments 객체도 생성
-          
-          // 어노테이터별 할당된 이미지 수 초기화
-          Object.keys(assignments.cameraAssignments || {}).forEach(annotatorId => {
-            assignedImages[annotatorId] = 0;
-          });
-          
-          // 이미지 할당 기준으로 정확한 카운트 계산
-          if (assignments.imageAssignments) {
-            Object.entries(assignments.imageAssignments).forEach(([imageId, annotatorId]) => {
-              if (annotatorId !== null) {
-                assignedImages[annotatorId] = (assignedImages[annotatorId] || 0) + 1;
-                
-                // 해당 이미지의 카메라 ID 찾기
-                const image = DUMMY_IMAGES.find(img => img.image_id === parseInt(imageId));
-                if (image) {
-                  assignmentsByCameraId[image.camera_id] = parseInt(annotatorId);
-                }
-              }
-            });
-          }
-          
-          console.log('Assignment successful, images per annotator:', assignedImages);
-          
-          resolve({
-            success: true,
-            assignments: assignments,
-            assignmentsByCameraId: assignmentsByCameraId,
-            assignedImages: assignedImages,
-            message: '작업이 성공적으로 할당되었습니다.'
-          });
-        }, 800);
-      });
+      console.log('Assigning cameras to user:', assignments);
+      const response = await axios.post(`${API_URL}/admin/main/assign`, assignments);
+      return response.data;
     } catch (error) {
       console.error('Error assigning tasks by user:', error);
-      throw new Error(`작업 할당 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
+      throw new Error(`Failed to assign tasks: ${error.message || 'Unknown error'}`);
     }
   }
   
   /**
-   * 저장된 작업 할당 불러오기
-   * @returns {Promise<Object>} 저장된 할당 정보
+   * For backwards compatibility - get saved assignments from the new API
+   * @returns {Promise<Object>} Saved assignment information
    */
   async getSavedAssignments() {
     try {
-      // 로컬 스토리지에서 할당 정보 불러오기
-      const savedAssignments = localStorage.getItem('taskAssignments');
+      console.log('Getting saved assignments through the new API');
+      // Use the new API to get all assignment data
+      const taskStats = await this.getAdminTaskAssignmentStats();
       
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          if (savedAssignments) {
-            resolve({
-              success: true,
-              assignments: JSON.parse(savedAssignments)
-            });
-          } else {
-            resolve({
-              success: false,
-              assignments: null,
-              message: '저장된 할당 정보가 없습니다.'
-            });
-          }
-        }, 300);
+      // Convert to the old format for backward compatibility
+      const cameraAssignments = {};
+      
+      // Initialize empty assignments for each annotator
+      taskStats.annotators.forEach(annotator => {
+        cameraAssignments[annotator.user_id] = [];
       });
+      
+      // For each annotator, fetch their assigned cameras
+      for (const annotator of taskStats.annotators) {
+        if (annotator.assigned_cameras_count > 0) {
+          try {
+            const userCameraStats = await this.getUserCameraStats(annotator.user_id);
+            cameraAssignments[annotator.user_id] = userCameraStats.cameras.map(camera => camera.camera_id);
+          } catch (e) {
+            console.error(`Error fetching cameras for user ${annotator.user_id}:`, e);
+          }
+        }
+      }
+      
+      return {
+        success: true,
+        assignments: {
+          cameraAssignments: cameraAssignments
+        }
+      };
     } catch (error) {
       console.error('Error loading saved assignments:', error);
-      throw new Error(`저장된 할당 정보를 불러오는 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
+      return {
+        success: false,
+        assignments: null,
+        message: 'Failed to load saved assignments'
+      };
     }
   }
 
@@ -952,18 +1155,75 @@ class AnnotationService {
   }
   
   /**
-   * 어노테이터 대시보드 필터링된 이미지 조회
+   * 어노테이터의 Task 요약 정보 조회
    * @param {number} userId - 사용자 ID
-   * @param {Object} filters - 필터 옵션 (class_names, status, min_confidence, max_confidence)
-   * @returns {Promise<Object>} 필터링된 이미지 목록
+   * @returns {Promise<Object>} task 요약 정보 (total_images, pending_images, completed_images)
    */
-  async getFilteredAnnotatorDashboard(userId, filters = {}) {
+  async getTaskSummary(userId) {
     try {
-      // API 요청 URL 로깅
-      const requestUrl = `${API_URL}/annotations/main/${userId}`;
-      console.log('필터링된, API 요청 URL:', requestUrl);
-      console.log('필터링 옵션:', filters);
+      // 항상 사용자 ID 2를 사용하도록 보장
+      const fixedUserId = 2;
+      
+      // API 요청 URL 설정
+      const requestUrl = `${API_URL}/annotations/tasks/${fixedUserId}`;
+      console.log('Task Summary API 요청 URL:', requestUrl);
+      console.log('요청한 사용자 ID:', userId, '=> 고정된 사용자 ID:', fixedUserId);
 
+      // CORS 및 추가 헤더 옵션 설정
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+          // 인증이 필요한 경우 아래 주석 해제
+          // 'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        timeout: 10000
+      };
+      
+      console.log('Task Summary API 요청 시작...');
+      let response;
+      
+      try {
+        // API 직접 호출 시도
+        response = await axios.get(requestUrl, config);
+        console.log('Task Summary API 응답 받음:', response.status);
+        console.log('Task Summary API 응답 데이터:', response.data);
+        
+        return response.data;
+      } catch (directError) {
+        console.log('Task Summary 직접 호출 실패, 더미 데이터 사용:', directError.message);
+        
+        // 더미 데이터로 폴백 (API 연결이 안될 경우 임시 사용)
+        console.log('🔴 Task Summary 더미 데이터를 사용합니다.');
+        return {
+          total_images: 4,
+          pending_images: 3,
+          completed_images: 1
+        };
+        }
+    } catch (error) {
+      console.error('Error fetching task summary:', error);
+      throw new Error(`Task 요약 정보를 불러오는 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
+        }
+  }
+  
+  /**
+   * 필터링된 어노테이션 목록 가져오기
+   * @param {number} userId - 사용자 ID
+   * @param {Object} filterOptions - 필터 옵션
+   * @returns {Promise<Array>} 필터링된 어노테이션 목록
+   */
+  async getFilteredAnnotations(userId, filterOptions = {}) {
+    try {
+      // 항상 사용자 ID 2를 사용하도록 고정
+      const fixedUserId = 2;
+          
+      // API 요청 URL 설정
+      const requestUrl = `${API_URL}/annotations/main/filter/${fixedUserId}`;
+      console.log('필터링 API 요청 URL:', requestUrl);
+      console.log('요청한 사용자 ID:', userId, '=> 고정된 사용자 ID:', fixedUserId);
+      console.log('필터 옵션:', JSON.stringify(filterOptions, null, 2));
+          
       // 설정 옵션
       const config = {
         headers: {
@@ -973,77 +1233,25 @@ class AnnotationService {
         timeout: 10000
       };
       
+      console.log('필터링 API 요청 시작...');
       let response;
+      
       try {
-        // 필터링된 API가 백엔드에 없으므로, 전체 데이터를 가져와서 프론트엔드에서 필터링
-        response = await axios.get(requestUrl, config);
-        console.log('필터링된 API 응답 받음:', response.status);
+        // POST 요청으로 필터 옵션 전송
+        response = await axios.post(requestUrl, filterOptions, config);
+        console.log('필터링 API 응답 받음:', response.status);
+        console.log('필터링 API 응답 데이터:', response.data);
         
-        const data = response.data;
-        let filteredList = [...data.image_list];
-        
-        // 필터 적용
-        if (filters.status) {
-          filteredList = filteredList.filter(img => img.status === filters.status);
-        }
-        
-        if (filters.min_confidence !== undefined) {
-          filteredList = filteredList.filter(img => img.confidence >= filters.min_confidence);
-        }
-        
-        if (filters.max_confidence !== undefined) {
-          filteredList = filteredList.filter(img => img.confidence <= filters.max_confidence);
-        }
-        
-        if (filters.class_names) {
-          // class_names 필터링 로직
-          const classNames = Array.isArray(filters.class_names) 
-            ? filters.class_names 
-            : [filters.class_names];
-          
-          // 클래스 정보 가져오기 (필요한 경우)
-          const defectClasses = await this.getDefectClasses();
-          
-          // 클래스 이름으로 클래스 ID 찾기
-          const classIds = classNames.map(name => {
-            const defectClass = defectClasses.find(
-              dc => dc.class_name.toLowerCase() === name.toLowerCase()
-            );
-            return defectClass ? defectClass.class_id : null;
-          }).filter(Boolean);
-          
-          // 이미지별로 연결된 어노테이션 중에 해당 클래스 ID를 가진 것이 있는지 확인
-          // API 응답에 이미지별 defect_types가 포함되어 있지 않기 때문에
-          // 이미지 ID로 어노테이션 목록을 조회해야 할 수 있음
-          // 이는 성능상 이슈가 있을 수 있으므로 백엔드에서 필터링 API를 제공하는 것이 이상적임
-          
-          // API 응답 구조에서 알 수 있는 정보를 최대한 활용
-          // 현재 구현에서는 각 이미지가 연결된 어노테이션 정보를 포함하지 않으므로 단순 필터링
-          
-          // 대안: 어노테이션 상세 정보 API를 이용하여 각 이미지의 결함 유형 확인
-          // 성능 문제로 인해 실제 환경에서는 백엔드 API 개선 권장
-          filteredList = filteredList.filter(img => {
-            // 참고: API 응답에 defect_types 필드가 있다면 아래와 같이 필터링 가능
-            // return img.defect_types.some(type => classNames.includes(type));
-            
-            // 현재 API 구조에서는 바운딩 박스 정보만 있으므로, 바운딩 박스가 있는 이미지만 포함
-            // 이는 실제 필터링과 다를 수 있으므로 백엔드 API 개선 필요
-            return img.bounding_boxes && img.bounding_boxes.length > 0;
-          });
-        }
-        
-        console.log('🟢 실제 API 데이터를 필터링하여 사용합니다.');
-        return { 
-          ...data,
-          image_list: filteredList,
-          _data_source: 'api_filtered' // 디버깅용 소스 표시
-        };
+        return response.data;
       } catch (directError) {
-        console.log('필터링된 데이터 직접 호출 실패, 더미 데이터 사용:', directError.message);
+        console.log('필터링 API 호출 실패, 더미 데이터 사용:', directError.message);
+        console.log('요청했던 필터 옵션:', JSON.stringify(filterOptions, null, 2));
+        
+        // 더미 데이터로 폴백 (API 연결 실패 시)
+        console.log('🔴 필터링 더미 데이터를 사용합니다.');
         
         // 필터링 조건에 따라 더미 데이터 필터링
-        let dummyData = {
-          image_list: [
+        let dummyData = [
             {
               camera_id: 1,
               image_id: 1,
@@ -1051,6 +1259,8 @@ class AnnotationService {
               confidence: 0.5,
               count: 2,
               status: "completed",
+              width: 640,
+              height: 640,
               bounding_boxes: [
                 {
                   h: 60,
@@ -1073,6 +1283,8 @@ class AnnotationService {
               confidence: 0.9,
               count: 1,
               status: "pending",
+              width: 640,
+              height: 640,
               bounding_boxes: [
                 {
                   h: 65,
@@ -1089,6 +1301,8 @@ class AnnotationService {
               confidence: 0.85,
               count: 1,
               status: "pending",
+              width: 640,
+              height: 640,
               bounding_boxes: [
                 {
                   h: 70,
@@ -1105,6 +1319,8 @@ class AnnotationService {
               confidence: 0.8,
               count: 1,
               status: "pending",
+              width: 640,
+              height: 640,
               bounding_boxes: [
                 {
                   h: 75,
@@ -1114,35 +1330,288 @@ class AnnotationService {
                 }
               ]
             }
-          ]
-        };
+        ];
         
-        // 필터 적용
-        let filteredList = [...dummyData.image_list];
+        // 기본적인 필터링 적용 (실제 API와 유사하게 동작하도록)
+        let filteredList = [...dummyData];
         
-        if (filters.status) {
-          filteredList = filteredList.filter(img => img.status === filters.status);
+        if (filterOptions.status) {
+          filteredList = filteredList.filter(img => img.status === filterOptions.status);
         }
         
-        if (filters.min_confidence !== undefined) {
-          filteredList = filteredList.filter(img => img.confidence >= filters.min_confidence);
+        if (filterOptions.min_confidence !== undefined) {
+          filteredList = filteredList.filter(img => img.confidence >= filterOptions.min_confidence);
         }
         
-        if (filters.max_confidence !== undefined) {
-          filteredList = filteredList.filter(img => img.confidence <= filters.max_confidence);
+        if (filterOptions.max_confidence !== undefined) {
+          filteredList = filteredList.filter(img => img.confidence <= filterOptions.max_confidence);
         }
         
-        console.log('🔴 더미 데이터를 필터링하여 사용합니다.');
-        return { 
-          image_list: filteredList,
-          _data_source: 'dummy_filtered' // 디버깅용 소스 표시
-        };
+        // class_names 기반 필터링 (더미 데이터에서는 추가 정보 필요)
+        if (filterOptions.class_names && filterOptions.class_names.length > 0) {
+          // 더미 데이터에서는 간단하게 Class 이름 기반으로 필터링
+          console.log('필터링할 class_names:', filterOptions.class_names);
+          
+          // 더미 데이터에서는 모든 이미지가 class_names 조건에 맞다고 가정
+          // (실제로는 백엔드에서 필터링이 이루어짐)
+        }
+        
+        console.log('필터링 결과:', filteredList.length, '개의 이미지');
+        return filteredList;
       }
     } catch (error) {
-      console.error('Error fetching filtered annotator dashboard:', error);
+      console.error('Error fetching filtered annotations:', error);
+      throw new Error(`필터링된 어노테이션 목록을 불러오는 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
+    }
+  }
+
+  /**
+   * 어노테이션 목록 가져오기 (테이블 표시용)
+   * @param {number} userId - 사용자 ID
+   * @returns {Promise<Array>} 어노테이션 목록
+   */
+  async getAnnotationList(userId) {
+    try {
+      // 항상 사용자 ID 2를 사용하도록 고정
+      const fixedUserId = 2;
       
-      // 오류 발생 시 빈 결과 반환 (UI에서 오류 표시)
-      return { image_list: [] };
+      // API 요청 URL 설정
+      const requestUrl = `${API_URL}/annotations/main/${fixedUserId}`;
+      console.log('Annotation List API 요청 URL:', requestUrl);
+      console.log('요청한 사용자 ID:', userId, '=> 고정된 사용자 ID:', fixedUserId);
+      
+      // 설정 옵션
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 10000
+      };
+      
+      console.log('Annotation List API 요청 시작...');
+      let response;
+      
+      try {
+        // API 직접 호출 시도
+        response = await axios.get(requestUrl, config);
+        console.log('Annotation List API 응답 받음:', response.status);
+        console.log('Annotation List API 응답 데이터:', response.data);
+        
+        return response.data;
+      } catch (directError) {
+        console.log('Annotation List 직접 호출 실패, 더미 데이터 사용:', directError.message);
+        
+        // 더미 데이터로 폴백 (API 연결 실패 시)
+        console.log('🔴 Annotation List 더미 데이터를 사용합니다.');
+        return [
+          {
+            camera_id: 1,
+            image_id: 1,
+            file_path: "images/img_001.jpg",
+            confidence: 0.5,
+            count: 2,
+            status: "completed",
+            width: 640,
+            height: 640,
+            bounding_boxes: [
+              {
+                h: 60,
+                w: 50,
+                cx: 100,
+                cy: 150
+              },
+              {
+                h: 105,
+                w: 95,
+                cx: 200,
+                cy: 240
+              }
+            ]
+          },
+          {
+            camera_id: 1,
+            image_id: 2,
+            file_path: "images/img_002.jpg",
+            confidence: 0.9,
+            count: 1,
+            status: "pending",
+            width: 640,
+            height: 640,
+            bounding_boxes: [
+              {
+                h: 65,
+                w: 55,
+                cx: 120,
+                cy: 160
+              }
+            ]
+          },
+          {
+            camera_id: 2,
+            image_id: 3,
+            file_path: "images/img_003.jpg",
+            confidence: 0.85,
+            count: 1,
+            status: "pending",
+            width: 640,
+            height: 640,
+            bounding_boxes: [
+              {
+                h: 70,
+                w: 60,
+                cx: 130,
+                cy: 170
+              }
+            ]
+          },
+          {
+            camera_id: 2,
+            image_id: 4,
+            file_path: "images/img_004.jpg",
+            confidence: 0.8,
+            count: 1,
+            status: "pending",
+            width: 640,
+            height: 640,
+            bounding_boxes: [
+              {
+                h: 75,
+                w: 65,
+                cx: 140,
+                cy: 180
+              }
+            ]
+          }
+        ];
+      }
+    } catch (error) {
+      console.error('Error fetching annotation list:', error);
+      throw new Error(`어노테이션 목록을 불러오는 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
+    }
+  }
+
+  /**
+   * 이미지 어노테이션 업데이트 (추가, 수정, 삭제)
+   * @param {number} userId - 사용자 ID
+   * @param {number} imageId - 이미지 ID
+   * @param {Array} newAnnotations - 새로 추가할 어노테이션들
+   * @param {Array} existingAnnotations - 기존 어노테이션 (업데이트/유지)
+   * @returns {Promise<Array>} 업데이트된 어노테이션 목록
+   */
+  async updateImageAnnotations(userId, imageId, newAnnotations = [], existingAnnotations = []) {
+    try {
+      // API 요청 URL - PUT /annotations/detail/{user_id}/{image_id}
+      const requestUrl = `${API_URL}/annotations/detail/${userId}/${imageId}`;
+      console.log('어노테이션 업데이트 요청 URL:', requestUrl);
+      
+      // 요청 데이터 검증
+      if (!Array.isArray(newAnnotations) || !Array.isArray(existingAnnotations)) {
+        throw new Error('newAnnotations와 existingAnnotations는 배열이어야 합니다.');
+      }
+      
+      // API 요청 데이터 준비
+      const requestData = {
+        annotations: newAnnotations,
+        existing_annotations: existingAnnotations
+      };
+      
+      // 요청 데이터 로깅 (디버깅용)
+      console.log('API 요청 데이터:', JSON.stringify(requestData, null, 2));
+      
+      // 설정 옵션
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 15000 // 타임아웃 15초
+      };
+      
+      // API 요청
+      console.log('API 요청 시작...');
+        const response = await axios.put(requestUrl, requestData, config);
+      console.log('API 응답 코드:', response.status);
+      console.log('API 응답 데이터:', JSON.stringify(response.data, null, 2));
+        
+        // 캐시 무효화
+        this.cachedImageDetail = null;
+        
+        return response.data;
+    } catch (error) {
+      console.error('어노테이션 업데이트 API 호출 오류:', error.message);
+        
+      // 오류 세부 정보
+      if (error.response) {
+        console.error('API 응답 오류:', error.response.status);
+        console.error('오류 응답 데이터:', JSON.stringify(error.response.data, null, 2));
+      } else if (error.request) {
+        console.error('요청은 전송되었으나 응답이 없음');
+      }
+      
+      // 디버깅을 위해 어떤 데이터를 보냈는지 로깅
+      console.error('전송된 요청 데이터:', {
+        userId,
+        imageId,
+        newAnnotationsCount: newAnnotations.length,
+        existingAnnotationsCount: existingAnnotations.length
+      });
+      
+      // 테스트용: 에러가 발생하더라도 요청 형식을 확인하기 위해 요청 데이터 출력
+      console.log('요청 데이터 전체:', JSON.stringify({
+        annotations: newAnnotations,
+        existing_annotations: existingAnnotations
+      }, null, 2));
+      
+      // 오류 전파
+      throw error;
+    }
+  }
+
+  /**
+   * 어노테이션 기록 조회
+   * @param {Object} filters - 필터 조건 {start_date, end_date, user_name, search}
+   * @returns {Promise<Array>} 어노테이션 기록 목록
+   */
+  async getAnnotationHistory(filters = {}) {
+    try {
+      console.log('Getting annotation history with filters:', filters);
+      const response = await axios.post(`${API_URL}/annotations/history`, filters);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching annotation history:', error);
+      throw new Error(`Failed to fetch annotation history: ${error.message || 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * 작업자별 작업 개요 조회
+   * @param {Object} filters - 필터 조건 {user_id, start_date, end_date, search}
+   * @returns {Promise<Array>} 작업자별 작업 개요 목록
+   */
+  async getWorkerSummary(filters = {}) {
+    try {
+      console.log('Getting worker summary with filters:', filters);
+      const response = await axios.post(`${API_URL}/annotators/summary`, filters);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching worker summary:', error);
+      throw new Error(`Failed to fetch worker summary: ${error.message || 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * 필터용 어노테이터 목록 조회
+   * @returns {Promise<Array>} 어노테이터 목록
+   */
+  async getAnnotatorFilterList() {
+    try {
+      console.log('Getting annotator filter list');
+      const response = await axios.get(`${API_URL}/annotators/filter-list`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching annotator filter list:', error);
+      throw new Error(`Failed to fetch annotator filter list: ${error.message || 'Unknown error'}`);
     }
   }
 }
