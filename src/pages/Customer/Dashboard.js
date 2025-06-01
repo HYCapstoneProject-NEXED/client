@@ -8,7 +8,7 @@ import axios from 'axios';
 //더미데이터
 import dummyDefectData, { defectStats } from '../../data/dummyDefectData';
 
-const BASE_URL = process.env.REACT_APP_API_URL;
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://166.104.246.64:8000';
 
 const Dashboard = () => {
   const [summary, setSummary] = useState({

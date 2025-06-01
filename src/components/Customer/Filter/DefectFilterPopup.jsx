@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './FilterPopup.css';
 
+// API 기본 URL 설정 - 배포 환경에 맞게 수정
+const API_URL = process.env.REACT_APP_API_URL || 'http://166.104.246.64:8000';
+
 const DefectFilterPopup = ({ selected, onApply, onClose }) => {
   const [selectedItems, setSelectedItems] = useState(selected);
   const [defectTypes, setDefectTypes] = useState([]);
@@ -8,7 +11,7 @@ const DefectFilterPopup = ({ selected, onApply, onClose }) => {
   useEffect(() => {
     const fetchDefectTypes = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/defect-classes`);
+        const response = await fetch(`${API_URL}/defect-classes`);
         const data = await response.json();
         const activeDefects = data.filter(defect => !defect.is_deleted);
         setDefectTypes(activeDefects);

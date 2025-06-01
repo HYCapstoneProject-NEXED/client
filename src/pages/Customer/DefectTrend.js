@@ -7,7 +7,7 @@ import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContai
 import axios from 'axios';
 import './DefectTrend.css';
 
-const BASE_URL = process.env.REACT_APP_API_URL;
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://166.104.246.64:8000';
 
 const getStartDateFromType = (type) => {
     const now = new Date();

@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FaCheck, FaClock } from 'react-icons/fa';
 import { formatConfidenceScore } from '../../../utils/annotatorDashboardUtils';
 import './AnnotationGrid.css';
+import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
 
-// config 파일 대신 API 기본 URL 직접 정의
-const API_BASE_URL = 'http://166.104.246.64:8000';
+// API URL 설정
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://166.104.246.64:8000';
 
 /**
  * 체크박스 컴포넌트 - 분리된 컴포넌트

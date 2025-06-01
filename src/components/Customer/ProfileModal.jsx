@@ -4,6 +4,9 @@ import { ProfileModalContext } from '../../context/ProfileModalContext';
 import DefaultProfileIcon from './DefaultProfileIcon';
 import axios from 'axios';
 
+// API 기본 URL 설정 - 배포 환경에 맞게 수정
+const API_URL = process.env.REACT_APP_API_URL || 'http://166.104.246.64:8000';
+
 const ProfileModal = () => {
   const { isProfileOpen, setIsProfileOpen, profileImage, setProfileImage } = useContext(ProfileModalContext);
   // 상태 추가: 각 필드 값과 수정 가능 여부
@@ -26,7 +29,7 @@ const ProfileModal = () => {
       // 실제 사용 시에는 현재 로그인된 사용자의 ID를 사용해야 합니다
       const userId = 1; // 임시로 1로 설정
       
-      axios.get(`http://166.104.246.64:8000/users/${userId}`)
+      axios.get(`${API_URL}/users/${userId}`)
         .then(response => {
           setUserData(response.data);
           // 편집 가능한 필드 초기화
@@ -93,7 +96,7 @@ const ProfileModal = () => {
     }
     
     // API를 통해 프로필 정보 업데이트
-    axios.put(`http://166.104.246.64:8000/users/${userData.user_id}`, updatedData)
+    axios.put(`${API_URL}/users/${userData.user_id}`, updatedData)
     .then(response => {
       console.log('프로필 업데이트 성공:', response.data);
       // 업데이트된 데이터로 상태 갱신
@@ -131,7 +134,7 @@ const ProfileModal = () => {
         console.log('이미지 업로드 시도 중:', { userId: userData.user_id, fileName: file.name });
         
         // 이미지 업로드는 별도의 엔드포인트를 사용할 수 있음
-        axios.post(`http://166.104.246.64:8000/users/${userData.user_id}/upload-profile-image`, formData, {
+        axios.post(`${API_URL}/users/${userData.user_id}/upload-profile-image`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
