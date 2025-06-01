@@ -3,8 +3,8 @@
  * 유저 관리, 권한 관리 등 API 호출
  */
 
-// API 기본 URL
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+// API 기본 URL 설정 - 배포 환경에 맞게 수정 (/api 경로 제거)
+const API_URL = process.env.REACT_APP_API_URL || 'http://166.104.246.64:8000';
 
 // 임시 더미 데이터
 const dummyUsers = [
