@@ -14,6 +14,9 @@ import AnnotationService from '../../services/AnnotationService';
 import useHistoryControl from '../../hooks/useHistoryControl';
 import './AnnotationDetailPage.css';
 
+// API URL 가져오기
+const API_URL = process.env.REACT_APP_API_URL || 'http://166.104.246.64:8000';
+
 /**
  * 어노테이션 상세 페이지 컴포넌트
  * 어노테이션 데이터 조회만 가능 (편집 불가)
@@ -62,15 +65,58 @@ const AnnotationDetailPage = () => {
         .map(id => parseInt(id))
         .filter(id => !isNaN(id));
       
+      console.log('URL에서 이미지 ID 목록 추출:', ids);
+      
       if (ids.length > 0) {
         setSelectedIds(ids);
         const currentIdIndex = ids.indexOf(parseInt(imageIdParam));
         setCurrentIndex(currentIdIndex >= 0 ? currentIdIndex : 0);
+        
+        // 실제 현재 이미지 ID 확인
+        console.log('현재 이미지 ID:', parseInt(imageIdParam));
+        console.log('현재 인덱스:', currentIdIndex >= 0 ? currentIdIndex : 0);
+        
+        // 선택된 이미지가 2개 이상인 경우 미리 모든 이미지 데이터 로드
+        if (ids.length > 1) {
+          console.log('여러 이미지 선택됨. 모든 이미지 데이터 미리 로드 시도:', ids);
+          
+          // 상세 페이지에서는 기존 API를 사용하여 각 이미지 데이터를 개별적으로 로드
+          ids.forEach(id => {
+            // 현재 이미지는 이미 로드 중이므로 제외
+            if (id !== parseInt(imageIdParam)) {
+              try {
+                // 이미지 상세 정보 미리 로드
+                AnnotationService.getImageDetailById(id)
+                  .then(imageDetail => {
+                    console.log(`이미지 ID ${id} 상세 정보 미리 로드 완료`);
+                  })
+                  .catch(err => {
+                    console.error(`이미지 ID ${id} 상세 정보 미리 로드 실패:`, err);
+                  });
+                
+                // 어노테이션 데이터 미리 로드
+                AnnotationService.getAnnotationsByImageId(id)
+                  .then(annotations => {
+                    console.log(`이미지 ID ${id} 어노테이션 데이터 미리 로드 완료: ${annotations.length}개`);
+                  })
+                  .catch(err => {
+                    console.error(`이미지 ID ${id} 어노테이션 데이터 미리 로드 실패:`, err);
+                  });
+              } catch (e) {
+                console.error(`이미지 ID ${id} 미리 로드 중 오류:`, e);
+              }
+            }
+          });
+        }
       } else {
-        setSelectedIds([parseInt(imageIdParam)]);
+        const singleId = parseInt(imageIdParam);
+        console.log('유효한 ID가 없음, 현재 이미지 ID만 사용:', singleId);
+        setSelectedIds([singleId]);
       }
     } else {
-      setSelectedIds([parseInt(imageIdParam)]);
+      const singleId = parseInt(imageIdParam);
+      console.log('선택된 이미지 목록 없음, 현재 이미지 ID만 사용:', singleId);
+      setSelectedIds([singleId]);
     }
   }, [location.search, imageIdParam]);
   
@@ -171,20 +217,25 @@ const AnnotationDetailPage = () => {
   const updateStatus = async (newStatus) => {
     try {
       // 서버에 상태 업데이트 요청
-      await AnnotationService.updateImageStatus(imageId, newStatus);
+      const response = await AnnotationService.updateImageStatus(imageId, newStatus);
       
-      // 상태 업데이트 성공 시 UI 업데이트
-      annotationData.setDataInfo(prev => ({
-        ...prev,
-        state: newStatus
-      }));
-      
-      // 드롭다운 닫기
-      setShowStatusDropdown(false);
-      
-      console.log(`Status updated to: ${newStatus}`);
+      if (response.success) {
+        // 상태 업데이트 성공 시 UI 업데이트
+        annotationData.setDataInfo(prev => ({
+          ...prev,
+          state: newStatus
+        }));
+        
+        // 드롭다운 닫기
+        setShowStatusDropdown(false);
+        
+        console.log(`상태가 ${newStatus}(으)로 업데이트되었습니다.`);
+      } else {
+        console.error('상태 업데이트 실패:', response.message);
+        alert(`상태 업데이트에 실패했습니다: ${response.message}`);
+      }
     } catch (error) {
-      console.error('Failed to update status:', error);
+      console.error('상태 업데이트 중 오류 발생:', error);
       alert('상태 업데이트에 실패했습니다.');
     }
   };
@@ -232,16 +283,39 @@ const AnnotationDetailPage = () => {
   
   const statusInfo = getStatusInfo();
 
+  // 이미지 삭제 처리
+  const handleDeleteImage = async () => {
+    if (window.confirm('정말로 이 이미지를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+      try {
+        // 서버에 삭제 요청 보내기
+        const response = await AnnotationService.deleteImages([imageId]);
+        
+        if (response.success) {
+          console.log('이미지 삭제 성공:', response);
+          alert('이미지가 성공적으로 삭제되었습니다.');
+          
+          // 대시보드로 이동
+          navigate('/annotator/dashboard');
+        } else {
+          console.error('이미지 삭제 실패:', response.message);
+          alert(`이미지 삭제에 실패했습니다: ${response.message}`);
+        }
+      } catch (error) {
+        console.error('이미지 삭제 중 오류 발생:', error);
+        alert('이미지 삭제 중 오류가 발생했습니다.');
+      }
+    }
+  };
+
   // Add new effect to handle browser back button
   useEffect(() => {
+    // Push a new state first to ensure we can capture back button
+    window.history.pushState({ page: 'detail' }, '', window.location.href);
+    
     // This history listener will be called on popstate events (browser back/forward buttons)
     const handlePopState = () => {
-      // Navigate to the dashboard page when back button is pressed
-      if (isAdminMode) {
-        navigateBackToHistory();
-      } else {
-        navigate('/annotator/dashboard');
-      }
+      // Always navigate to dashboard when back button is pressed
+      navigate('/annotator/dashboard');
     };
     
     // Add event listener for popstate (back button)
@@ -251,13 +325,36 @@ const AnnotationDetailPage = () => {
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [isAdminMode, navigateBackToHistory, navigate]);
+  }, [navigate]);
 
   /**
    * Handle back button click to return to admin history page
    */
   const handleBackToHistory = () => {
     navigateBackToHistory();
+  };
+
+  // Add effect to log image path
+  useEffect(() => {
+    if (annotationData.dataInfo?.filePath) {
+      console.log('Using image path:', annotationData.dataInfo.filePath);
+    }
+  }, [annotationData.dataInfo?.filePath]);
+
+  // 이미지 URL 구성
+  const getImageUrl = () => {
+    // 이미지 파일 경로가 있는 경우 (API 응답에서 가져온 경우)
+    if (annotationData.dataInfo?.filePath) {
+      // 이미 전체 URL인 경우 그대로 사용
+      if (annotationData.dataInfo.filePath.startsWith('http')) {
+        return annotationData.dataInfo.filePath;
+      }
+      // API URL과 결합하여 완전한 URL 생성
+      return `${API_URL}/${annotationData.dataInfo.filePath}`;
+    }
+    
+    // 이미지 ID만 있는 경우 이미지 ID 기반 URL 구성
+    return `${API_URL}/images/${imageId}`;
   };
 
   // 로딩 중일 때 표시할 내용
@@ -336,7 +433,7 @@ const AnnotationDetailPage = () => {
               
               <button 
                 className="delete-btn"
-                onClick={handleDelete}
+                onClick={handleDeleteImage}
                 title="Delete Annotation"
                 style={{ width: 'auto', padding: '0 15px' }}
               >
@@ -375,6 +472,9 @@ const AnnotationDetailPage = () => {
               toolTypes={TOOL_TYPES}
               onCanvasClick={selection.handleCanvasClick}
               readOnly={true} // 읽기 전용 모드 활성화
+              imageSrc={getImageUrl()}
+              imageDimensions={annotationData.dataInfo.dimensions} // API 응답에서 가져온 이미지 크기 전달
+              defectClasses={annotationData.defectClasses} // 결함 클래스 정보 전달 (바운딩 박스 색상 결정용)
             />
           </div>
         </div>

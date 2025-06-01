@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom';
 
 const ProtectedRoute = ({ allowedRoles, children }) => {
   // 테스트용 가짜 유저 - 어드민 역할만 부여
-  const fakeUser = { roles: ['admin'] };
+  const fakeUser = { roles: ['annotator'] };
 
   // localStorage에서 사용자 정보 확인
   const userString = localStorage.getItem('user');

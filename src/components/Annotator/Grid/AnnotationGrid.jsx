@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaCheck, FaClock } from 'react-icons/fa';
 import { formatConfidenceScore } from '../../../utils/annotatorDashboardUtils';
 import './AnnotationGrid.css';
+
+// config 파일 대신 API 기본 URL 직접 정의
+const API_BASE_URL = 'http://166.104.246.64:8000';
 
 /**
  * 체크박스 컴포넌트 - 분리된 컴포넌트
@@ -14,6 +17,142 @@ const CheckboxCell = ({ checked, onChange }) => {
         checked={checked}
         onChange={onChange}
       />
+    </div>
+  );
+};
+
+/**
+ * 이미지 컴포넌트 - 이미지와 바운딩 박스 함께 렌더링
+ */
+const ThumbnailImage = ({ imageUrl, boundingBoxes, imageWidth, imageHeight, thumbnailSize }) => {
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
+  const imageRef = useRef(null);
+
+  // 이미지 로드 시 실제 렌더링된 크기 측정
+  const handleImageLoad = () => {
+    if (imageRef.current) {
+      const { width, height } = imageRef.current.getBoundingClientRect();
+      setImageDimensions({ width, height });
+      console.log('로드된 이미지 크기:', width, height);
+    }
+  };
+
+  return (
+    <div 
+      className="thumbnail-container" 
+      style={{ 
+        width: `${thumbnailSize}px`, 
+        height: `${thumbnailSize}px`,
+        position: 'relative',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflow: 'hidden'
+      }}
+    >
+      <img 
+        ref={imageRef}
+        src={imageUrl}
+        alt="썸네일"
+        onLoad={handleImageLoad}
+        onError={(e) => {
+          e.target.onerror = null;
+          e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>';
+        }}
+        style={{ 
+          maxWidth: '100%', 
+          maxHeight: '100%', 
+          objectFit: 'contain',
+          display: 'block'
+        }}
+      />
+      {boundingBoxes && boundingBoxes.length > 0 && imageDimensions.width > 0 && (
+        <BoundingBoxOverlay 
+          boxes={boundingBoxes} 
+          originalWidth={imageWidth}
+          originalHeight={imageHeight}
+          renderedWidth={imageDimensions.width}
+          renderedHeight={imageDimensions.height}
+          containerSize={thumbnailSize}
+        />
+      )}
+    </div>
+  );
+};
+
+/**
+ * 바운딩 박스 오버레이 컴포넌트
+ */
+const BoundingBoxOverlay = ({ boxes, originalWidth, originalHeight, renderedWidth, renderedHeight, containerSize }) => {
+  if (!boxes || boxes.length === 0) return null;
+  
+  console.log('바운딩 박스 오버레이:', {
+    boxes, 
+    originalDimensions: { width: originalWidth, height: originalHeight },
+    renderedDimensions: { width: renderedWidth, height: renderedHeight },
+    containerSize
+  });
+  
+  // 이미지 위치 계산 (중앙 정렬)
+  const offsetX = (containerSize - renderedWidth) / 2;
+  const offsetY = (containerSize - renderedHeight) / 2;
+  
+  return (
+    <div 
+      className="bounding-boxes-container"
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none'
+      }}
+    >
+      {boxes.map((box, index) => {
+        let boxColor = box.class_color || '#FF5722';
+        
+        try {
+          // API에서 넘어온 정규화된 값(0~1) 처리
+          const h = box.h || 0;  // 높이 (정규화)
+          const w = box.w || 0;  // 너비 (정규화)
+          const cx = box.cx || 0; // x 중심점 (정규화)
+          const cy = box.cy || 0; // y 중심점 (정규화)
+          
+          // 정규화된 값을 실제 렌더링 크기로 변환
+          const boxWidth = w * renderedWidth;
+          const boxHeight = h * renderedHeight;
+          
+          // 중심점에서 좌상단 좌표로 변환
+          const x = offsetX + (cx * renderedWidth) - (boxWidth / 2);
+          const y = offsetY + (cy * renderedHeight) - (boxHeight / 2);
+          
+          console.log(`박스 #${index}:`, { 
+            원본정규화: { cx, cy, w, h }, 
+            변환결과: { x, y, width: boxWidth, height: boxHeight } 
+          });
+          
+          return (
+            <div 
+              key={index}
+              style={{
+                position: 'absolute',
+                left: `${x}px`,
+                top: `${y}px`,
+                width: `${boxWidth}px`,
+                height: `${boxHeight}px`,
+                border: `2px solid ${boxColor}`,
+                backgroundColor: `${boxColor}20`,
+                boxSizing: 'border-box'
+              }}
+              title={box.class_name || ''}
+            />
+          );
+        } catch (error) {
+          console.error('바운딩 박스 렌더링 오류:', error, box);
+          return null;
+        }
+      }).filter(Boolean)}
     </div>
   );
 };
@@ -39,6 +178,9 @@ const AnnotationGrid = ({
   // 내부 상태 사용 여부 결정 (부모로부터 props가 전달되지 않은 경우 내부 상태 사용)
   const [internalSelectedItems, setInternalSelectedItems] = useState({});
   const [selectAll, setSelectAll] = useState(false);
+  
+  // 썸네일 크기 설정
+  const THUMBNAIL_SIZE = 140; // 썸네일 크기 (픽셀)
   
   // 실제 사용할 상태 및 setter 결정
   const effectiveSelectedItems = setSelectedItems ? selectedItems : internalSelectedItems;
@@ -76,7 +218,7 @@ const AnnotationGrid = ({
       const allSelected = annotations.every(item => 
         newItems[item.id] === true
       );
-    setSelectAll(allSelected);
+      setSelectAll(allSelected);
       
       return newItems;
     });
@@ -137,6 +279,16 @@ const AnnotationGrid = ({
   const renderCard = (annotation) => {
     const isSelected = !!effectiveSelectedItems[annotation.id];
     
+    // 이미지 경로 및 크기 정보
+    const imagePath = annotation.filePath || (annotation.dimensions && annotation.dimensions.imagePath);
+    const imageWidth = annotation.dimensions?.width || 640;
+    const imageHeight = annotation.dimensions?.height || 640;
+    
+    // 이미지 URL 구성
+    const imageUrl = imagePath ? 
+      (imagePath.startsWith('http') ? imagePath : `${API_BASE_URL}/${imagePath}`) : 
+      null;
+    
     return (
       <div 
         key={annotation.id}
@@ -148,19 +300,28 @@ const AnnotationGrid = ({
             className="checkbox-container" 
             onClick={(e) => e.stopPropagation()}
           >
-          <CheckboxCell 
-            checked={isSelected}
-            onChange={(e) => handleSelectItem(e, annotation.id)}
-          />
+            <CheckboxCell 
+              checked={isSelected}
+              onChange={(e) => handleSelectItem(e, annotation.id)}
+            />
           </div>
           <div className="annotation-title">{annotation.id}</div>
         </div>
         
         <div className="annotation-card-image-container">
-          {/* 여기에 실제 이미지가 들어갈 것입니다. 현재는 플레이스홀더로 대체 */}
-          <div className="thumbnail-placeholder">
-            <span>Image</span>
-          </div>
+          {imageUrl ? (
+            <ThumbnailImage 
+              imageUrl={imageUrl}
+              boundingBoxes={annotation.boundingBoxes || []}
+              imageWidth={imageWidth}
+              imageHeight={imageHeight}
+              thumbnailSize={THUMBNAIL_SIZE}
+            />
+          ) : (
+            <div className="thumbnail-placeholder">
+              <span>Image</span>
+            </div>
+          )}
         </div>
         
         <div className="card-content">

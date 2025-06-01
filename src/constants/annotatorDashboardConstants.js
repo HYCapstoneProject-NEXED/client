@@ -9,13 +9,13 @@ export const FILTER_TYPES = {
   CONFIDENCE_SCORE: 'confidence_score'
 };
 
-// 결함 유형 필터 옵션
+// 결함 유형 필터 옵션 (최초 불러올 때 기본 값, API에서 실제 데이터 로드 가능)
 export const DEFECT_TYPE_FILTERS = [
   { id: 'all', label: 'All Types' },
   { id: 'scratch', label: 'Scratch' },
   { id: 'dent', label: 'Dent' },
-  { id: 'discoloration', label: 'Discoloration' },
-  { id: 'contamination', label: 'Contamination' }
+  { id: 'crack', label: 'Crack' },
+  { id: 'particle', label: 'Particle' }
 ];
 
 // 상태 필터 옵션

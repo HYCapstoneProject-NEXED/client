@@ -10,6 +10,7 @@ import { FaEye, FaCheck } from 'react-icons/fa';
 import './AdminDashboard.css';
 import './History.css';
 import useHistoryControl from '../../hooks/useHistoryControl';
+import AnnotationService from '../../services/AnnotationService';
 
 /**
  * Admin history page component
@@ -19,6 +20,8 @@ const History = () => {
   const navigate = useNavigate();
   const [historyData, setHistoryData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
+  const [annotatorStats, setAnnotatorStats] = useState([]);
+  const [annotatorList, setAnnotatorList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterOpen, setFilterOpen] = useState({
     annotator: false,
@@ -31,79 +34,92 @@ const History = () => {
     endDate: ''
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState('');
   
   // Use history control to manage back navigation
   useHistoryControl();
 
-  // Mock data for example purposes
-  const mockData = [
-    { id: 1, annotator: 'Woo', date: '2025-01-01', details: '/details/1' },
-    { id: 2, annotator: 'Woo', date: '2025-01-01', details: '/details/2' },
-    { id: 3, annotator: 'Woo', date: '2025-01-01', details: '/details/3' },
-    { id: 4, annotator: 'Woo', date: '2025-01-01', details: '/details/4' },
-    { id: 5, annotator: 'Woo', date: '2025-01-01', details: '/details/5' },
-    { id: 6, annotator: 'Woo', date: '2025-01-01', details: '/details/6' },
-    { id: 7, annotator: 'Kim', date: '2025-01-02', details: '/details/7' },
-    { id: 8, annotator: 'Park', date: '2025-01-03', details: '/details/8' },
-    { id: 9, annotator: 'Lee', date: '2025-01-03', details: '/details/9' },
-    { id: 10, annotator: 'Choi', date: '2025-01-04', details: '/details/10' },
-  ];
-
-  // Extract unique values for annotator filter
-  const annotators = ['All', ...new Set(mockData.map(item => item.annotator))];
-
+  // Load annotator filter list on component mount
   useEffect(() => {
-    // Simulate API call to fetch history data
-    setTimeout(() => {
-      setHistoryData(mockData);
-      setFilteredData(mockData);
-      setLoading(false);
-    }, 1000);
+    const fetchAnnotatorList = async () => {
+      try {
+        const data = await AnnotationService.getAnnotatorFilterList();
+        // Add "All" option to the list
+        setAnnotatorList([{ user_id: -1, name: 'All' }, ...data]);
+      } catch (err) {
+        console.error('Error fetching annotator list:', err);
+        setError('Failed to load annotator list');
+      }
+    };
+    
+    fetchAnnotatorList();
   }, []);
 
+  // Fetch history data when filters change
   useEffect(() => {
-    // Apply filters when they change
-    let result = historyData;
+    const fetchHistoryData = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        
+        // Prepare filter parameters
+        const historyFilters = {
+          start_date: dateRange.startDate || undefined,
+          end_date: dateRange.endDate || undefined,
+          user_name: filters.annotator !== 'All' ? filters.annotator : undefined,
+          search: searchTerm || undefined,
+          status: 'completed' // Always filter for completed status
+        };
+        
+        // Fetch annotation history
+        const historyData = await AnnotationService.getAnnotationHistory(historyFilters);
+        setHistoryData(historyData);
+        
+        // Fetch worker summary stats
+        const summaryFilters = {
+          start_date: dateRange.startDate || undefined,
+          end_date: dateRange.endDate || undefined,
+          search: searchTerm || undefined,
+          status: 'completed' // Always filter for completed status
+        };
+        
+        // Add user_id to filters if specific annotator is selected
+        if (filters.annotator !== 'All') {
+          const selectedAnnotator = annotatorList.find(a => a.name === filters.annotator);
+          if (selectedAnnotator) {
+            summaryFilters.user_id = selectedAnnotator.user_id;
+          }
+        }
+        
+        const summaryData = await AnnotationService.getWorkerSummary(summaryFilters);
+        setAnnotatorStats(summaryData);
+        
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching history data:', err);
+        setError('Failed to load history data');
+        setLoading(false);
+      }
+    };
     
-    // Apply annotator filter
-    if (filters.annotator !== 'All') {
-      result = result.filter(item => item.annotator === filters.annotator);
+    if (annotatorList.length > 0) {
+      fetchHistoryData();
     }
-    
-    // Apply date range filter
-    if (dateRange.startDate && dateRange.endDate) {
-      const start = new Date(dateRange.startDate);
-      const end = new Date(dateRange.endDate);
-      result = result.filter(item => {
-        const itemDate = new Date(item.date);
-        return itemDate >= start && itemDate <= end;
-      });
-    }
-    
-    // Apply search term
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      result = result.filter(item => 
-        String(item.id).toLowerCase().includes(term) || 
-        item.annotator.toLowerCase().includes(term)
-      );
-    }
-    
+  }, [filters, dateRange, searchTerm, annotatorList]);
+
+  // Update filtered data when history data changes
+  useEffect(() => {
     // Sort by date in descending order (newest first)
-    result = [...result].sort((a, b) => {
-      return new Date(b.date) - new Date(a.date);
+    const sortedData = [...historyData].sort((a, b) => {
+      return new Date(b.annotation_date) - new Date(a.annotation_date);
     });
     
-    setFilteredData(result);
-  }, [filters, searchTerm, historyData, dateRange]);
+    setFilteredData(sortedData);
+  }, [historyData]);
 
   const handleViewDetails = (item) => {
-    // Navigate to the annotator detail page with the item ID
-    // We're using the numeric part of the ID for demo purposes
-    const numericId = item.id;
-    // Create an array with just this ID for the selectedIds query parameter
-    // Add isAdmin=true to indicate we're viewing from admin mode (to hide edit/delete buttons)
-    navigate(`/annotator/detail/${numericId}?selectedIds=${numericId}&isAdmin=true`);
+    // Navigate to the annotator detail page with the image ID
+    navigate(`/annotator/detail/${item.image_id}?selectedIds=${item.image_id}&isAdmin=true`);
   };
 
   const toggleFilter = (filter) => {
@@ -133,6 +149,21 @@ const History = () => {
     }));
   };
 
+  // Function to get unique annotator names from history data
+  const getAnnotatorNames = () => {
+    return ['All', ...new Set(historyData.map(item => item.user_name))];
+  };
+
+  // Function to format date for display
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    } catch (e) {
+      return dateString;
+    }
+  };
+
   return (
     <div className="admin-dashboard-page">
       <AdminSidebar activeMenu="history" />
@@ -147,6 +178,10 @@ const History = () => {
             </div>
           </div>
           
+          {error && (
+            <div className="error-message">{error}</div>
+          )}
+          
           <div className="history-container">
             {/* Left sidebar with filters and stats */}
             <div className="history-left-sidebar">
@@ -154,14 +189,14 @@ const History = () => {
               <div className="sidebar-section">
                 <h3>사용자 필터</h3>
                 <div className="annotator-filter-list">
-                  {annotators.map((annotator, index) => (
+                  {annotatorList.map((annotator) => (
                     <div 
-                      key={index} 
-                      className={`annotator-filter-item ${annotator === filters.annotator ? 'selected' : ''}`}
-                      onClick={() => handleFilterChange('annotator', annotator)}
+                      key={annotator.user_id} 
+                      className={`annotator-filter-item ${annotator.name === filters.annotator ? 'selected' : ''}`}
+                      onClick={() => handleFilterChange('annotator', annotator.name)}
                     >
-                      {annotator === filters.annotator && <FaCheck className="check-icon" />}
-                      <span>{annotator}</span>
+                      {annotator.name === filters.annotator && <FaCheck className="check-icon" />}
+                      <span>{annotator.name}</span>
                     </div>
                   ))}
                 </div>
@@ -171,15 +206,16 @@ const History = () => {
               <div className="sidebar-section">
                 <h3>작업자별 통계</h3>
                 <div className="workload-bars">
-                  {annotators.filter(name => name !== 'All').map((annotator, index) => {
-                    const count = filteredData.filter(item => item.annotator === annotator).length;
-                    const percentage = Math.round((count / mockData.length) * 100);
+                  {annotatorStats.map((stat, index) => {
+                    // Calculate percentage of total work
+                    const totalWork = annotatorStats.reduce((sum, item) => sum + item.work_count, 0);
+                    const percentage = totalWork > 0 ? Math.round((stat.work_count / totalWork) * 100) : 0;
                     
                     return (
                       <div key={index} className="workload-item">
                         <div className="workload-info">
-                          <span className="annotator-name">{annotator}</span>
-                          <span className="workload-count">{count} 작업</span>
+                          <span className="annotator-name">{stat.user_name}</span>
+                          <span className="workload-count">{stat.work_count} 작업</span>
                         </div>
                         <div className="workload-bar-container">
                           <div 
@@ -201,7 +237,7 @@ const History = () => {
                 <div className="search-box">
                   <input 
                     type="text" 
-                    placeholder="Search by Data ID or Annotator..." 
+                    placeholder="Search by Image ID or Annotator..." 
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -242,18 +278,20 @@ const History = () => {
                       <table className="assignment-table">
                         <thead>
                           <tr>
-                            <th>Data ID</th>
-                            <th>Annotator ID</th>
+                            <th>Image ID</th>
+                            <th>Annotator</th>
                             <th>Date</th>
+                            <th>Status</th>
                             <th className="text-right">View</th>
                           </tr>
                         </thead>
                         <tbody>
                           {filteredData.map((item, index) => (
                             <tr key={index}>
-                              <td className="camera-id-cell">{item.id}</td>
-                              <td>{item.annotator}</td>
-                              <td>{item.date}</td>
+                              <td className="camera-id-cell">{item.image_id}</td>
+                              <td>{item.user_name}</td>
+                              <td>{formatDate(item.annotation_date)}</td>
+                              <td>{item.image_status}</td>
                               <td>
                                 <button 
                                   className="view-button"

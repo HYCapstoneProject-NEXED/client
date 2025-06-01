@@ -219,15 +219,31 @@ const dummyPendingApprovals = [
 class UserService {
   /**
    * 모든 사용자 목록 가져오기
+   * @param {string} role - 필터링할 사용자 역할 (all_roles, admin, customer, ml_engineer, annotator)
+   * @param {string} search - 검색어
    * @returns {Promise<Array>} 사용자 목록
    */
-  async getAllUsers() {
-    // 실제 API 연동 시 구현 예정
-    // const response = await fetch('/api/users');
-    // return response.json();
-
-    // 임시 데이터 반환
-    return Promise.resolve(dummyUsers);
+  async getAllUsers(role = 'all_roles', search = '') {
+    try {
+      // 쿼리 파라미터 구성
+      const queryParams = new URLSearchParams();
+      if (role) queryParams.append('role', role);
+      if (search) queryParams.append('search', search);
+      
+      // 실제 API 호출
+      const response = await fetch(`${API_URL}/users?${queryParams.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      
+      // API 호출 실패 시 임시 데이터 반환 (개발용)
+      return Promise.resolve(dummyUsers);
+    }
   }
 
   /**
@@ -240,15 +256,30 @@ class UserService {
 
   /**
    * 대기 중인 승인 요청 목록 가져오기
+   * 
+   * 기능 설명:
+   * 1. 가입 승인을 기다리는 유저(`approval_status=pending`, `is_active=False`)의 목록을 가져옵니다.
+   * 2. 가입 승인 요청이 오래된 순으로 정렬됩니다 (user_id 기준).
+   * 3. 각 유저의 이름, 이메일, 역할, 생년월일, 성별 정보를 제공합니다.
+   * 
    * @returns {Promise<Array>} 승인 대기 중인 사용자 목록
    */
   async getPendingApprovals() {
-    // 실제 API 연동 시 구현 예정
-    // const response = await fetch('/api/users/pending');
-    // return response.json();
-
-    // 임시 데이터 반환
-    return Promise.resolve(dummyPendingApprovals);
+    try {
+      // 실제 API 호출
+      const response = await fetch(`${API_URL}/users/pending-approvals`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch pending approvals');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching pending approvals:', error);
+      
+      // API 호출 실패 시 임시 데이터 반환 (개발용)
+      return Promise.resolve(dummyPendingApprovals);
+    }
   }
 
   /**
@@ -260,41 +291,71 @@ class UserService {
   }
 
   /**
-   * 사용자 승인하기
+   * 사용자 승인/거절 처리
    * @param {number} userId - 사용자 ID
-   * @param {boolean} isApproved - 승인 여부
+   * @param {boolean} isApproved - 승인 여부 (true: 승인, false: 거절)
    * @returns {Promise<Object>} 처리 결과
    */
   async approveUser(userId, isApproved) {
-    // 실제 API 연동 시 구현 예정
-    // const response = await fetch(`/api/users/${userId}/approve`, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ isApproved })
-    // });
-    // return response.json();
-
-    // 임시 성공 응답 반환
-    return Promise.resolve({ success: true });
+    try {
+      // action 값 설정 (approve 또는 reject)
+      const action = isApproved ? 'approve' : 'reject';
+      
+      // 실제 API 호출
+      const response = await fetch(`${API_URL}/users/${userId}/approval`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to ${action} user`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error(`Error ${isApproved ? 'approving' : 'rejecting'} user:`, error);
+      
+      // API 호출 실패 시 임시 성공 응답 반환 (개발용)
+      return Promise.resolve({ success: true });
+    }
   }
 
   /**
    * 사용자 역할 업데이트
    * @param {number} userId - 사용자 ID
-   * @param {string} role - 새 역할
+   * @param {string} role - 새 역할 (admin, customer, ml_engineer, annotator)
    * @returns {Promise<Object>} 처리 결과
    */
   async updateUserRole(userId, role) {
-    // 실제 API 연동 시 구현 예정
-    // const response = await fetch(`/api/users/${userId}/role`, {
-    //   method: 'PATCH',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ role })
-    // });
-    // return response.json();
-
-    // 임시 성공 응답 반환
-    return Promise.resolve({ success: true });
+    try {
+      // API에 맞게 user_type 형식으로 변환
+      const userType = role.toLowerCase();
+      let mappedUserType = userType;
+      
+      // MLEng를 ml_engineer로 변환
+      if (userType === 'mleng') {
+        mappedUserType = 'ml_engineer';
+      }
+      
+      // 실제 API 호출
+      const response = await fetch(`${API_URL}/users/${userId}/role`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_type: mappedUserType })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update user role');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      
+      // API 호출 실패 시 임시 성공 응답 반환 (개발용)
+      return Promise.resolve({ success: true });
+    }
   }
 
   /**
@@ -304,32 +365,50 @@ class UserService {
    * @returns {Promise<Object>} 처리 결과
    */
   async updateUserActiveStatus(userId, isActive) {
-    // 실제 API 연동 시 구현 예정
-    // const response = await fetch(`/api/users/${userId}/status`, {
-    //   method: 'PATCH',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ isActive })
-    // });
-    // return response.json();
-
-    // 임시 성공 응답 반환
+    // 비활성화인 경우 deactivateUser 호출
+    if (!isActive) {
+      return this.deactivateUser(userId);
+    }
+    
+    // 활성화 상태 변경을 위한 API 엔드포인트가 없으므로
+    // 임시 성공 응답 반환 (개발용)
     return Promise.resolve({ success: true });
   }
 
   /**
-   * 사용자 삭제
+   * 사용자 비활성화 (삭제)
+   * @param {number} userId - 사용자 ID
+   * @returns {Promise<Object>} 처리 결과
+   */
+  async deactivateUser(userId) {
+    try {
+      // 실제 API 호출
+      const response = await fetch(`${API_URL}/users/${userId}/deactivate`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to deactivate user');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error deactivating user:', error);
+      
+      // API 호출 실패 시 임시 성공 응답 반환 (개발용)
+      return Promise.resolve({ success: true, user_id: userId, is_active: false });
+    }
+  }
+
+  /**
+   * 사용자 삭제 (이전 메소드, 호환성 유지)
+   * @deprecated deactivateUser를 사용하세요
    * @param {number} userId - 사용자 ID
    * @returns {Promise<Object>} 처리 결과
    */
   async deleteUser(userId) {
-    // 실제 API 연동 시 구현 예정
-    // const response = await fetch(`/api/users/${userId}`, {
-    //   method: 'DELETE'
-    // });
-    // return response.json();
-
-    // 임시 성공 응답 반환
-    return Promise.resolve({ success: true });
+    return this.deactivateUser(userId);
   }
 }
 

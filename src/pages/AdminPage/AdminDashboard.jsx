@@ -21,19 +21,21 @@ const Members = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [tempSearchTerm, setTempSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const searchInputRef = useRef(null);
   
   // Use history control to manage back navigation
   useHistoryControl();
 
   // Role options
   const roleOptions = [
-    { id: 'all', label: 'All Roles' },
+    { id: 'all_roles', label: 'All Roles' },
     { id: 'admin', label: 'Admin' },
     { id: 'customer', label: 'Customer' },
-    { id: 'mleng', label: 'ML Engineer' },
+    { id: 'ml_engineer', label: 'ML Engineer' },
     { id: 'annotator', label: 'Annotator' }
   ];
 
@@ -51,90 +53,112 @@ const Members = () => {
     };
   }, []);
   
+  // 검색어 상태 동기화
+  useEffect(() => {
+    setTempSearchTerm(searchTerm);
+  }, [searchTerm]);
+  
   // Load user list
   useEffect(() => {
-    const fetchUsers = async () => {
+    const loadUsers = async () => {
       setIsLoading(true);
+      setError(null);
       try {
-        // Use dummy data during development
-        const users = UserService.getDummyUsers();
-        setUsers(users);
-        
-        // Uncomment for API integration
-        // const response = await UserService.getAllUsers();
-        // setUsers(response);
-        
-        setError(null);
+        // API에서 사용자 목록 가져오기
+        // roleFilter가 'all'이면 'all_roles'로 변환
+        const role = roleFilter === 'all' ? 'all_roles' : roleFilter;
+        const response = await UserService.getAllUsers(role, searchTerm);
+        setUsers(response);
       } catch (err) {
-        console.error('Failed to fetch users:', err);
-        setError('Failed to load user list.');
+        console.error('Failed to load users:', err);
+        setError('Failed to load users. Please try again.');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchUsers();
-  }, []);
+    loadUsers();
+  }, [roleFilter, searchTerm]);
 
-  // Filter users based on search and role filter
-  const filteredUsers = users.filter((user) => {
-    // Search term filtering
-    const matchesSearch = 
-      (user.name && user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      user.google_email.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    // Role filtering
-    const matchesRole = 
-      roleFilter === 'all' || 
-      (user.user_type && user.user_type.toLowerCase() === roleFilter.toLowerCase());
-    
-    return matchesSearch && matchesRole;
-  });
+  // Filter users based on search term and role filter
+  const filteredUsers = users;
 
   // Handle role change
   const handleRoleChange = async (userId, newRole) => {
-    try {
-      // Update dummy data during development
-      setUsers(users.map(user => 
-        user.user_id === userId ? { ...user, user_type: newRole } : user
-      ));
-      
-      // Uncomment for API integration
-      // await UserService.updateUserRole(userId, newRole);
-    } catch (err) {
-      console.error('Failed to update user role:', err);
-      setError('Failed to update user role.');
+    if (window.confirm(`정말 이 사용자의 역할을 ${newRole}로 변경하시겠습니까?`)) {
+      try {
+        setIsLoading(true);
+        
+        // API 호출하여 역할 변경
+        const response = await UserService.updateUserRole(userId, newRole);
+        
+        if (response) {
+          // 성공적으로 변경된 경우 UI 업데이트
+          setUsers(users.map(user => 
+            user.user_id === userId ? { ...user, user_type: newRole } : user
+          ));
+          
+          console.log(`사용자 ${userId}의 역할이 ${newRole}로 변경되었습니다.`);
+        }
+      } catch (err) {
+        console.error('Failed to update user role:', err);
+        setError('Failed to update user role.');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
   // Handle status change
   const handleStatusChange = async (userId, isActive) => {
     try {
-      // Update dummy data during development
-      setUsers(users.map(user => 
-        user.user_id === userId ? { ...user, is_active: isActive } : user
-      ));
+      setIsLoading(true);
       
-      // Uncomment for API integration
-      // await UserService.updateUserActiveStatus(userId, isActive);
+      // API 호출하여 상태 변경
+      const response = await UserService.updateUserActiveStatus(userId, isActive);
+      
+      if (response) {
+        // 성공적으로 변경된 경우 UI 업데이트
+        setUsers(users.map(user => 
+          user.user_id === userId ? { ...user, is_active: isActive } : user
+        ));
+        
+        console.log(`사용자 ${userId}의 상태가 ${isActive ? '활성화' : '비활성화'}되었습니다.`);
+      }
     } catch (err) {
       console.error('Failed to update user status:', err);
       setError('Failed to update user status.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   // Handle user deletion
   const handleDeleteUser = async (userId) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
+    if (window.confirm('정말로 이 사용자를 비활성화하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
       try {
-        // Update dummy data during development
-        setUsers(users.filter(user => user.user_id !== userId));
+        setIsLoading(true);
         
-        // Uncomment for API integration
-        // await UserService.deleteUser(userId);
+        // API 호출하여 사용자 비활성화 (삭제)
+        const response = await UserService.deactivateUser(userId);
+        
+        if (response && response.user_id) {
+          // 성공적으로 비활성화된 경우 UI 업데이트
+          // 옵션 1: 사용자를 목록에서 제거
+          setUsers(users.filter(user => user.user_id !== userId));
+          
+          // 옵션 2: 사용자의 is_active 상태만 변경
+          // setUsers(users.map(user => 
+          //   user.user_id === userId ? { ...user, is_active: false } : user
+          // ));
+          
+          console.log(`사용자 ${userId}가 비활성화되었습니다.`);
+        }
       } catch (err) {
-        console.error('Failed to delete user:', err);
-        setError('Failed to delete user.');
+        console.error('Failed to deactivate user:', err);
+        setError('Failed to deactivate user.');
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -159,6 +183,18 @@ const Members = () => {
   const getSelectedRoleLabel = () => {
     const selectedRole = roleOptions.find(option => option.id === roleFilter);
     return selectedRole ? selectedRole.label : 'All Roles';
+  };
+
+  // 검색 실행 함수
+  const handleSearch = () => {
+    setSearchTerm(tempSearchTerm);
+  };
+
+  // 엔터 키 처리 함수
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
   };
 
   // Loading state
@@ -194,8 +230,10 @@ const Members = () => {
                 <input
                   type="text"
                   placeholder="Search by name or email"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={tempSearchTerm}
+                  onChange={(e) => setTempSearchTerm(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  ref={searchInputRef}
                 />
               </div>
               

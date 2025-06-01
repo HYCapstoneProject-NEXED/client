@@ -1,41 +1,52 @@
 .image-canvas {
-  flex: 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  user-select: none;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto; /* 화면이 작아져도 스크롤 가능하도록 변경 */
-  position: relative;
-  /* 스크롤 금지 제거 */
+  /* 하드웨어 가속 활성화 */
+  transform: translateZ(0);
+  /* 스크롤 방지 */
+  overscroll-behavior: none;
 }
 
 .image-container {
-  /* 절대 고정 크기 설정 */
-  width: 800px !important;
-  height: 600px !important;
-  min-width: 800px !important; /* 최소 크기도 고정 */
-  min-height: 600px !important;
-  max-width: 800px !important;
-  max-height: 600px !important;
+  position: relative;
   background: #F0F0F0;
   border-radius: 0;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transform-origin: center;
-  transition: transform 0.1s ease;
+  display: inline-block;
+  transform-origin: center center;
+  /* 하드웨어 가속 및 성능 최적화 */
   will-change: transform;
-  /* 마우스 기본 동작 방지 */
+  backface-visibility: hidden;
+  /* 부드러운 변환을 위한 설정 */
+  transition: none;
   touch-action: none;
-  overflow: visible; /* 라벨이 이미지 영역 밖으로 나갈 수 있도록 변경 */
-  /* 박스 그림자 추가 */
+  overflow: visible;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(0, 0, 0, 0.1);
-  /* 크기가 줄어들지 않도록 설정 */
   flex-shrink: 0;
+  /* 이미지 품질 최적화 */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+.image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  transition: none;
+  display: block;
+  z-index: 1;
+  /* 이미지 품질 최적화 */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  /* 하드웨어 가속 */
+  transform: translateZ(0);
 }
 
 .annotation-image {
@@ -47,11 +58,10 @@
 /* 결함 바운딩 박스 스타일 */
 .bounding-box {
   position: absolute;
-  border: 2px solid;
-  box-sizing: border-box;
-  cursor: move; /* 내부 영역에서만 move 커서 */
-  transition: border-width 0.2s ease, box-shadow 0.2s ease;
-  background: transparent !important; /* 모든 바운딩 박스의 배경을 강제로 투명하게 설정 */
+  border: 3px solid #00B69B;
+  cursor: move;
+  transition: none;
+  background: transparent !important;
 }
 
 .bounding-box.read-only {
@@ -59,9 +69,8 @@
 }
 
 .bounding-box.selected {
-  border-width: 3px;
-  box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.5);
-  animation: pulse-border 1.5s infinite ease-in-out;
+  border-width: 4px;
+  transition: none;
 }
 
 /* 바운딩 박스 호버시 스타일 - 읽기전용 모드에서는 비활성화 */
@@ -83,6 +92,26 @@
 }
 
 /* 결함 타입별 색상 */
+.annotator-defect-1 {
+  border-color: #00B69B;
+  background: transparent;
+}
+
+.annotator-defect-2 {
+  border-color: #5A8CFF;
+  background: transparent;
+}
+
+.annotator-defect-3 {
+  border-color: #EF3826;
+  background: transparent;
+}
+
+.annotator-defect-4 {
+  border-color: #FCAA0B;
+  background: transparent;
+}
+
 .annotator-defect-a {
   border-color: #00B69B;
   background: transparent;
@@ -122,44 +151,52 @@
 /* 결함 ID와 신뢰도 표시 - 모든 박스에 적용되는 공통 스타일 */
 .annotator-box-label {
   position: absolute;
-  top: -25px;
+  top: -35px;
   left: 0;
-  padding: 3px 10px;
+  padding: 6px 12px;
   color: white;
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 700;
   font-family: 'Nunito Sans', sans-serif;
   white-space: nowrap;
   user-select: none;
-  z-index: 1000; /* 높은 z-index로 다른 요소 위에 표시 */
-  pointer-events: auto; /* 라벨 클릭 가능하도록 변경 */
+  z-index: 1000;
+  pointer-events: auto;
+  transition: none;
+  border-radius: 6px;
+  transform-origin: left bottom;
+  min-width: 40px;
+  text-align: center;
+  /* 스케일에 관계없이 일정한 크기 유지 */
+  transform: scale(var(--label-scale, 1));
 }
 
 /* 리사이즈 핸들 스타일 */
 .resize-handle {
+  position: absolute;
   width: 10px;
   height: 10px;
-  background: white;
-  border: 1px solid;
-  position: absolute;
+  background-color: white;
+  border: 1px solid #666;
+  transition: none;
   border-radius: 50%;
   z-index: 101;
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
 }
 
-.annotator-defect-a .resize-handle {
+.annotator-defect-1 .resize-handle {
   border-color: #00B69B;
 }
 
-.annotator-defect-b .resize-handle {
+.annotator-defect-2 .resize-handle {
   border-color: #5A8CFF;
 }
 
-.annotator-defect-c .resize-handle {
+.annotator-defect-3 .resize-handle {
   border-color: #EF3826;
 }
 
-.annotator-defect-d .resize-handle {
+.annotator-defect-4 .resize-handle {
   border-color: #FCAA0B;
 }
 
@@ -237,8 +274,8 @@
 }
 
 .annotator-placeholder-text {
-  color: #888;
-  font-size: 24px;
+  color: #666;
+  font-size: 16px;
   user-select: none;
 }
 
@@ -351,4 +388,23 @@
   height: 20px;
   cursor: sw-resize;
   z-index: 101;
+}
+
+/* 드래그 중일 때 스타일 */
+.bounding-box.dragging {
+  opacity: 0.8;
+  transition: none;
+}
+
+/* 드래그 중일 때 커서 스타일 */
+.image-canvas .dragging {
+  cursor: grabbing;
+}
+
+/* 작은 화면에서의 반응형 스타일 */
+@media (max-width: 768px) {
+  .image-container img {
+    width: 100%;
+    height: auto;
+  }
 } 

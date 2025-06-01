@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaCheck, FaClock } from 'react-icons/fa';
+import { FaCheck, FaClock, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import { formatConfidenceScore, getStatusStyles } from '../../../utils/annotatorDashboardUtils';
 import './AnnotationTable.css';
 
@@ -39,6 +39,16 @@ const AnnotationTable = ({
   // 내부 상태 사용 여부 결정 (부모로부터 props가 전달되지 않은 경우 내부 상태 사용)
   const [internalSelectedItems, setInternalSelectedItems] = useState({});
   const [selectAll, setSelectAll] = useState(false);
+  
+  // 정렬 상태 추가
+  const [sortConfig, setSortConfig] = useState({
+    key: null,
+    direction: null
+  });
+  
+  // 더블 클릭을 위한 상태 추가
+  const [lastClickTime, setLastClickTime] = useState(0);
+  const [lastClickedColumn, setLastClickedColumn] = useState(null);
   
   // 실제 사용할 상태 및 setter 결정
   const effectiveSelectedItems = setSelectedItems ? selectedItems : internalSelectedItems;
@@ -142,6 +152,60 @@ const AnnotationTable = ({
     );
   };
 
+  // 정렬 처리 함수 - 더블 클릭으로 변경
+  const requestSort = (key) => {
+    const now = new Date().getTime();
+    const DOUBLE_CLICK_THRESHOLD = 200; // 더블 클릭 인식 시간 (밀리초)
+    
+    // 같은 열을 더블 클릭한 경우에만 정렬 적용
+    if (key === lastClickedColumn && now - lastClickTime < DOUBLE_CLICK_THRESHOLD) {
+      // 정렬 방향 전환 (오름차순 ↔ 내림차순)
+      const direction = sortConfig.direction === 'ascending' ? 'descending' : 'ascending';
+      setSortConfig({ key, direction });
+    }
+    
+    // 클릭 정보 업데이트
+    setLastClickTime(now);
+    setLastClickedColumn(key);
+  };
+
+  // 정렬된 데이터 계산
+  const getSortedItems = () => {
+    const sortableItems = [...annotations];
+    
+    if (sortConfig.key !== null) {
+      sortableItems.sort((a, b) => {
+        // null 값 처리
+        if (a[sortConfig.key] === null) return sortConfig.direction === 'ascending' ? -1 : 1;
+        if (b[sortConfig.key] === null) return sortConfig.direction === 'ascending' ? 1 : -1;
+        
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    
+    return sortableItems;
+  };
+
+  // 정렬 아이콘 렌더링
+  const renderSortIcon = (columnName) => {
+    if (sortConfig.key !== columnName) {
+      return <FaSort className="sort-icon" />;
+    }
+    
+    return sortConfig.direction === 'ascending' 
+      ? <FaSortUp className="sort-icon active" /> 
+      : <FaSortDown className="sort-icon active" />;
+  };
+
+  // 정렬된 데이터
+  const sortedAnnotations = getSortedItems();
+
   return (
     <div className="annotation-table-container">
       {/* 고정된 테이블 헤더 */}
@@ -166,7 +230,15 @@ const AnnotationTable = ({
             </th>
             <th>CAMERA ID</th>
             <th>DATA ID</th>
-            <th>CONF. SCORE (MIN)</th>
+            <th 
+              className="sortable"
+              onClick={() => requestSort('confidenceScore')}
+            >
+              <div className="header-with-sort">
+                <span>CONF. SCORE (MIN)</span>
+                {renderSortIcon('confidenceScore')}
+              </div>
+            </th>
             <th>COUNT</th>
             <th className="status-selection-col">
               <div className="header-content">
@@ -194,7 +266,7 @@ const AnnotationTable = ({
             <col className="status-col" />
           </colgroup>
           <tbody>
-            {annotations.map((annotation) => (
+            {sortedAnnotations.map((annotation) => (
               <tr 
                 key={annotation.id} 
                 onClick={() => handleRowClick(annotation.id)}

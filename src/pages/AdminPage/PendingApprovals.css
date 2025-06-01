@@ -134,6 +134,19 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
+.default-profile-container {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  color: #666666;
+  border: 3px solid white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
 /* User Info Section */
 .user-info-section {
   flex: 1;
@@ -212,6 +225,20 @@
   background-color: #fdf3f3;
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(230, 76, 76, 0.1);
+}
+
+.approve-button:disabled,
+.reject-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.approve-button:disabled:hover,
+.reject-button:disabled:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 /* No Pending Message */

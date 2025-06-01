@@ -1,7 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 
-import ProtectedRoute from './ProtectedRoute';
 import Members from '../pages/AdminPage/AdminDashboard'; // Members로 리네임됨
 import PendingApprovals from '../pages/AdminPage/PendingApprovals';
 import History from '../pages/AdminPage/History';
@@ -16,41 +15,25 @@ const AdminRoutes = () => (
     {/* 멤버 관리 페이지 (이전의 어드민 대시보드) */}
     <Route
       path="/"
-      element={
-        <ProtectedRoute allowedRoles={['admin']}>
-          <Members />
-        </ProtectedRoute>
-      }
+      element={<Members />}
     />
     
     {/* 대기 중인 승인 요청 페이지 */}
     <Route
       path="/pending-approvals"
-      element={
-        <ProtectedRoute allowedRoles={['admin']}>
-          <PendingApprovals />
-        </ProtectedRoute>
-      }
+      element={<PendingApprovals />}
     />
     
     {/* 히스토리 페이지 */}
     <Route
       path="/history"
-      element={
-        <ProtectedRoute allowedRoles={['admin']}>
-          <History />
-        </ProtectedRoute>
-      }
+      element={<History />}
     />
     
     {/* 작업 할당 페이지 */}
     <Route
       path="/tasks"
-      element={
-        <ProtectedRoute allowedRoles={['admin']}>
-          <TaskAssignments />
-        </ProtectedRoute>
-      }
+      element={<TaskAssignments />}
     />
     
   </Routes>

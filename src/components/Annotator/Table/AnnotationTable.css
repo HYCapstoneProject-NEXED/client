@@ -121,6 +121,35 @@
   line-height: 1.4;
 }
 
+/* 정렬 가능한 헤더 스타일 */
+.annotation-table th.sortable {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.annotation-table th.sortable:hover {
+  background-color: #EEF2F8;
+}
+
+/* 정렬 아이콘 컨테이너 */
+.header-with-sort {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+/* 정렬 아이콘 스타일 */
+.sort-icon {
+  color: #CBD5E1;
+  margin-left: 5px;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.sort-icon.active {
+  color: #4880FF;
+}
+
 /* 체크박스 열 스타일 */
 .checkbox-col {
   width: 40px;

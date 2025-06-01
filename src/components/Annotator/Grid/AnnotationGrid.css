@@ -287,19 +287,82 @@
   text-overflow: ellipsis;
 }
 
+/* 썸네일 이미지 컨테이너 관련 스타일 */
 .annotation-card-image-container {
-  height: 120px;
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 0 auto;
+  overflow: hidden;
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 썸네일 컨테이너 */
+.thumbnail-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background-color: #f5f5f5;
 }
 
-.annotation-card-image {
+/* 썸네일 이미지 */
+.thumbnail-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* 바운딩 박스 컨테이너 */
+.bounding-boxes-container {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  pointer-events: none;
+  z-index: 10;
+  overflow: visible;
+}
+
+/* 바운딩 박스 */
+.bounding-box {
+  position: absolute;
+  border: 2px solid #FF5722;
+  box-sizing: border-box;
+  pointer-events: none;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+/* 여러 바운딩 박스를 구분하기 위한 색상 변형 */
+.bounding-box:nth-child(2n) {
+  border-color: #4CAF50;
+}
+
+.bounding-box:nth-child(3n) {
+  border-color: #2196F3;
+}
+
+.bounding-box:nth-child(4n) {
+  border-color: #FFC107;
+}
+
+.bounding-box:nth-child(5n) {
+  border-color: #9C27B0;
+}
+
+/* 여러 바운딩 박스 스타일 */
+.bounding-box {
+  position: absolute;
+  box-sizing: border-box;
+  pointer-events: none;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
 }
 
 .annotation-card-footer {
