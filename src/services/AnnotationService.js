@@ -714,8 +714,8 @@ class AnnotationService {
         const imageDetail = this.cachedImageDetail;
         return {
           ...imageDetail,
-          width: 640, // 고정 이미지 크기
-          height: 640, // 고정 이미지 크기
+          width: imageDetail.width || 4032, // 실제 이미지 크기 사용
+          height: imageDetail.height || 3024, // 실제 이미지 크기 사용
           capture_date_formatted: formatDateTime(imageDetail.capture_date),
           last_modified_formatted: formatDateTime(imageDetail.last_modified)
         };
@@ -732,8 +732,8 @@ class AnnotationService {
           const imageDetail = this.cachedImageDetail;
           return {
             ...imageDetail,
-            width: 640, // 고정 이미지 크기
-            height: 640, // 고정 이미지 크기
+            width: imageDetail.width || 4032, // 실제 이미지 크기 사용
+            height: imageDetail.height || 3024, // 실제 이미지 크기 사용
             capture_date_formatted: formatDateTime(imageDetail.capture_date),
             last_modified_formatted: formatDateTime(imageDetail.last_modified)
           };
@@ -748,8 +748,8 @@ class AnnotationService {
           if (image) {
         return {
               ...image,
-          width: 640, // 고정 이미지 크기
-          height: 640, // 고정 이미지 크기
+          width: image.width || 4032, // 실제 이미지 크기 사용
+          height: image.height || 3024, // 실제 이미지 크기 사용
               capture_date_formatted: formatDateTime(image.capture_date),
               last_modified_formatted: formatDateTime(image.last_modified)
         };
@@ -762,8 +762,8 @@ class AnnotationService {
       if (image) {
         return {
           ...image,
-          width: 640, // 고정 이미지 크기
-          height: 640, // 고정 이미지 크기
+          width: image.width || 4032, // 실제 이미지 크기 사용
+          height: image.height || 3024, // 실제 이미지 크기 사용
           capture_date_formatted: formatDateTime(image.capture_date),
           last_modified_formatted: formatDateTime(image.last_modified)
         };

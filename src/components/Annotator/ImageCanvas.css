@@ -4,41 +4,49 @@
   height: 100%;
   overflow: hidden;
   user-select: none;
-}
-
-.image-container {
-  position: absolute;
-  width: 640px !important;
-  height: 640px !important;
-  min-width: 640px !important;
-  min-height: 640px !important;
-  max-width: 640px !important;
-  max-height: 640px !important;
-  background: #F0F0F0;
-  border-radius: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  transform-origin: 0 0;
+  /* 하드웨어 가속 활성화 */
+  transform: translateZ(0);
+  /* 스크롤 방지 */
+  overscroll-behavior: none;
+}
+
+.image-container {
+  position: relative;
+  background: #F0F0F0;
+  border-radius: 0;
+  display: inline-block;
+  transform-origin: center center;
+  /* 하드웨어 가속 및 성능 최적화 */
   will-change: transform;
+  backface-visibility: hidden;
+  /* 부드러운 변환을 위한 설정 */
   transition: none;
   touch-action: none;
   overflow: visible;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
+  /* 이미지 품질 최적화 */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 .image-container img {
-  width: 640px;
-  height: 640px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   pointer-events: none;
   transition: none;
-  position: absolute;
-  top: 0;
-  left: 0;
+  display: block;
   z-index: 1;
+  /* 이미지 품질 최적화 */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  /* 하드웨어 가속 */
+  transform: translateZ(0);
 }
 
 .annotation-image {
@@ -50,7 +58,7 @@
 /* 결함 바운딩 박스 스타일 */
 .bounding-box {
   position: absolute;
-  border: 2px solid #00B69B;
+  border: 3px solid #00B69B;
   cursor: move;
   transition: none;
   background: transparent !important;
@@ -61,7 +69,7 @@
 }
 
 .bounding-box.selected {
-  border-width: 3px;
+  border-width: 4px;
   transition: none;
 }
 
@@ -143,11 +151,11 @@
 /* 결함 ID와 신뢰도 표시 - 모든 박스에 적용되는 공통 스타일 */
 .annotator-box-label {
   position: absolute;
-  top: -25px;
+  top: -35px;
   left: 0;
-  padding: 2px 5px;
+  padding: 6px 12px;
   color: white;
-  font-size: 12px;
+  font-size: 20px;
   font-weight: 700;
   font-family: 'Nunito Sans', sans-serif;
   white-space: nowrap;
@@ -155,6 +163,12 @@
   z-index: 1000;
   pointer-events: auto;
   transition: none;
+  border-radius: 6px;
+  transform-origin: left bottom;
+  min-width: 40px;
+  text-align: center;
+  /* 스케일에 관계없이 일정한 크기 유지 */
+  transform: scale(var(--label-scale, 1));
 }
 
 /* 리사이즈 핸들 스타일 */

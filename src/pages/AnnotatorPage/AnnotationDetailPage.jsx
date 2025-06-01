@@ -357,46 +357,6 @@ const AnnotationDetailPage = () => {
     return `${API_URL}/images/${imageId}`;
   };
 
-  /**
-   * 바운딩 박스 좌표 변환 (정규화된 YOLO 형식 → 픽셀 좌표)
-   * @param {Object} box - 바운딩 박스 좌표 (x_center, y_center, w, h)
-   * @returns {Object} 변환된 좌표 (x, y, width, height)
-   */
-  const transformBoundingBox = (box) => {
-    // 이미지 크기 (API 응답에서 가져온 값 또는 기본값 사용)
-    const imageWidth = annotationData.dataInfo?.dimensions?.width || 640;
-    const imageHeight = annotationData.dataInfo?.dimensions?.height || 640;
-    
-    // 이미 x, y, width, height 형식인 경우 그대로 반환
-    if (box.x !== undefined && box.width !== undefined) {
-      return box;
-    }
-    
-    // YOLO 형식 (중심점 + 너비/높이) → 좌상단 좌표 + 너비/높이
-    if (box.x_center !== undefined || box.cx !== undefined) {
-      const centerX = box.x_center !== undefined ? box.x_center : box.cx;
-      const centerY = box.y_center !== undefined ? box.y_center : box.cy;
-      const width = box.w;
-      const height = box.h;
-      
-      // 정규화된 좌표를 픽셀 단위로 변환
-      const pixelWidth = width * imageWidth;
-      const pixelHeight = height * imageHeight;
-      const pixelX = (centerX * imageWidth) - (pixelWidth / 2);
-      const pixelY = (centerY * imageHeight) - (pixelHeight / 2);
-      
-      return {
-        x: pixelX,
-        y: pixelY,
-        width: pixelWidth,
-        height: pixelHeight
-      };
-    }
-    
-    // 지원되지 않는 형식인 경우 원래 값 반환
-    return box;
-  };
-
   // 로딩 중일 때 표시할 내용
   if (annotationData.isLoading) {
     return (
@@ -514,6 +474,7 @@ const AnnotationDetailPage = () => {
               readOnly={true} // 읽기 전용 모드 활성화
               imageSrc={getImageUrl()}
               imageDimensions={annotationData.dataInfo.dimensions} // API 응답에서 가져온 이미지 크기 전달
+              defectClasses={annotationData.defectClasses} // 결함 클래스 정보 전달 (바운딩 박스 색상 결정용)
             />
           </div>
         </div>

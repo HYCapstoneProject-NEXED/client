@@ -6,15 +6,13 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import CustomerRoutes from './routes/CustomerRoutes';
 import LoginRoutes from './routes/LoginRoutes';
 import AdminRoutes from './routes/AdminRoutes';
+import AnnotatorRoutes from './routes/AnnotatorRoutes';
 
 import AuthCallback from './pages/AuthCallback/AuthCallback';
 import MainPage from './pages/MainPage/MainPage';
 
 import ProfileModal from './components/Customer/ProfileModal'; // 컴포넌트
 import { ProfileModalProvider } from './context/ProfileModalContext'; // context
-import AnnotationEditPage from './pages/AnnotatorPage/AnnotationEditPage'; // 어노테이션 편집 페이지
-import AnnotationDetailPage from './pages/AnnotatorPage/AnnotationDetailPage'; // 어노테이션 상세 페이지
-import AnnotatorDashboard from './pages/AnnotatorPage/AnnotatorDashboard'; // 어노테이션 대시보드 페이지
 import TestFilterPage from './pages/TestFilterPage'; // 필터 테스트 페이지
 
 import './App.css';
@@ -49,11 +47,8 @@ function App() {
         {/* Admin 역할 전용 라우트 */}
         <Route path="/admin/*" element={<AdminRoutes />} />
 
-        {/* Annotation 페이지 라우트 */}
-        <Route path="/annotator" element={<AnnotatorDashboard />} />
-        <Route path="/annotator/dashboard" element={<AnnotatorDashboard />} />
-        <Route path="/annotator/edit/:imageId" element={<AnnotationEditPage />} />
-        <Route path="/annotator/detail/:imageId" element={<AnnotationDetailPage />} />
+        {/* Annotator 역할 전용 라우트 */}
+        <Route path="/annotator/*" element={<AnnotatorRoutes />} />
         
         {/* 테스트 페이지 */}
         <Route path="/test/filter" element={<TestFilterPage />} />

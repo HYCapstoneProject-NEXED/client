@@ -176,6 +176,14 @@ const TaskAssignments = () => {
       updatedAssignments[userId] = userCameraStats.cameras.map(camera => camera.camera_id);
       setUserAssignments(updatedAssignments);
       
+      // Update cameraStats to include image counts for assigned cameras
+      const updatedCameraStats = { ...cameraStats };
+      userCameraStats.cameras.forEach(camera => {
+        // Add the assigned camera's image count to cameraStats
+        updatedCameraStats[camera.camera_id] = camera.image_count || 0;
+      });
+      setCameraStats(updatedCameraStats);
+      
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching user camera stats:', error);
@@ -341,6 +349,16 @@ const TaskAssignments = () => {
           setUserAssignments(prev => ({
             ...prev,
             [selectedAnnotator]: userCameraStats.cameras.map(camera => camera.camera_id)
+          }));
+          
+          // Update cameraStats to include image counts for assigned cameras
+          const assignedCameraStats = {};
+          userCameraStats.cameras.forEach(camera => {
+            assignedCameraStats[camera.camera_id] = camera.image_count || 0;
+          });
+          setCameraStats(prev => ({
+            ...prev,
+            ...assignedCameraStats
           }));
         } catch (error) {
           console.error('Error refreshing user camera assignments:', error);

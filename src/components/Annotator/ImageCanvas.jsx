@@ -13,7 +13,7 @@ import { DEFECT_TYPES } from '../../constants/annotationConstants';
  * @param {string} props.selectedDefect - 선택된 결함 ID
  * @param {function} props.onDefectSelect - 결함 선택 핸들러
  * @param {function} props.onCoordinateChange - 좌표 변경 핸들러 (바운딩 박스 이동/리사이즈 시 호출)
- * @param {function} props.onCanvasClick - 캔버스 클릭 핸들러 (빈 영역 클릭 시 호출)
+ * @param {function} props.onCanvasClick - 캔버스 클릭 핸들러
  * @param {function} props.onAddBox - 바운딩 박스 추가 핸들러
  * @param {string} props.activeTool - 현재 활성화된 도구 ('hand' 또는 'rectangle')
  * @param {Object} props.toolTypes - 도구 유형 상수
@@ -38,7 +38,7 @@ const ImageCanvas = ({
   readOnly = false,
   defectClasses = [],
   imageSrc = null,
-  imageDimensions = { width: 640, height: 640 } // 기본값 설정
+  imageDimensions = null // 기본값을 null로 변경
 }) => {
   // 이미지 캔버스 요소 참조
   const canvasRef = useRef(null);
@@ -114,22 +114,194 @@ const ImageCanvas = ({
     if (canvasRef.current) {
       // 캔버스 크기를 업데이트하는 함수
       const updateDimensions = () => {
-        // 캔버스 크기를 이미지 크기로 설정
+        // 실제 이미지 요소가 있는지 확인
+        const imageElement = canvasRef.current.querySelector('img');
+        
+        if (imageElement && imageElement.complete && imageElement.naturalWidth > 0) {
+          // 실제 로드된 이미지의 크기 사용
+          const actualWidth = imageElement.naturalWidth;
+          const actualHeight = imageElement.naturalHeight;
+          
+          console.log('실제 이미지 크기 감지:', { actualWidth, actualHeight });
+          console.log('전달받은 imageDimensions:', imageDimensions);
+          
+          // 전달받은 크기와 실제 크기가 다른 경우 경고
+          if (imageDimensions && (imageDimensions.width !== actualWidth || imageDimensions.height !== actualHeight)) {
+            console.warn('이미지 크기 불일치 감지!', {
+              expected: imageDimensions,
+              actual: { width: actualWidth, height: actualHeight }
+            });
+          }
+          
+          // 실제 이미지 크기로 캔버스 크기 설정
+          setCanvasDimensions({
+            width: actualWidth,
+            height: actualHeight
+          });
+          
+          // 초기 스케일 계산 - 이미지가 화면에 맞도록
+          const calculateInitialScale = () => {
+            const canvas = canvasRef.current;
+            if (!canvas) return 1;
+            
+            // 부모 컨테이너 크기 가져오기
+            const parentElement = canvas.parentElement;
+            if (!parentElement) return 1;
+            
+            const containerWidth = parentElement.clientWidth;
+            const containerHeight = parentElement.clientHeight;
+            
+            // 여백을 고려한 최대 크기 (80% 사용)
+            const maxWidth = containerWidth * 0.8;
+            const maxHeight = containerHeight * 0.8;
+            
+            // 가로, 세로 비율 계산
+            const scaleX = maxWidth / actualWidth;
+            const scaleY = maxHeight / actualHeight;
+            
+            // 더 작은 비율 사용 (이미지가 완전히 보이도록)
+            const calculatedScale = Math.min(scaleX, scaleY, 1); // 최대 1배까지만
+            
+            console.log('초기 스케일 계산:', {
+              containerWidth,
+              containerHeight,
+              maxWidth,
+              maxHeight,
+              actualWidth,
+              actualHeight,
+              scaleX,
+              scaleY,
+              calculatedScale
+            });
+            
+            return calculatedScale;
+          };
+          
+          const initialScale = calculateInitialScale();
+          setScale(initialScale);
+          
+        } else if (imageDimensions && imageDimensions.width && imageDimensions.height) {
+          // 이미지가 아직 로드되지 않았지만 전달받은 크기 정보가 있는 경우
+          console.log('이미지 로드 대기 중, 전달받은 크기 사용:', imageDimensions);
         setCanvasDimensions({
           width: imageDimensions.width,
           height: imageDimensions.height
         });
+        } else {
+          // 이미지 크기 정보가 전혀 없는 경우 경고
+          console.error('이미지 크기 정보가 없습니다. imageDimensions:', imageDimensions);
+          // 임시로 최소한의 크기 설정 (하지만 이는 정상적인 상황이 아님)
+          setCanvasDimensions({
+            width: 640,
+            height: 640
+          });
+        }
       };
       
-      // 초기 크기 설정 (한 번만 실행)
+      // 이미지 로드 완료 시 크기 업데이트
+      const handleImageLoad = () => {
+        console.log('이미지 로드 완료, 크기 업데이트 중...');
       updateDimensions();
+      };
+      
+      // 이미지 요소 찾기
+      const imageElement = canvasRef.current.querySelector('img');
+      if (imageElement) {
+        if (imageElement.complete) {
+          // 이미지가 이미 로드된 경우
+          handleImageLoad();
+        } else {
+          // 이미지 로드 대기
+          imageElement.addEventListener('load', handleImageLoad);
+        }
+      }
+      
+      // 윈도우 리사이즈 이벤트 리스너
+      const handleResize = () => {
+        updateDimensions();
+      };
+      
+      window.addEventListener('resize', handleResize);
+      
+      // 초기 크기 설정
+      updateDimensions();
+      
+      // 정리 함수
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        if (imageElement && !imageElement.complete) {
+          imageElement.removeEventListener('load', handleImageLoad);
+        }
+      };
     }
-  }, [imageDimensions.width, imageDimensions.height]); // 최소한의 의존성만 포함
+  }, [imageDimensions, imageSrc]);
+
+  // 휠 이벤트 핸들러 설정 (이미지 컨테이너에만 적용)
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    /**
+     * 개선된 휠 이벤트 핸들러
+     * 더 부드러운 확대/축소와 이미지 영역에만 제한된 동작
+     * 
+     * @param {WheelEvent} e - 휠 이벤트 객체
+     */
+    const handleWheel = (e) => {
+      // 이벤트 전파 중지 - 전체 페이지 스크롤 방지
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      
+      // 현재 마우스 위치를 이미지 좌표계로 변환
+      const imageX = (mouseX - position.x) / scale;
+      const imageY = (mouseY - position.y) / scale;
+      
+      // 개선된 줌 변화량 계산 - 더 부드럽고 정밀한 제어
+      const zoomSensitivity = 0.0015; // 감도 조정 (더 부드럽게)
+      const delta = -e.deltaY * zoomSensitivity;
+      
+      // 현재 스케일에 따라 줌 속도 조정 (작을 때는 더 빠르게, 클 때는 더 느리게)
+      const adaptiveDelta = delta * (0.5 + scale * 0.5);
+      
+      // 새로운 스케일 계산 (범위: 0.1x ~ 10x)
+      const newScale = Math.min(Math.max(0.1, scale + adaptiveDelta), 10);
+      
+      // 스케일 변화가 없으면 처리하지 않음
+      if (Math.abs(newScale - scale) < 0.001) {
+        return;
+      }
+      
+      // 마우스 위치를 기준으로 새로운 위치 계산
+      const newX = mouseX - imageX * newScale;
+      const newY = mouseY - imageY * newScale;
+      
+      // 상태 업데이트
+      setScale(newScale);
+      setPosition({ x: newX, y: newY });
+    };
+
+    // 이벤트 리스너 등록 - passive: false로 설정하여 preventDefault 허용
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
+    
+    // 정리 함수
+    return () => {
+      canvas.removeEventListener('wheel', handleWheel);
+    };
+  }, [scale, position]);
 
   // 박스 위치 업데이트 - defects가 변경될 때만
   useEffect(() => {
+    console.log('=== ImageCanvas: 박스 위치 업데이트 시작 ===');
+    console.log('defects:', defects);
+    console.log('canvasDimensions:', canvasDimensions);
+    
     // 캔버스 크기가 유효하지 않으면 실행하지 않음
     if (canvasDimensions.width === 0 || canvasDimensions.height === 0) {
+      console.log('캔버스 크기가 유효하지 않음, 박스 위치 업데이트 건너뜀');
       return;
     }
     
@@ -141,7 +313,11 @@ const ImageCanvas = ({
     const newBoxPositions = {};
     
     // 각 defect에 대해 위치 계산
-    defects.forEach(defect => {
+    defects.forEach((defect, index) => {
+      console.log(`=== Defect ${index + 1}/${defects.length} 처리 중 ===`);
+      console.log('defect 객체:', defect);
+      console.log('defect.coordinates:', defect.coordinates);
+      
       const defectId = String(defect.id);
       const coordinates = {...defect.coordinates};
       
@@ -150,6 +326,8 @@ const ImageCanvas = ({
       let y = coordinates.y;
       let width = coordinates.width;
       let height = coordinates.height;
+      
+      console.log(`Defect ${defectId} 원본 좌표:`, { x, y, width, height });
       
       // 이미지 경계 내로 조정
       if (x < 0) x = 0;
@@ -168,14 +346,19 @@ const ImageCanvas = ({
         y = 0;
       }
       
+      console.log(`Defect ${defectId} 조정된 좌표:`, { x, y, width, height });
+      
       // 계산된 좌표 저장
       newBoxPositions[defectId] = {
         x, y, width, height
       };
     });
     
+    console.log('최종 newBoxPositions:', newBoxPositions);
+    
     // 한 번에 상태 업데이트
     setBoxPositions(newBoxPositions);
+    console.log('=== ImageCanvas: 박스 위치 업데이트 완료 ===');
   }, [defects, canvasDimensions.width, canvasDimensions.height]);
 
   // 모든 이벤트 리스너를 한 번만 등록 (의존성 배열 비움)
@@ -183,26 +366,16 @@ const ImageCanvas = ({
     // 이벤트 핸들러 참조 저장
     const moveHandler = handleMouseMove;
     const upHandler = handleMouseUp;
-    const wheelHandler = handleWheel;
     
     console.log('이벤트 리스너 등록');
     window.addEventListener('mousemove', moveHandler);
     window.addEventListener('mouseup', upHandler);
-    
-    const canvasElement = canvasRef.current;
-    if (canvasElement) {
-      canvasElement.addEventListener('wheel', wheelHandler, { passive: false });
-    }
     
     // 컴포넌트 언마운트 시 정리
     return () => {
       console.log('이벤트 리스너 제거');
       window.removeEventListener('mousemove', moveHandler);
       window.removeEventListener('mouseup', upHandler);
-      
-      if (canvasElement) {
-        canvasElement.removeEventListener('wheel', wheelHandler);
-      }
     };
   }, []); // 빈 의존성 배열 - 컴포넌트 마운트/언마운트 시에만 실행
 
@@ -239,90 +412,122 @@ const ImageCanvas = ({
   };
 
   /**
-   * 마우스 다운 이벤트 핸들러
-   * 도구 유형에 따라 다른 동작 수행:
-   * - 손 도구: 캔버스 드래그 시작
-   * - 사각형 도구: 바운딩 박스 그리기 시작
+   * 마우스 좌표를 이미지 좌표계로 변환하는 함수
+   * @param {number} clientX - 클라이언트 X 좌표
+   * @param {number} clientY - 클라이언트 Y 좌표
+   * @returns {Object} 이미지 좌표계의 {x, y}
+   */
+  const clientToImageCoords = useCallback((clientX, clientY) => {
+    if (!canvasRef.current) return { x: 0, y: 0 };
+    
+    const rect = canvasRef.current.getBoundingClientRect();
+    const canvasX = clientX - rect.left;
+    const canvasY = clientY - rect.top;
+    
+    // 이미지 컨테이너의 변환을 고려한 좌표 계산
+    const imageX = (canvasX - position.x) / scale;
+    const imageY = (canvasY - position.y) / scale;
+    
+    return { x: imageX, y: imageY };
+  }, [position, scale]);
+
+  /**
+   * 바운딩 박스 마우스 다운 이벤트 핸들러
+   * 박스 선택 및 드래그 시작 처리
    * 
    * @param {MouseEvent} e - 마우스 이벤트 객체
+   * @param {string} defectId - 선택한 결함 ID
    */
-  const handleMouseDown = useCallback((e) => {
-    // 이벤트 버블링 중지
-    e.stopPropagation();
-    
-    // 읽기 전용 모드에서는 패닝만 허용
+  const handleBoxMouseDown = useCallback((e, defectId) => {
+    // 읽기 전용 모드에서는 선택만 가능
     if (readOnly) {
-      setIsDragging(true);
-      setDragStartPosition({
-        x: e.clientX,
-        y: e.clientY,
-        startPositionX: position.x,
-        startPositionY: position.y
-      });
+    e.stopPropagation();
+      onDefectSelect(defectId);
       return;
     }
     
-    // 클릭한 요소가 이미지 영역 또는 플레이스홀더 텍스트인 경우에만 처리
-    if (e.target === canvasRef.current || e.target.className === 'annotator-placeholder-text' || e.target.classList.contains('annotator-image-placeholder') || e.target.className === 'image-container') {
-      console.log('Mouse down on canvas, activeTool:', activeTool);
+    // 사각형 도구가 활성화되어 있을 때는 손 도구로 전환하고 박스 선택
+    if (activeTool === toolTypes.RECTANGLE) {
+      console.log('Box clicked while Rectangle tool is active, switching to HAND tool');
+      if (onToolChange) {
+        onToolChange(toolTypes.HAND);
+      }
+      onDefectSelect(defectId);
+      return;
+    }
+    
+    // 손 도구 활성화 상태에서 박스 선택
+    onDefectSelect(defectId);
       
       if (activeTool === toolTypes.HAND) {
-        // 손 도구 - 캔버스 드래그 시작
-        setIsDragging(true);
-        setDragStartPosition({
-          x: e.clientX,
-          y: e.clientY,
-          startPositionX: position.x,
-          startPositionY: position.y
-        });
-        
-        // 빈 영역 클릭 시 선택 해제
-        if (onCanvasClick) {
-          onCanvasClick(e);
+      const defectIdStr = String(defectId);
+      
+      setIsBoxDragging(true);
+      setBoxDragInfo({
+        id: defectIdStr,
+        startX: e.clientX,
+        startY: e.clientY,
+        originalX: boxPositions[defectIdStr]?.x || 0,
+        originalY: boxPositions[defectIdStr]?.y || 0,
+        currentX: boxPositions[defectIdStr]?.x || 0,
+        currentY: boxPositions[defectIdStr]?.y || 0
+      });
         }
-      } else if (activeTool === toolTypes.RECTANGLE) {
-        // 사각형 도구 - 이미지 드래그 방지
-        e.preventDefault();
-        
-        // 더블 클릭이나 빈 영역 클릭 시 사각형 도구를 손 도구로 전환
-        if (e.detail === 2) {
-          // 더블 클릭했을 때
+  }, [readOnly, activeTool, toolTypes.RECTANGLE, toolTypes.HAND, boxPositions, onDefectSelect, onToolChange]);
+
+  /**
+   * 리사이즈 핸들 마우스 다운 이벤트 핸들러
+   * 바운딩 박스 크기 조정 시작 처리
+   * 
+   * @param {MouseEvent} e - 마우스 이벤트 객체
+   * @param {string} defectId - 선택한 결함 ID
+   * @param {string} handle - 선택한 핸들 종류 (top, left, bottom-right 등)
+   */
+  const handleResizeStart = useCallback((e, defectId, handle) => {
+    // 읽기 전용 모드에서는 리사이즈 불가
+    if (readOnly) {
+      e.stopPropagation();
+      return;
+    }
+    
+    // 사각형 도구가 활성화되어 있을 때는 손 도구로 전환하고 리사이즈 시작
+    if (activeTool === toolTypes.RECTANGLE) {
+      console.log('Resize handle clicked while Rectangle tool is active, switching to HAND tool');
           if (onToolChange) {
-            console.log('Double click detected, switching to HAND tool');
             onToolChange(toolTypes.HAND);
+      }
+      // 도구 전환 후 선택 및 리사이즈 시작을 위해 핸들러 다시 호출
+      onDefectSelect(defectId);
             return;
           }
-        } else {
-          // 사각형 도구 - 바운딩 박스 그리기 시작
-          const rect = canvasRef.current.getBoundingClientRect();
+    
+    if (activeTool === toolTypes.HAND) {
+      const defectIdStr = String(defectId);
+      const defect = defects.find(d => String(d.id) === defectIdStr);
+      
+      if (!defect) return;
           
-          // 정확한 이미지 위치에 맞게 좌표 계산
-          const mouseX = (e.clientX - rect.left) / scale;
-          const mouseY = (e.clientY - rect.top) / scale;
-          
-          console.log('Rectangle tool: Starting to draw box from position:', { mouseX, mouseY });
-          
-          // 드래그 시작점 설정
-          setIsDrawingBox(true);
-          setDrawStartPos({ x: mouseX, y: mouseY });
-          setCurrentDrawPos({ x: mouseX, y: mouseY });
-          
-          // 사각형 그리기 모드에서는 이미지 드래그 비활성화
-          setIsDragging(false);
-        }
-      }
+      // 손 도구 활성화 상태에서만 박스 선택 허용
+      onDefectSelect(defectId);
+      
+      setIsResizing(true);
+      setResizeInfo({
+        id: defectIdStr,
+        handle,
+        startX: e.clientX,
+        startY: e.clientY,
+        originalX: boxPositions[defectIdStr]?.x || defect.coordinates.x,
+        originalY: boxPositions[defectIdStr]?.y || defect.coordinates.y,
+        originalWidth: defect.coordinates.width,
+        originalHeight: defect.coordinates.height,
+        currentX: boxPositions[defectIdStr]?.x || defect.coordinates.x,
+        currentY: boxPositions[defectIdStr]?.y || defect.coordinates.y,
+        currentWidth: defect.coordinates.width,
+        currentHeight: defect.coordinates.height,
+        isValid: true
+      });
     }
-  }, [
-    readOnly, 
-    activeTool, 
-    position, 
-    canvasRef, 
-    scale,
-    onCanvasClick, 
-    onToolChange, 
-    toolTypes.HAND, 
-    toolTypes.RECTANGLE
-  ]);
+  }, [activeTool, boxPositions, defects, onDefectSelect, onToolChange, readOnly, toolTypes.HAND, toolTypes.RECTANGLE]);
 
   /**
    * 마우스 이동 이벤트 핸들러
@@ -503,13 +708,14 @@ const ImageCanvas = ({
     
     // 박스 그리기 중인 경우
     if (isDrawingBox && activeTool === toolTypes.RECTANGLE) {
-      const rect = canvasRef.current.getBoundingClientRect();
+      // 이미지 좌표계로 변환
+      const imageCoords = clientToImageCoords(e.clientX, e.clientY);
       
-      // 현재 마우스 위치 계산 (스케일 적용)
-      const mouseX = (e.clientX - rect.left) / scale;
-      const mouseY = (e.clientY - rect.top) / scale;
+      // 좌표를 이미지 영역 내로 제한
+      const constrainedX = Math.max(0, Math.min(imageCoords.x, canvasDimensions.width));
+      const constrainedY = Math.max(0, Math.min(imageCoords.y, canvasDimensions.height));
       
-      setCurrentDrawPos({ x: mouseX, y: mouseY });
+      setCurrentDrawPos({ x: constrainedX, y: constrainedY });
     }
   }, [
     isDragging, 
@@ -525,7 +731,10 @@ const ImageCanvas = ({
     Object.keys(boxPositions).length, // boxPositions -> Object.keys(boxPositions).length로 변경
     defects.length, // defects -> defects.length로 변경
     constrainBoxPosition,
-    toolTypes.RECTANGLE
+    toolTypes.RECTANGLE,
+    clientToImageCoords,
+    canvasDimensions.width,
+    canvasDimensions.height
   ]);
 
   /**
@@ -582,7 +791,20 @@ const ImageCanvas = ({
       let width = Math.abs(currentDrawPos.x - drawStartPos.x);
       let height = Math.abs(currentDrawPos.y - drawStartPos.y);
       
-      console.log('Final box coordinates:', { x, y, width, height });
+      // 좌표를 이미지 영역 내로 제한
+      x = Math.max(0, Math.min(x, canvasDimensions.width));
+      y = Math.max(0, Math.min(y, canvasDimensions.height));
+      
+      // 너비와 높이도 이미지 영역을 벗어나지 않도록 조정
+      if (x + width > canvasDimensions.width) {
+        width = canvasDimensions.width - x;
+      }
+      if (y + height > canvasDimensions.height) {
+        height = canvasDimensions.height - y;
+      }
+      
+      console.log('Final box coordinates (constrained):', { x, y, width, height });
+      console.log('Canvas dimensions:', canvasDimensions);
       
       // 최소 크기 확인 (최소 5x5 픽셀)
       if (width > 5 && height > 5) {
@@ -639,116 +861,6 @@ const ImageCanvas = ({
     toolTypes.RECTANGLE,
     toolTypes.HAND
   ]);
-
-  /**
-   * 이미지 확대/축소(줌) 처리
-   * 
-   * @param {WheelEvent} e - 휠 이벤트 객체
-   */
-  const handleWheel = useCallback((e) => {
-    // 브라우저의 기본 스크롤 동작 방지는 이벤트 리스너 옵션에서 passive: false로 설정
-    const delta = e.deltaY * -0.01;
-    const newScale = Math.min(Math.max(0.5, scale + delta), 3);
-    setScale(newScale);
-  }, [scale]);
-
-  /**
-   * 바운딩 박스 마우스 다운 이벤트 핸들러
-   * 박스 선택 및 드래그 시작 처리
-   * 
-   * @param {MouseEvent} e - 마우스 이벤트 객체
-   * @param {string} defectId - 선택한 결함 ID
-   */
-  const handleBoxMouseDown = useCallback((e, defectId) => {
-    // 읽기 전용 모드에서는 선택만 가능
-    if (readOnly) {
-      e.stopPropagation();
-      onDefectSelect(defectId);
-      return;
-    }
-    
-    // 사각형 도구가 활성화되어 있을 때는 손 도구로 전환하고 박스 선택
-    if (activeTool === toolTypes.RECTANGLE) {
-      console.log('Box clicked while Rectangle tool is active, switching to HAND tool');
-      if (onToolChange) {
-        onToolChange(toolTypes.HAND);
-      }
-      onDefectSelect(defectId);
-      return;
-    }
-    
-    // 손 도구 활성화 상태에서 박스 선택
-    onDefectSelect(defectId);
-    
-    if (activeTool === toolTypes.HAND) {
-      const defectIdStr = String(defectId);
-      
-      setIsBoxDragging(true);
-      setBoxDragInfo({
-        id: defectIdStr,
-        startX: e.clientX,
-        startY: e.clientY,
-        originalX: boxPositions[defectIdStr]?.x || 0,
-        originalY: boxPositions[defectIdStr]?.y || 0,
-        currentX: boxPositions[defectIdStr]?.x || 0,
-        currentY: boxPositions[defectIdStr]?.y || 0
-      });
-    }
-  }, [readOnly, activeTool, toolTypes.RECTANGLE, toolTypes.HAND, boxPositions, onDefectSelect, onToolChange]);
-
-  /**
-   * 리사이즈 핸들 마우스 다운 이벤트 핸들러
-   * 바운딩 박스 크기 조정 시작 처리
-   * 
-   * @param {MouseEvent} e - 마우스 이벤트 객체
-   * @param {string} defectId - 선택한 결함 ID
-   * @param {string} handle - 선택한 핸들 종류 (top, left, bottom-right 등)
-   */
-  const handleResizeStart = useCallback((e, defectId, handle) => {
-    // 읽기 전용 모드에서는 리사이즈 불가
-    if (readOnly) {
-      e.stopPropagation();
-      return;
-    }
-    
-    // 사각형 도구가 활성화되어 있을 때는 손 도구로 전환하고 리사이즈 시작
-    if (activeTool === toolTypes.RECTANGLE) {
-      console.log('Resize handle clicked while Rectangle tool is active, switching to HAND tool');
-      if (onToolChange) {
-        onToolChange(toolTypes.HAND);
-      }
-      // 도구 전환 후 선택 및 리사이즈 시작을 위해 핸들러 다시 호출
-      onDefectSelect(defectId);
-      return;
-    }
-    
-    if (activeTool === toolTypes.HAND) {
-      const defectIdStr = String(defectId);
-      const defect = defects.find(d => String(d.id) === defectIdStr);
-      
-      if (!defect) return;
-      
-      // 손 도구 활성화 상태에서만 박스 선택 허용
-      onDefectSelect(defectId);
-      
-      setIsResizing(true);
-      setResizeInfo({
-        id: defectIdStr,
-        handle,
-        startX: e.clientX,
-        startY: e.clientY,
-        originalX: boxPositions[defectIdStr]?.x || defect.coordinates.x,
-        originalY: boxPositions[defectIdStr]?.y || defect.coordinates.y,
-        originalWidth: defect.coordinates.width,
-        originalHeight: defect.coordinates.height,
-        currentX: boxPositions[defectIdStr]?.x || defect.coordinates.x,
-        currentY: boxPositions[defectIdStr]?.y || defect.coordinates.y,
-        currentWidth: defect.coordinates.width,
-        currentHeight: defect.coordinates.height,
-        isValid: true
-      });
-    }
-  }, [activeTool, boxPositions, defects, onDefectSelect, onToolChange, readOnly, toolTypes.HAND, toolTypes.RECTANGLE]);
 
   // 활성 도구가 변경될 때 실행되는 effect
   useEffect(() => {
@@ -885,8 +997,8 @@ const ImageCanvas = ({
 
   // 컴포넌트 마운트 시 초기화
   useEffect(() => {
-    // 드래그 관련 상태 초기화
-    setPosition({ x: 0, y: 0 });
+    // 드래그 관련 상태 초기화 - 중앙 위치로 설정
+    setPosition({ x: 0, y: 0 }); // 중앙 기준이므로 0,0으로 설정
     setIsDragging(false);
     setDragStartPosition({ 
       x: 0, 
@@ -895,12 +1007,93 @@ const ImageCanvas = ({
       startPositionY: 0 
     });
     
-    // 확대/축소 초기화
-    setScale(1);
+    // 확대/축소 초기화는 이미지 로드 후 자동으로 계산됨
+    // setScale(1); // 이 부분은 제거 - 이미지 로드 시 자동 계산
     
-    // 이벤트 리스너 등록 로직은 그대로 유지
-    // ...
   }, []);
+
+  /**
+   * 마우스 다운 이벤트 핸들러
+   * 도구 유형에 따라 다른 동작 수행:
+   * - 손 도구: 캔버스 드래그 시작
+   * - 사각형 도구: 바운딩 박스 그리기 시작
+   * 
+   * @param {MouseEvent} e - 마우스 이벤트 객체
+   */
+  const handleMouseDown = useCallback((e) => {
+    // 이벤트 버블링 중지
+    e.stopPropagation();
+    
+    // 읽기 전용 모드에서는 패닝만 허용
+    if (readOnly) {
+      setIsDragging(true);
+      setDragStartPosition({
+        x: e.clientX,
+        y: e.clientY,
+        startPositionX: position.x,
+        startPositionY: position.y
+      });
+      return;
+    }
+    
+    // 클릭한 요소가 이미지 영역 또는 플레이스홀더 텍스트인 경우에만 처리
+    if (e.target === canvasRef.current || e.target.className === 'annotator-placeholder-text' || e.target.classList.contains('annotator-image-placeholder') || e.target.className === 'image-container') {
+      console.log('Mouse down on canvas, activeTool:', activeTool);
+      
+      if (activeTool === toolTypes.HAND) {
+        // 손 도구 - 캔버스 드래그 시작
+        setIsDragging(true);
+        setDragStartPosition({
+          x: e.clientX,
+          y: e.clientY,
+          startPositionX: position.x,
+          startPositionY: position.y
+        });
+        
+        // 빈 영역 클릭 시 선택 해제
+        if (onCanvasClick) {
+          onCanvasClick(e);
+        }
+      } else if (activeTool === toolTypes.RECTANGLE) {
+        // 사각형 도구 - 이미지 드래그 방지
+        e.preventDefault();
+        
+        // 이미지 좌표계로 변환
+        const imageCoords = clientToImageCoords(e.clientX, e.clientY);
+        
+        // 좌표가 이미지 영역 내에 있는지 확인
+        if (imageCoords.x >= 0 && imageCoords.x <= canvasDimensions.width && 
+            imageCoords.y >= 0 && imageCoords.y <= canvasDimensions.height) {
+          
+          console.log('Rectangle tool: Starting to draw box from position:', imageCoords);
+          console.log('Canvas dimensions:', canvasDimensions);
+          
+          // 드래그 시작점 설정
+          setIsDrawingBox(true);
+          setDrawStartPos({ x: imageCoords.x, y: imageCoords.y });
+          setCurrentDrawPos({ x: imageCoords.x, y: imageCoords.y });
+          
+          // 사각형 그리기 모드에서는 이미지 드래그 비활성화
+          setIsDragging(false);
+        } else {
+          console.log('Mouse position outside image bounds:', { imageCoords, canvasDimensions });
+        }
+      }
+    }
+  }, [
+    readOnly, 
+    activeTool, 
+    position, 
+    canvasRef, 
+    scale,
+    onCanvasClick, 
+    onToolChange, 
+    toolTypes.HAND, 
+    toolTypes.RECTANGLE,
+    canvasDimensions.width,
+    canvasDimensions.height,
+    clientToImageCoords
+  ]);
 
   return (
     <div 
@@ -912,43 +1105,117 @@ const ImageCanvas = ({
         }
       }}
     >
-      {/* 이미지 플레이스홀더 - 실제 프로젝트에서는 이미지 요소로 대체 */}
+      {/* 이미지 컨테이너 - 이미지 크기에 맞춰서 생성 */}
       <div 
         className="image-container"
         ref={canvasRef}
         style={{
           transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
           cursor: getCanvasCursor(),
-          transition: 'none' // 부드러운 드래그를 위해 transition 효과 제거
+          transition: 'none', // 부드러운 드래그를 위해 transition 효과 제거
+          width: canvasDimensions.width > 0 ? `${canvasDimensions.width}px` : 'auto',
+          height: canvasDimensions.height > 0 ? `${canvasDimensions.height}px` : 'auto',
+          position: 'relative',
+          display: 'inline-block'
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
       >
-        {/* 실제 프로젝트에서는 여기에 이미지를 로드하게 됨 */}
-        {imageSrc && <img src={imageSrc} alt="Annotated Image" draggable="false" />}
+        {/* 실제 이미지 */}
+        {imageSrc && (
+          <img 
+            src={imageSrc} 
+            alt="Annotated Image" 
+            draggable="false"
+            style={{
+              width: '100%',
+              height: '100%',
+              display: 'block'
+            }}
+          />
+        )}
         
         {/* 결함 바운딩 박스 렌더링 */}
         {sortedDefects.map((defect) => {
           const defectId = String(defect.id);
+          console.log(`=== 바운딩 박스 렌더링 시도: Defect ${defectId} ===`);
+          
           // 현재 드래그/리사이즈 중인 박스는 boxPositions에서, 아니면 원래 좌표 사용
           const boxPosition = boxPositions[defectId] || defect.coordinates;
+          console.log(`Defect ${defectId} boxPosition:`, boxPosition);
+          console.log(`Defect ${defectId} defect.coordinates:`, defect.coordinates);
+          console.log(`Defect ${defectId} boxPositions[${defectId}]:`, boxPositions[defectId]);
+          
+          // 좌표가 없거나 유효하지 않은 경우 렌더링하지 않음
+          if (!boxPosition || 
+              boxPosition.x === undefined || 
+              boxPosition.y === undefined || 
+              boxPosition.width === undefined || 
+              boxPosition.height === undefined ||
+              boxPosition.width <= 0 || 
+              boxPosition.height <= 0) {
+            console.warn(`Invalid coordinates for defect ${defectId}:`, {
+              boxPosition,
+              defectCoordinates: defect.coordinates,
+              canvasDimensions,
+              imageDimensions
+            });
+            console.log(`Defect ${defectId} 렌더링 건너뜀: 유효하지 않은 좌표`);
+            return null;
+          }
+          
+          // 좌표가 캔버스 영역을 완전히 벗어나는 경우 렌더링하지 않음
+          if (boxPosition.x >= canvasDimensions.width || 
+              boxPosition.y >= canvasDimensions.height ||
+              boxPosition.x + boxPosition.width <= 0 ||
+              boxPosition.y + boxPosition.height <= 0) {
+            console.warn(`Defect ${defectId} is outside canvas bounds:`, {
+              boxPosition,
+              canvasDimensions,
+              'x >= width': boxPosition.x >= canvasDimensions.width,
+              'y >= height': boxPosition.y >= canvasDimensions.height,
+              'x + width <= 0': boxPosition.x + boxPosition.width <= 0,
+              'y + height <= 0': boxPosition.y + boxPosition.height <= 0
+            });
+            console.log(`Defect ${defectId} 렌더링 건너뜀: 캔버스 영역 밖`);
+            return null;
+          }
+          
           const isSelected = selectedDefect === defect.id;
           const boxColor = getDefectColor(defect.type, defect);
+          const borderWidth = isSelected ? 4 / scale : 3 / scale;
+          
+          console.log(`Defect ${defectId} 렌더링 진행:`, {
+            boxPosition,
+            isSelected,
+            boxColor,
+            defectType: defect.type,
+            canvasDimensions,
+            'Will render': true
+          });
+          
+          // 실제 렌더링될 스타일 정보
+          const renderStyle = {
+            position: 'absolute',
+            left: `${boxPosition.x}px`,
+            top: `${boxPosition.y}px`,
+            width: `${boxPosition.width}px`,
+            height: `${boxPosition.height}px`,
+            zIndex: isSelected ? 100 : 10,
+            borderColor: boxColor,
+            border: `${borderWidth}px solid ${boxColor}`,
+            pointerEvents: 'auto'
+          };
+          
+          console.log(`Defect ${defectId} 렌더링 스타일:`, renderStyle);
           
           return (
             <div 
               key={defectId}
               className={`bounding-box ${isSelected ? 'selected' : ''} ${getBoxClassName(defect.type)} ${readOnly ? 'read-only' : ''}`}
-              style={{
-                left: `${boxPosition.x}px`,
-                top: `${boxPosition.y}px`,
-                width: `${defect.coordinates.width}px`,
-                height: `${defect.coordinates.height}px`,
-                zIndex: isSelected ? 100 : 10, // 선택된 박스는 더 높은 z-index를 가짐
-                borderColor: boxColor
-              }}
+              style={renderStyle}
               onMouseDown={(e) => {
                 // 박스 내부 클릭 시에만 이동 처리
                 if (e.target === e.currentTarget) {
@@ -959,7 +1226,10 @@ const ImageCanvas = ({
               {/* 결함 ID와 신뢰도 표시 */}
               <div 
                 className="annotator-box-label"
-                style={{ backgroundColor: boxColor }}
+                style={{ 
+                  backgroundColor: boxColor,
+                  '--label-scale': 1 / scale
+                }}
                 onMouseDown={(e) => {
                   e.stopPropagation();
                   handleBoxMouseDown(e, defect.id);
@@ -976,14 +1246,15 @@ const ImageCanvas = ({
           <div 
             className={`bounding-box drawing`}
             style={{
+              position: 'absolute',
               left: `${drawingBox.x}px`,
               top: `${drawingBox.y}px`,
               width: `${drawingBox.width}px`,
               height: `${drawingBox.height}px`,
               borderColor: getDefectColor(currentDefectType),
-              borderWidth: '2px',
-              borderStyle: 'dashed',
-              zIndex: 1000
+              border: `${3 / scale}px dashed ${getDefectColor(currentDefectType)}`,
+              zIndex: 1000,
+              pointerEvents: 'none'
             }}
           ></div>
         )}

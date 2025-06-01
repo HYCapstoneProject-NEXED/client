@@ -109,8 +109,8 @@ const useAnnotationData = (imageId, addToHistory) => {
           state: imageDetail.status || 'pending',
           filePath: imageDetail.file_path,
           dimensions: {
-                width: imageDetail.width || 640,
-                height: imageDetail.height || 640
+                width: imageDetail.width || 4032,
+                height: imageDetail.height || 3024
           }
         });
           }
@@ -145,8 +145,8 @@ const useAnnotationData = (imageId, addToHistory) => {
               state: imageDetail.status || 'pending',
               filePath: imageDetail.file_path,
               dimensions: {
-                width: imageDetail.width || 640,
-                height: imageDetail.height || 640
+                width: imageDetail.width || 4032,
+                height: imageDetail.height || 3024
               }
             });
           }
@@ -184,15 +184,34 @@ const useAnnotationData = (imageId, addToHistory) => {
     
     // 바운딩 박스 좌표 처리
     let coordinates = {};
-    const imageWidth = imageDetail.width || 640;
-    const imageHeight = imageDetail.height || 640;
+    const imageWidth = imageDetail.width || 4032;
+    const imageHeight = imageDetail.height || 3024;
+    
+    console.log('=== 바운딩 박스 변환 시작 ===');
+    console.log('defect:', defect);
+    console.log('boundingBox:', defect.bounding_box);
+    console.log('imageWidth:', imageWidth, 'imageHeight:', imageHeight);
     
     // 바운딩 박스 형식에 따라 처리
     const boundingBox = defect.bounding_box;
     
     if (boundingBox) {
+      // POST API 응답 형태: { h, w, cx, cy } (정규화된 좌표)
+      if (boundingBox.h !== undefined && boundingBox.w !== undefined && 
+          boundingBox.cx !== undefined && boundingBox.cy !== undefined) {
+        console.log('POST API 형태 (h, w, cx, cy) 처리 중...');
+        
+        const width = boundingBox.w * imageWidth;
+        const height = boundingBox.h * imageHeight;
+        const x = (boundingBox.cx * imageWidth) - (width / 2);
+        const y = (boundingBox.cy * imageHeight) - (height / 2);
+        
+        coordinates = { x, y, width, height };
+        console.log('변환된 픽셀 좌표:', coordinates);
+      }
       // API 형식에 따라 처리 (additionalProp1 키가 있는 경우)
-      if (boundingBox.additionalProp1) {
+      else if (boundingBox.additionalProp1) {
+        console.log('additionalProp1 형태 처리 중...');
         const boxData = boundingBox.additionalProp1;
         
         // 정규화된 좌표를 픽셀 좌표로 변환
@@ -203,30 +222,42 @@ const useAnnotationData = (imageId, addToHistory) => {
           const y = (boxData.cy * imageHeight) - (height / 2);
           
           coordinates = { x, y, width, height };
+          console.log('변환된 픽셀 좌표:', coordinates);
         }
       }
       // 직접 좌표가 있는 경우 (cx, cy, w, h)
       else if (boundingBox.cx !== undefined && boundingBox.cy !== undefined) {
+        console.log('cx, cy, w, h 형태 처리 중...');
         const width = boundingBox.w * imageWidth;
         const height = boundingBox.h * imageHeight;
         const x = (boundingBox.cx * imageWidth) - (width / 2);
         const y = (boundingBox.cy * imageHeight) - (height / 2);
         
         coordinates = { x, y, width, height };
+        console.log('변환된 픽셀 좌표:', coordinates);
       }
       // 이미 픽셀 좌표인 경우
       else if (boundingBox.x !== undefined && boundingBox.y !== undefined) {
+        console.log('픽셀 좌표 형태 처리 중...');
         coordinates = {
           x: boundingBox.x,
           y: boundingBox.y,
           width: boundingBox.width,
           height: boundingBox.height
         };
+        console.log('픽셀 좌표 사용:', coordinates);
       }
+      else {
+        console.warn('지원되지 않는 바운딩 박스 형태:', boundingBox);
+      }
+    } else {
+      console.warn('바운딩 박스 데이터가 없습니다.');
     }
     
+    console.log('=== 바운딩 박스 변환 완료 ===');
+    
     // 프론트엔드 모델로 변환
-    return {
+    const result = {
       id: String(defect.annotation_id),
       type: defect.class_name || defectClass.class_name || 'Unknown',
       typeId: defect.class_id,
@@ -237,6 +268,9 @@ const useAnnotationData = (imageId, addToHistory) => {
       status: imageDetail.status || 'pending',
       userId: defect.user_id
     };
+    
+    console.log('변환된 defect:', result);
+    return result;
   };
 
   /**
@@ -275,17 +309,16 @@ const useAnnotationData = (imageId, addToHistory) => {
         
         // 픽셀 좌표를 정규화된 좌표로 변환 (cx, cy, w, h 형식)
         const pixelCoords = defect.coordinates;
-        const imageWidth = dataInfo.dimensions.width || 640;
-        const imageHeight = dataInfo.dimensions.height || 640;
+        const imageWidth = dataInfo.dimensions.width || 4032;
+        const imageHeight = dataInfo.dimensions.height || 3024;
         
         // 정규화된 좌표 계산 (0~1 사이 값)
         const boundingBoxForApi = {
-          // 중심점 좌표 (cx, cy)
-          cx: (pixelCoords.x + pixelCoords.width / 2) / imageWidth,
-          cy: (pixelCoords.y + pixelCoords.height / 2) / imageHeight,
-          // 너비, 높이 (w, h)
+          // 백엔드에서 기대하는 순서: h, w, cx, cy
+          h: pixelCoords.height / imageHeight,
           w: pixelCoords.width / imageWidth,
-          h: pixelCoords.height / imageHeight
+          cx: (pixelCoords.x + pixelCoords.width / 2) / imageWidth,
+          cy: (pixelCoords.y + pixelCoords.height / 2) / imageHeight
         };
         
         // 초기 로드된 어노테이션 ID 집합에 포함된 경우 기존 어노테이션으로 처리
@@ -326,16 +359,21 @@ const useAnnotationData = (imageId, addToHistory) => {
         console.log('API 요청 형식:', {
           annotations: newAnnotations,
           existing_annotations: existingAnnotations
-      });
-      
-      // API 호출하여 어노테이션 업데이트
-      const updatedAnnotations = await AnnotationService.updateImageAnnotations(
+        });
+        
+        // 디버깅: 실제 전송될 데이터 상세 로깅
+        console.log('=== 상세 요청 데이터 ===');
+        console.log('새 어노테이션:', JSON.stringify(newAnnotations, null, 2));
+        console.log('기존 어노테이션:', JSON.stringify(existingAnnotations, null, 2));
+        
+        // API 호출하여 어노테이션 업데이트
+        const updatedAnnotations = await AnnotationService.updateImageAnnotations(
           userId,
-        imageId,
-        newAnnotations,
-        existingAnnotations
-      );
-      
+          imageId,
+          newAnnotations,
+          existingAnnotations
+        );
+        
         console.log('API 호출 성공! 응답 데이터 개수:', updatedAnnotations.length);
         
         // 저장 성공 후 지연 설정 (API 처리 시간 확보)
@@ -356,8 +394,7 @@ const useAnnotationData = (imageId, addToHistory) => {
         // 로딩 상태 해제
         setIsLoading(false);
       
-      // 성공 알림
-      alert('어노테이션이 성공적으로 저장되었습니다!');
+      // 성공 시 alert 제거 (호출하는 쪽에서 처리)
       return true;
       } catch (apiError) {
         console.error('API 호출 오류:', apiError);

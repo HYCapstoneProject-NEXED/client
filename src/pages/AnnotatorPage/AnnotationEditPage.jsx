@@ -364,6 +364,7 @@ const AnnotationEditPage = () => {
               currentDefectType={selection.currentDefectType}
               defectClasses={annotationData.defectClasses}
               imageSrc={getImageUrl()}
+              imageDimensions={annotationData.dataInfo.dimensions}
             />
           </div>
         </div>
