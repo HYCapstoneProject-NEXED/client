@@ -134,6 +134,24 @@ const BoundingBoxOverlay = ({ boxes, originalWidth, originalHeight, renderedWidt
               변환결과: { x, y, width: boxWidth, height: boxHeight } 
             });
           }
+          // 사용자 정의 형태: { h, w, x_center, y_center } (정규화된 좌표)
+          else if (box.h !== undefined && box.w !== undefined && 
+                   box.x_center !== undefined && box.y_center !== undefined) {
+            console.log(`박스 #${index} - 사용자 정의 형태 (h, w, x_center, y_center) 처리 중...`);
+            
+            // 정규화된 값을 실제 렌더링 크기로 변환
+            boxWidth = box.w * renderedWidth;
+            boxHeight = box.h * renderedHeight;
+            
+            // 중심점에서 좌상단 좌표로 변환
+            x = offsetX + (box.x_center * renderedWidth) - (boxWidth / 2);
+            y = offsetY + (box.y_center * renderedHeight) - (boxHeight / 2);
+            
+            console.log(`박스 #${index}:`, { 
+              원본정규화: { x_center: box.x_center, y_center: box.y_center, w: box.w, h: box.h }, 
+              변환결과: { x, y, width: boxWidth, height: boxHeight } 
+            });
+          }
           // 기존 형태: { h, w, cx, cy } (정규화된 좌표)
           else if (box.h !== undefined && box.w !== undefined && 
                    box.cx !== undefined && box.cy !== undefined) {

@@ -1086,14 +1086,14 @@ class AnnotationService {
                 {
                   h: 60,
                   w: 50,
-                  cx: 100,
-                  cy: 150
+                  x_center: 100,
+                  y_center: 150
                 },
                 {
                   h: 105,
                   w: 95,
-                  cx: 200,
-                  cy: 240
+                  x_center: 200,
+                  y_center: 240
                 }
               ]
             },
@@ -1108,8 +1108,8 @@ class AnnotationService {
                 {
                   h: 65,
                   w: 55,
-                  cx: 120,
-                  cy: 160
+                  x_center: 120,
+                  y_center: 160
                 }
               ]
             },
@@ -1124,8 +1124,8 @@ class AnnotationService {
                 {
                   h: 70,
                   w: 60,
-                  cx: 130,
-                  cy: 170
+                  x_center: 130,
+                  y_center: 170
                 }
               ]
             },
@@ -1140,8 +1140,8 @@ class AnnotationService {
                 {
                   h: 75,
                   w: 65,
-                  cx: 140,
-                  cy: 180
+                  x_center: 140,
+                  y_center: 180
                 }
               ]
             }
@@ -1265,14 +1265,14 @@ class AnnotationService {
                 {
                   h: 60,
                   w: 50,
-                  cx: 100,
-                  cy: 150
+                  x_center: 100,
+                  y_center: 150
                 },
                 {
                   h: 105,
                   w: 95,
-                  cx: 200,
-                  cy: 240
+                  x_center: 200,
+                  y_center: 240
                 }
               ]
             },
@@ -1289,8 +1289,8 @@ class AnnotationService {
                 {
                   h: 65,
                   w: 55,
-                  cx: 120,
-                  cy: 160
+                  x_center: 120,
+                  y_center: 160
                 }
               ]
             },
@@ -1307,8 +1307,8 @@ class AnnotationService {
                 {
                   h: 70,
                   w: 60,
-                  cx: 130,
-                  cy: 170
+                  x_center: 130,
+                  y_center: 170
                 }
               ]
             },
@@ -1325,8 +1325,8 @@ class AnnotationService {
                 {
                   h: 75,
                   w: 65,
-                  cx: 140,
-                  cy: 180
+                  x_center: 140,
+                  y_center: 180
                 }
               ]
             }
@@ -1418,14 +1418,14 @@ class AnnotationService {
               {
                 h: 60,
                 w: 50,
-                cx: 100,
-                cy: 150
+                x_center: 100,
+                y_center: 150
               },
               {
                 h: 105,
                 w: 95,
-                cx: 200,
-                cy: 240
+                x_center: 200,
+                y_center: 240
               }
             ]
           },
@@ -1442,8 +1442,8 @@ class AnnotationService {
               {
                 h: 65,
                 w: 55,
-                cx: 120,
-                cy: 160
+                x_center: 120,
+                y_center: 160
               }
             ]
           },
@@ -1460,8 +1460,8 @@ class AnnotationService {
               {
                 h: 70,
                 w: 60,
-                cx: 130,
-                cy: 170
+                x_center: 130,
+                y_center: 170
               }
             ]
           },
@@ -1478,8 +1478,8 @@ class AnnotationService {
               {
                 h: 75,
                 w: 65,
-                cx: 140,
-                cy: 180
+                x_center: 140,
+                y_center: 180
               }
             ]
           }

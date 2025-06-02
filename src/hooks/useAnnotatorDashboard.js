@@ -169,13 +169,27 @@ const useAnnotatorDashboard = () => {
             };
           }
           
-          // 직접 바운딩 박스 데이터가 있는 경우 (새로운 형태와 기존 형태 모두 지원)
+          // 새로운 형태: { width, height, x_center, y_center }
           if (box.width !== undefined && box.height !== undefined && 
               box.x_center !== undefined && box.y_center !== undefined) {
             // 새로운 형태: { width, height, x_center, y_center }
             return {
               width: box.width,
               height: box.height,
+              x_center: box.x_center,
+              y_center: box.y_center,
+              class_name: box.class_name,
+              class_color: box.class_color,
+              is_active: box.is_active
+            };
+          }
+          
+          // 사용자 정의 형태: { h, w, x_center, y_center }
+          if (box.h !== undefined && box.w !== undefined && 
+              box.x_center !== undefined && box.y_center !== undefined) {
+            return {
+              h: box.h,
+              w: box.w,
               x_center: box.x_center,
               y_center: box.y_center,
               class_name: box.class_name,
