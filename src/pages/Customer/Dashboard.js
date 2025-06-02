@@ -30,6 +30,8 @@ const Dashboard = () => {
   const [selectedCameras, setSelectedCameras] = useState([]);
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImageDetails, setSelectedImageDetails] = useState(null);
+  const [imageCache, setImageCache] = useState({});
 
   useEffect(() => {
     const fetchSummary = async () => {
@@ -94,7 +96,6 @@ const Dashboard = () => {
         // 데이터 형식 검증
         const validDefects = defects.filter(defect => 
           defect.image_id !== undefined &&
-          defect.file_path &&
           defect.line_name &&
           defect.camera_id !== undefined &&
           defect.captured_at &&
@@ -102,6 +103,10 @@ const Dashboard = () => {
         );
 
         setDefectData(validDefects);
+        
+        // 이미지 데이터 미리 로드
+        loadImageUrls(validDefects);
+        
         if (validDefects.length === 0) {
           setError('표시할 결함 데이터가 없습니다.');
         } else {
@@ -121,6 +126,29 @@ const Dashboard = () => {
 
     fetchDefectData();
   }, [filter, selectedDefects, selectedCameras]);
+
+  // 이미지 URL을 미리 로드하는 함수
+  const loadImageUrls = async (defects) => {
+    const newImageCache = { ...imageCache };
+    const fetchPromises = [];
+
+    for (const defect of defects) {
+      if (!newImageCache[defect.image_id]) {
+        fetchPromises.push(
+          fetchImageDetails(defect.image_id)
+            .then(details => {
+              if (details && details.file_path) {
+                newImageCache[defect.image_id] = details.file_path;
+              }
+            })
+            .catch(err => console.error(`이미지 ${defect.image_id} 로드 실패:`, err))
+        );
+      }
+    }
+
+    await Promise.all(fetchPromises);
+    setImageCache(newImageCache);
+  };
 
   // 결함 유형 목록 조회
   const fetchDefectTypes = async () => {
@@ -194,6 +222,30 @@ const Dashboard = () => {
 
     return dateMatch && defectMatch && cameraMatch;
   });
+
+  // 이미지 상세 정보를 가져오는 함수
+  const fetchImageDetails = async (imageId) => {
+    try {
+      const response = await axios.get(`http://166.104.246.64:8000/annotations/detail/${imageId}`);
+      return response.data;
+    } catch (err) {
+      console.error('이미지 상세 정보를 가져오는데 실패했습니다:', err);
+      return null;
+    }
+  };
+
+  // 이미지 클릭 핸들러
+  const handleImageClick = async (imageId) => {
+    try {
+      const imageDetails = await fetchImageDetails(imageId);
+      if (imageDetails) {
+        setSelectedImageDetails(imageDetails);
+        setSelectedImage(imageDetails.file_path);
+      }
+    } catch (err) {
+      console.error('이미지 로딩 오류:', err);
+    }
+  };
 
   return (
     <CustomerLayout>
@@ -317,10 +369,10 @@ const Dashboard = () => {
                     <tr key={defect.image_id}>
                       <td>
                         <img 
-                          src={defect.file_path}
+                          src={imageCache[defect.image_id] || '/placeholder-image.png'}
                           alt={`defect-${defect.image_id}`}
                           className="customer-table-image"
-                          onClick={() => setSelectedImage(defect.file_path)}
+                          onClick={() => handleImageClick(defect.image_id)}
                           onError={(e) => {
                             e.target.onerror = null;
                             e.target.src = '/placeholder-image.png';
@@ -355,17 +407,66 @@ const Dashboard = () => {
 
         {/* 이미지 모달 */}
         {selectedImage && (
-          <div className="image-modal-overlay" onClick={() => setSelectedImage(null)}>
+          <div className="image-modal-overlay" onClick={() => {
+            setSelectedImage(null);
+            setSelectedImageDetails(null);
+          }}>
             <div className="image-modal-content">
-              <img 
-                src={selectedImage} 
-                alt="확대된 이미지" 
-                className="image-modal-img"
-                onClick={(e) => e.stopPropagation()}
-              />
+              <div className="image-container" style={{ position: 'relative' }}>
+                <img 
+                  src={selectedImage} 
+                  alt="확대된 이미지" 
+                  className="image-modal-img"
+                  onClick={(e) => e.stopPropagation()}
+                />
+                
+                {/* Bounding Box 렌더링 */}
+                {selectedImageDetails && selectedImageDetails.defects && selectedImageDetails.defects.map((defect, index) => {
+                  const box = defect.bounding_box;
+                  const x = (box.x_center - box.width / 2) * 100;
+                  const y = (box.y_center - box.height / 2) * 100;
+                  const width = box.width * 100;
+                  const height = box.height * 100;
+                  
+                  return (
+                    <div 
+                      key={defect.annotation_id}
+                      style={{
+                        position: 'absolute',
+                        left: `${x}%`,
+                        top: `${y}%`,
+                        width: `${width}%`,
+                        height: `${height}%`,
+                        border: `2px solid ${defect.class_color || '#ff0000'}`,
+                        boxSizing: 'border-box',
+                        pointerEvents: 'none'
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '-20px',
+                          left: '0',
+                          background: defect.class_color || '#ff0000',
+                          color: 'white',
+                          padding: '2px 5px',
+                          fontSize: '12px',
+                          borderRadius: '3px',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {defect.class_name}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
               <button 
                 className="image-modal-close" 
-                onClick={() => setSelectedImage(null)}
+                onClick={() => {
+                  setSelectedImage(null);
+                  setSelectedImageDetails(null);
+                }}
               >
                 ×
               </button>
