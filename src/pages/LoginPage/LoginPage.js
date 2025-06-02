@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';
 
-const API_URL = "http://166.104.246.64:8000"; // 백엔드 API URL
+// 백엔드 API URL - 환경 변수 사용
+const API_URL = process.env.REACT_APP_API_URL || 'http://166.104.246.64:8000';
 
 function LoginPage() {
   const navigate = useNavigate();

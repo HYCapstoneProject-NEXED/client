@@ -2,7 +2,8 @@
 import React, { useEffect } from 'react';
 import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 
-const API_URL = "http://166.104.246.64:8000"; // 백엔드 API URL
+// 백엔드 API URL - 환경 변수 사용
+const API_URL = process.env.REACT_APP_API_URL || 'http://166.104.246.64:8000';
 
 function AuthCallback() {
   const [searchParams] = useSearchParams();

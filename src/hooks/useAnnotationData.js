@@ -196,8 +196,21 @@ const useAnnotationData = (imageId, addToHistory) => {
     const boundingBox = defect.bounding_box;
     
     if (boundingBox) {
+      // 새로운 형태: { width, height, x_center, y_center } (정규화된 좌표)
+      if (boundingBox.width !== undefined && boundingBox.height !== undefined && 
+          boundingBox.x_center !== undefined && boundingBox.y_center !== undefined) {
+        console.log('새로운 형태 (width, height, x_center, y_center) 처리 중...');
+        
+        const width = boundingBox.width * imageWidth;
+        const height = boundingBox.height * imageHeight;
+        const x = (boundingBox.x_center * imageWidth) - (width / 2);
+        const y = (boundingBox.y_center * imageHeight) - (height / 2);
+        
+        coordinates = { x, y, width, height };
+        console.log('변환된 픽셀 좌표:', coordinates);
+      }
       // POST API 응답 형태: { h, w, cx, cy } (정규화된 좌표)
-      if (boundingBox.h !== undefined && boundingBox.w !== undefined && 
+      else if (boundingBox.h !== undefined && boundingBox.w !== undefined && 
           boundingBox.cx !== undefined && boundingBox.cy !== undefined) {
         console.log('POST API 형태 (h, w, cx, cy) 처리 중...');
         

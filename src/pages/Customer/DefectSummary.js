@@ -3,7 +3,7 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import axios from 'axios';
 import './DefectSummary.css';
 
-const BASE_URL = process.env.REACT_APP_API_URL;
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://166.104.246.64:8000';
 
 const DefectSummary = () => {
   const [defectTypeData, setDefectTypeData] = useState([]);

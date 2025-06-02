@@ -4,7 +4,7 @@ import CustomerLayout from '../../components/Customer/CustomerLayout';
 import DeleteConfirmPopup from '../../components/Customer/Filter/DeleteConfirmPopup';
 import './Editclass.css'
 
-const BASE_URL = process.env.REACT_APP_API_URL;
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://166.104.246.64:8000';
 
 // 색상 선택지
 const colorOptions = [
