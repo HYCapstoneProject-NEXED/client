@@ -74,6 +74,16 @@
   background-color: #f8f9fa;
 }
 
+.customer-defect-table tr.clickable-row {
+  cursor: pointer;
+}
+
+.customer-defect-table tr.clickable-row:hover {
+  background-color: #e8f4fd;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(72, 128, 255, 0.1);
+}
+
 .customer-table-image {
   width: 100px;
   height: 100px;
