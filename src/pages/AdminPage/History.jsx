@@ -287,7 +287,12 @@ const History = () => {
                         </thead>
                         <tbody>
                           {filteredData.map((item, index) => (
-                            <tr key={index}>
+                            <tr 
+                              key={index}
+                              onClick={() => handleViewDetails(item)}
+                              style={{ cursor: 'pointer' }}
+                              className="clickable-row"
+                            >
                               <td className="camera-id-cell">{item.image_id}</td>
                               <td>{item.user_name}</td>
                               <td>{formatDate(item.annotation_date)}</td>
@@ -295,7 +300,10 @@ const History = () => {
                               <td>
                                 <button 
                                   className="view-button"
-                                  onClick={() => handleViewDetails(item)}
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // 이벤트 버블링 방지
+                                    handleViewDetails(item);
+                                  }}
                                 >
                                   <FaEye /> 상세 보기
                                 </button>

@@ -4,14 +4,13 @@
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { FaChevronLeft, FaChevronRight, FaTrash, FaPen, FaCheck, FaClock, FaArrowLeft } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaTrash, FaPen, FaCheck, FaClock } from 'react-icons/fa';
 import ImageCanvas from '../../components/Annotator/ImageCanvas';
 import Sidebar from '../../components/Annotator/Sidebar';
 import { TOOL_TYPES } from '../../constants/annotationConstants';
 import useAnnotationData from '../../hooks/useAnnotationData';
 import useAnnotationSelection from '../../hooks/useAnnotationSelection';
 import AnnotationService from '../../services/AnnotationService';
-import useHistoryControl from '../../hooks/useHistoryControl';
 import './AnnotationDetailPage.css';
 
 // API URL 가져오기
@@ -35,9 +34,6 @@ const AnnotationDetailPage = () => {
   
   // Check if we're in admin mode based on URL parameter
   const [isAdminMode, setIsAdminMode] = useState(false);
-  
-  // History navigation control
-  const { navigateBackToHistory } = useHistoryControl();
   
   // 사이드바 접힘/펼침 상태
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -314,8 +310,12 @@ const AnnotationDetailPage = () => {
     
     // This history listener will be called on popstate events (browser back/forward buttons)
     const handlePopState = () => {
-      // Always navigate to dashboard when back button is pressed
-      navigate('/annotator/dashboard');
+      // Navigate based on mode - admin history or dashboard
+      if (isAdminMode) {
+        navigate('/admin/history');
+      } else {
+        navigate('/annotator/dashboard');
+      }
     };
     
     // Add event listener for popstate (back button)
@@ -325,14 +325,7 @@ const AnnotationDetailPage = () => {
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [navigate]);
-
-  /**
-   * Handle back button click to return to admin history page
-   */
-  const handleBackToHistory = () => {
-    navigateBackToHistory();
-  };
+  }, [navigate, isAdminMode]);
 
   // Add effect to log image path
   useEffect(() => {
@@ -380,15 +373,6 @@ const AnnotationDetailPage = () => {
     <div className="annotator-annotation-edit-page">
       {/* 헤더 */}
       <div className="annotator-detail-header">
-        {isAdminMode && (
-          <button 
-            className="back-to-history-btn"
-            onClick={handleBackToHistory}
-            title="Back to History"
-          >
-            <FaArrowLeft /> Back to History
-          </button>
-        )}
         <h1>Annotation Details</h1>
         
         <div className="header-actions">

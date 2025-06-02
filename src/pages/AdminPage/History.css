@@ -374,6 +374,20 @@
   transition: all 0.2s ease;
 }
 
+.assignment-table tr.clickable-row {
+  cursor: pointer;
+}
+
+.assignment-table tr.clickable-row:hover {
+  background-color: #F8FAFF;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(72, 128, 255, 0.1);
+}
+
+.assignment-table tr.clickable-row:hover td {
+  color: #4880FF;
+}
+
 .assignment-table tr:hover {
   background-color: #F8FAFF;
 }
