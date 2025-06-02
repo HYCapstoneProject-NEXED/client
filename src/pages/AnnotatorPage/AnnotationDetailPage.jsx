@@ -32,8 +32,9 @@ const AnnotationDetailPage = () => {
   const [selectedIds, setSelectedIds] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   
-  // Check if we're in admin mode based on URL parameter
+  // Check if we're in admin mode or customer mode based on URL parameter
   const [isAdminMode, setIsAdminMode] = useState(false);
+  const [isCustomerMode, setIsCustomerMode] = useState(false);
   
   // 사이드바 접힘/펼침 상태
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -52,8 +53,10 @@ const AnnotationDetailPage = () => {
     const queryParams = new URLSearchParams(location.search);
     const selectedIdsParam = queryParams.get('selectedIds');
     const isAdmin = queryParams.get('isAdmin') === 'true';
+    const isCustomer = queryParams.get('isCustomer') === 'true';
     
     setIsAdminMode(isAdmin);
+    setIsCustomerMode(isCustomer);
     
     if (selectedIdsParam) {
       const ids = selectedIdsParam
@@ -310,9 +313,11 @@ const AnnotationDetailPage = () => {
     
     // This history listener will be called on popstate events (browser back/forward buttons)
     const handlePopState = () => {
-      // Navigate based on mode - admin history or dashboard
+      // Navigate based on mode - admin history, customer dashboard, or annotator dashboard
       if (isAdminMode) {
         navigate('/admin/history');
+      } else if (isCustomerMode) {
+        navigate('/customer/dashboard');
       } else {
         navigate('/annotator/dashboard');
       }
@@ -325,7 +330,7 @@ const AnnotationDetailPage = () => {
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [navigate, isAdminMode]);
+  }, [navigate, isAdminMode, isCustomerMode]);
 
   // Add effect to log image path
   useEffect(() => {
@@ -403,8 +408,8 @@ const AnnotationDetailPage = () => {
             </div>
           )}
           
-          {/* Only show edit and delete buttons when not in admin mode */}
-          {!isAdminMode && (
+          {/* Only show edit and delete buttons when not in admin mode or customer mode */}
+          {!isAdminMode && !isCustomerMode && (
             <>
               <button 
                 className="start-annotating-btn"
