@@ -209,9 +209,22 @@ const useAnnotationData = (imageId, addToHistory) => {
         coordinates = { x, y, width, height };
         console.log('변환된 픽셀 좌표:', coordinates);
       }
+      // 사용자 정의 형태: { h, w, x_center, y_center } (정규화된 좌표)
+      else if (boundingBox.h !== undefined && boundingBox.w !== undefined && 
+               boundingBox.x_center !== undefined && boundingBox.y_center !== undefined) {
+        console.log('사용자 정의 형태 (h, w, x_center, y_center) 처리 중...');
+        
+        const width = boundingBox.w * imageWidth;
+        const height = boundingBox.h * imageHeight;
+        const x = (boundingBox.x_center * imageWidth) - (width / 2);
+        const y = (boundingBox.y_center * imageHeight) - (height / 2);
+        
+        coordinates = { x, y, width, height };
+        console.log('변환된 픽셀 좌표:', coordinates);
+      }
       // POST API 응답 형태: { h, w, cx, cy } (정규화된 좌표)
       else if (boundingBox.h !== undefined && boundingBox.w !== undefined && 
-          boundingBox.cx !== undefined && boundingBox.cy !== undefined) {
+               boundingBox.cx !== undefined && boundingBox.cy !== undefined) {
         console.log('POST API 형태 (h, w, cx, cy) 처리 중...');
         
         const width = boundingBox.w * imageWidth;
@@ -320,18 +333,18 @@ const useAnnotationData = (imageId, addToHistory) => {
           return;
         }
         
-        // 픽셀 좌표를 정규화된 좌표로 변환 (cx, cy, w, h 형식)
+        // 픽셀 좌표를 정규화된 좌표로 변환 (사용자 정의 형식: h, w, x_center, y_center)
         const pixelCoords = defect.coordinates;
         const imageWidth = dataInfo.dimensions.width || 4032;
         const imageHeight = dataInfo.dimensions.height || 3024;
         
-        // 정규화된 좌표 계산 (0~1 사이 값)
+        // 정규화된 좌표 계산 (0~1 사이 값) - 사용자 정의 형식 사용
         const boundingBoxForApi = {
-          // 백엔드에서 기대하는 순서: h, w, cx, cy
+          // 사용자 정의 순서: h, w, x_center, y_center
           h: pixelCoords.height / imageHeight,
           w: pixelCoords.width / imageWidth,
-          cx: (pixelCoords.x + pixelCoords.width / 2) / imageWidth,
-          cy: (pixelCoords.y + pixelCoords.height / 2) / imageHeight
+          x_center: (pixelCoords.x + pixelCoords.width / 2) / imageWidth,
+          y_center: (pixelCoords.y + pixelCoords.height / 2) / imageHeight
         };
         
         // 초기 로드된 어노테이션 ID 집합에 포함된 경우 기존 어노테이션으로 처리
