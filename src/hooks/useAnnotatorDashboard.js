@@ -162,7 +162,36 @@ const useAnnotatorDashboard = () => {
           // API 응답에서는 bounding_box 필드 안에 실제 바운딩 박스 정보가 있음
           if (box.bounding_box) {
             return {
-              ...box.bounding_box,  // 바운딩 박스 좌표 정보 (h, w, cx, cy)
+              ...box.bounding_box,  // 바운딩 박스 좌표 정보 (h, w, cx, cy 또는 width, height, x_center, y_center)
+              class_name: box.class_name,
+              class_color: box.class_color,
+              is_active: box.is_active
+            };
+          }
+          
+          // 직접 바운딩 박스 데이터가 있는 경우 (새로운 형태와 기존 형태 모두 지원)
+          if (box.width !== undefined && box.height !== undefined && 
+              box.x_center !== undefined && box.y_center !== undefined) {
+            // 새로운 형태: { width, height, x_center, y_center }
+            return {
+              width: box.width,
+              height: box.height,
+              x_center: box.x_center,
+              y_center: box.y_center,
+              class_name: box.class_name,
+              class_color: box.class_color,
+              is_active: box.is_active
+            };
+          }
+          
+          if (box.h !== undefined && box.w !== undefined && 
+              box.cx !== undefined && box.cy !== undefined) {
+            // 기존 형태: { h, w, cx, cy }
+            return {
+              h: box.h,
+              w: box.w,
+              cx: box.cx,
+              cy: box.cy,
               class_name: box.class_name,
               class_color: box.class_color,
               is_active: box.is_active

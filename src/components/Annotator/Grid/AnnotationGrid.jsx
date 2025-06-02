@@ -114,24 +114,48 @@ const BoundingBoxOverlay = ({ boxes, originalWidth, originalHeight, renderedWidt
         let boxColor = box.class_color || '#FF5722';
         
         try {
-          // API에서 넘어온 정규화된 값(0~1) 처리
-          const h = box.h || 0;  // 높이 (정규화)
-          const w = box.w || 0;  // 너비 (정규화)
-          const cx = box.cx || 0; // x 중심점 (정규화)
-          const cy = box.cy || 0; // y 중심점 (정규화)
+          let boxWidth, boxHeight, x, y;
           
-          // 정규화된 값을 실제 렌더링 크기로 변환
-          const boxWidth = w * renderedWidth;
-          const boxHeight = h * renderedHeight;
-          
-          // 중심점에서 좌상단 좌표로 변환
-          const x = offsetX + (cx * renderedWidth) - (boxWidth / 2);
-          const y = offsetY + (cy * renderedHeight) - (boxHeight / 2);
-          
-          console.log(`박스 #${index}:`, { 
-            원본정규화: { cx, cy, w, h }, 
-            변환결과: { x, y, width: boxWidth, height: boxHeight } 
-          });
+          // 새로운 형태: { width, height, x_center, y_center } (정규화된 좌표)
+          if (box.width !== undefined && box.height !== undefined && 
+              box.x_center !== undefined && box.y_center !== undefined) {
+            console.log(`박스 #${index} - 새로운 형태 (width, height, x_center, y_center) 처리 중...`);
+            
+            // 정규화된 값을 실제 렌더링 크기로 변환
+            boxWidth = box.width * renderedWidth;
+            boxHeight = box.height * renderedHeight;
+            
+            // 중심점에서 좌상단 좌표로 변환
+            x = offsetX + (box.x_center * renderedWidth) - (boxWidth / 2);
+            y = offsetY + (box.y_center * renderedHeight) - (boxHeight / 2);
+            
+            console.log(`박스 #${index}:`, { 
+              원본정규화: { x_center: box.x_center, y_center: box.y_center, width: box.width, height: box.height }, 
+              변환결과: { x, y, width: boxWidth, height: boxHeight } 
+            });
+          }
+          // 기존 형태: { h, w, cx, cy } (정규화된 좌표)
+          else if (box.h !== undefined && box.w !== undefined && 
+                   box.cx !== undefined && box.cy !== undefined) {
+            console.log(`박스 #${index} - 기존 형태 (h, w, cx, cy) 처리 중...`);
+            
+            // 정규화된 값을 실제 렌더링 크기로 변환
+            boxWidth = box.w * renderedWidth;
+            boxHeight = box.h * renderedHeight;
+            
+            // 중심점에서 좌상단 좌표로 변환
+            x = offsetX + (box.cx * renderedWidth) - (boxWidth / 2);
+            y = offsetY + (box.cy * renderedHeight) - (boxHeight / 2);
+            
+            console.log(`박스 #${index}:`, { 
+              원본정규화: { cx: box.cx, cy: box.cy, w: box.w, h: box.h }, 
+              변환결과: { x, y, width: boxWidth, height: boxHeight } 
+            });
+          }
+          else {
+            console.warn(`박스 #${index} - 지원되지 않는 바운딩 박스 형태:`, box);
+            return null;
+          }
           
           return (
             <div 
