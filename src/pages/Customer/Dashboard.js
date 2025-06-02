@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import CustomerLayout from '../../components/Customer/CustomerLayout';
 import './Dashboard.css';
 import DateFilterPopup from '../../components/Customer/Filter/DateFilterPopup';
@@ -31,8 +30,6 @@ const Dashboard = () => {
   const [selectedCameras, setSelectedCameras] = useState([]);
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSummary = async () => {
@@ -317,21 +314,13 @@ const Dashboard = () => {
               <tbody>
                 {defectData && defectData.length > 0 ? (
                   defectData.map((defect) => (
-                    <tr 
-                      key={defect.image_id}
-                      onClick={() => navigate(`/customer/annotation/${defect.image_id}?isCustomer=true`)}
-                      style={{ cursor: 'pointer' }}
-                      className="clickable-row"
-                    >
+                    <tr key={defect.image_id}>
                       <td>
                         <img 
                           src={defect.file_path}
                           alt={`defect-${defect.image_id}`}
                           className="customer-table-image"
-                          onClick={(e) => {
-                            e.stopPropagation(); // 이벤트 버블링 방지
-                            navigate(`/customer/annotation/${defect.image_id}?isCustomer=true`);
-                          }}
+                          onClick={() => setSelectedImage(defect.file_path)}
                           onError={(e) => {
                             e.target.onerror = null;
                             e.target.src = '/placeholder-image.png';
