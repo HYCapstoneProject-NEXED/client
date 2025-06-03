@@ -47,7 +47,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'completed',
-    camera_id: 'CAM_A001'
+    camera_id: 'CAM_A001',
+    last_annotation_id: 6  // 이미지 101의 마지막 어노테이션 ID
   },
   {
     image_id: 102,
@@ -57,7 +58,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'pending',
-    camera_id: 'CAM_A002'
+    camera_id: 'CAM_A002',
+    last_annotation_id: 0  // 어노테이션 없음
   },
   {
     image_id: 103,
@@ -67,7 +69,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'pending',
-    camera_id: 'CAM_B001'
+    camera_id: 'CAM_B001',
+    last_annotation_id: 1  // 이미지 103의 마지막 어노테이션 ID
   },
   {
     image_id: 104,
@@ -77,7 +80,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'completed',
-    camera_id: 'CAM_B002'
+    camera_id: 'CAM_B002',
+    last_annotation_id: 3  // 이미지 104의 마지막 어노테이션 ID
   },
   {
     image_id: 105,
@@ -87,7 +91,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'pending',
-    camera_id: 'CAM_C001'
+    camera_id: 'CAM_C001',
+    last_annotation_id: 0  // 어노테이션 없음
   },
   {
     image_id: 106,
@@ -97,7 +102,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'pending',
-    camera_id: 'CAM_C002'
+    camera_id: 'CAM_C002',
+    last_annotation_id: 2  // 이미지 106의 마지막 어노테이션 ID
   },
   // 추가 카메라 ID와 이미지 데이터
   {
@@ -108,7 +114,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'pending',
-    camera_id: 'CAM_D001'
+    camera_id: 'CAM_D001',
+    last_annotation_id: 0  // 어노테이션 없음
   },
   {
     image_id: 108,
@@ -118,7 +125,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'pending',
-    camera_id: 'CAM_D001'
+    camera_id: 'CAM_D001',
+    last_annotation_id: 0  // 어노테이션 없음
   },
   {
     image_id: 109,
@@ -128,7 +136,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'pending',
-    camera_id: 'CAM_D002'
+    camera_id: 'CAM_D002',
+    last_annotation_id: 0  // 어노테이션 없음
   },
   {
     image_id: 110,
@@ -138,7 +147,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'pending',
-    camera_id: 'CAM_D002'
+    camera_id: 'CAM_D002',
+    last_annotation_id: 0  // 어노테이션 없음
   },
   {
     image_id: 111,
@@ -148,7 +158,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'pending',
-    camera_id: 'CAM_E001'
+    camera_id: 'CAM_E001',
+    last_annotation_id: 0  // 어노테이션 없음
   },
   {
     image_id: 112,
@@ -158,7 +169,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'pending',
-    camera_id: 'CAM_E001'
+    camera_id: 'CAM_E001',
+    last_annotation_id: 0  // 어노테이션 없음
   },
   {
     image_id: 113,
@@ -168,7 +180,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'pending',
-    camera_id: 'CAM_E002'
+    camera_id: 'CAM_E002',
+    last_annotation_id: 0  // 어노테이션 없음
   },
   {
     image_id: 114,
@@ -178,7 +191,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'pending',
-    camera_id: 'CAM_E002'
+    camera_id: 'CAM_E002',
+    last_annotation_id: 0  // 어노테이션 없음
   },
   {
     image_id: 115,
@@ -188,7 +202,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'pending',
-    camera_id: 'CAM_F001'
+    camera_id: 'CAM_F001',
+    last_annotation_id: 0  // 어노테이션 없음
   },
   {
     image_id: 116,
@@ -198,7 +213,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'pending',
-    camera_id: 'CAM_F001'
+    camera_id: 'CAM_F001',
+    last_annotation_id: 0  // 어노테이션 없음
   },
   {
     image_id: 117,
@@ -208,7 +224,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'pending',
-    camera_id: 'CAM_F001'
+    camera_id: 'CAM_F001',
+    last_annotation_id: 0  // 어노테이션 없음
   },
   {
     image_id: 118,
@@ -218,7 +235,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'pending',
-    camera_id: 'CAM_F002'
+    camera_id: 'CAM_F002',
+    last_annotation_id: 0  // 어노테이션 없음
   },
   {
     image_id: 119,
@@ -228,7 +246,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'pending',
-    camera_id: 'CAM_F002'
+    camera_id: 'CAM_F002',
+    last_annotation_id: 0  // 어노테이션 없음
   },
   {
     image_id: 120,
@@ -238,7 +257,8 @@ const DUMMY_IMAGES = [
     width: 1920,
     height: 1080,
     status: 'pending',
-    camera_id: 'CAM_F002'
+    camera_id: 'CAM_F002',
+    last_annotation_id: 0  // 어노테이션 없음
   }
 ];
 
@@ -457,24 +477,6 @@ class AnnotationService {
   }
 
   /**
-   * 특정 이미지의 마지막 어노테이션 ID 계산
-   * @param {number} imageId - 이미지 ID
-   * @returns {number} 마지막 어노테이션 ID
-   */
-  getLastAnnotationId(imageId) {
-    // 해당 이미지의 모든 어노테이션 찾기
-    const imageAnnotations = DUMMY_ANNOTATIONS.filter(anno => anno.image_id === imageId);
-    
-    if (imageAnnotations.length === 0) {
-      return 0; // 어노테이션이 없으면 0 반환
-    }
-    
-    // 가장 큰 annotation_id 반환
-    const maxId = Math.max(...imageAnnotations.map(anno => anno.annotation_id));
-    return maxId;
-  }
-
-  /**
    * 특정 이미지의 어노테이션 상세 정보 가져오기
    * @param {number} imageId - 이미지 ID
    * @returns {Promise<Object>} 이미지 상세 정보
@@ -512,7 +514,7 @@ class AnnotationService {
           width: imageDetail.width || 640,
           height: imageDetail.height || 640,
           status: imageDetail.status || 'pending',
-          last_annotation_id: imageDetail.last_annotation_id || this.getLastAnnotationId(imageDetail.image_id),
+          last_annotation_id: imageDetail.last_annotation_id,
           capture_date_formatted: formatDateTime(imageDetail.date),
           last_modified_formatted: formatDateTime(imageDetail.date)
         };
@@ -735,7 +737,6 @@ class AnnotationService {
           ...imageDetail,
           width: imageDetail.width || 4032, // 실제 이미지 크기 사용
           height: imageDetail.height || 3024, // 실제 이미지 크기 사용
-          last_annotation_id: imageDetail.last_annotation_id || this.getLastAnnotationId(imageId),
           capture_date_formatted: formatDateTime(imageDetail.capture_date),
           last_modified_formatted: formatDateTime(imageDetail.last_modified)
         };
@@ -754,7 +755,6 @@ class AnnotationService {
             ...imageDetail,
             width: imageDetail.width || 4032, // 실제 이미지 크기 사용
             height: imageDetail.height || 3024, // 실제 이미지 크기 사용
-            last_annotation_id: imageDetail.last_annotation_id || this.getLastAnnotationId(imageId),
             capture_date_formatted: formatDateTime(imageDetail.capture_date),
             last_modified_formatted: formatDateTime(imageDetail.last_modified)
           };
@@ -765,17 +765,16 @@ class AnnotationService {
       }
       
       // API 호출이 모두 실패한 경우 더미 데이터 사용
-      const image = DUMMY_IMAGES.find(img => img.image_id === imageId);
-      if (image) {
+          const image = DUMMY_IMAGES.find(img => img.image_id === imageId);
+          if (image) {
         return {
-          ...image,
+              ...image,
           width: image.width || 4032, // 실제 이미지 크기 사용
           height: image.height || 3024, // 실제 이미지 크기 사용
-          last_annotation_id: this.getLastAnnotationId(imageId), // 동적으로 계산
-          capture_date_formatted: formatDateTime(image.capture_date),
-          last_modified_formatted: formatDateTime(image.last_modified)
+              capture_date_formatted: formatDateTime(image.capture_date),
+              last_modified_formatted: formatDateTime(image.last_modified)
         };
-      }
+          }
       return null;
     } catch (error) {
       console.error(`Failed to fetch image detail for ID ${imageId}:`, error);
@@ -786,7 +785,6 @@ class AnnotationService {
           ...image,
           width: image.width || 4032, // 실제 이미지 크기 사용
           height: image.height || 3024, // 실제 이미지 크기 사용
-          last_annotation_id: this.getLastAnnotationId(imageId), // 동적으로 계산
           capture_date_formatted: formatDateTime(image.capture_date),
           last_modified_formatted: formatDateTime(image.last_modified)
         };

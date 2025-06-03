@@ -420,16 +420,38 @@ const ImageCanvas = ({
   const clientToImageCoords = useCallback((clientX, clientY) => {
     if (!canvasRef.current) return { x: 0, y: 0 };
     
-    const rect = canvasRef.current.getBoundingClientRect();
-    const canvasX = clientX - rect.left;
-    const canvasY = clientY - rect.top;
+    // 변환이 적용되지 않은 부모 컨테이너(image-canvas)의 경계를 사용
+    const parentContainer = canvasRef.current.parentElement;
+    if (!parentContainer) return { x: 0, y: 0 };
     
-    // 이미지 컨테이너의 변환을 고려한 좌표 계산
-    const imageX = (canvasX - position.x) / scale;
-    const imageY = (canvasY - position.y) / scale;
+    const rect = parentContainer.getBoundingClientRect();
+    
+    // 부모 컨테이너 내에서의 마우스 위치
+    const containerX = clientX - rect.left;
+    const containerY = clientY - rect.top;
+    
+    // 부모 컨테이너의 중심점
+    const containerCenterX = rect.width / 2;
+    const containerCenterY = rect.height / 2;
+    
+    // 이미지 컨테이너의 실제 렌더링 중심점 (변환 적용 후)
+    const imageContainerCenterX = containerCenterX + position.x;
+    const imageContainerCenterY = containerCenterY + position.y;
+    
+    // 이미지 컨테이너 중심으로부터의 상대적 마우스 위치
+    const relativeX = containerX - imageContainerCenterX;
+    const relativeY = containerY - imageContainerCenterY;
+    
+    // 스케일을 적용하여 이미지 좌표계로 변환
+    const imageRelativeX = relativeX / scale;
+    const imageRelativeY = relativeY / scale;
+    
+    // 이미지 좌상단을 원점으로 하는 좌표로 변환
+    const imageX = imageRelativeX + canvasDimensions.width / 2;
+    const imageY = imageRelativeY + canvasDimensions.height / 2;
     
     return { x: imageX, y: imageY };
-  }, [position, scale]);
+  }, [position, scale, canvasDimensions.width, canvasDimensions.height]);
 
   /**
    * 바운딩 박스 마우스 다운 이벤트 핸들러
@@ -785,11 +807,14 @@ const ImageCanvas = ({
     if (isDrawingBox && activeTool === toolTypes.RECTANGLE) {
       console.log('Finishing box drawing. Tool:', activeTool, 'Type:', currentDefectType);
       
-      // 시작점과 종료점으로부터 사각형 좌표와 크기 계산
-      let x = Math.min(drawStartPos.x, currentDrawPos.x);
-      let y = Math.min(drawStartPos.y, currentDrawPos.y);
-      let width = Math.abs(currentDrawPos.x - drawStartPos.x);
-      let height = Math.abs(currentDrawPos.y - drawStartPos.y);
+      // 마우스 업 시점의 실시간 좌표 계산
+      const finalImageCoords = clientToImageCoords(e.clientX, e.clientY);
+      
+      // 시작점과 종료점으로부터 사각형 좌표와 크기 계산 (실시간 마우스 위치 사용)
+      let x = Math.min(drawStartPos.x, finalImageCoords.x);
+      let y = Math.min(drawStartPos.y, finalImageCoords.y);
+      let width = Math.abs(finalImageCoords.x - drawStartPos.x);
+      let height = Math.abs(finalImageCoords.y - drawStartPos.y);
       
       // 좌표를 이미지 영역 내로 제한
       x = Math.max(0, Math.min(x, canvasDimensions.width));
@@ -805,6 +830,8 @@ const ImageCanvas = ({
       
       console.log('Final box coordinates (constrained):', { x, y, width, height });
       console.log('Canvas dimensions:', canvasDimensions);
+      console.log('Draw start position:', drawStartPos);
+      console.log('Final mouse position (image coords):', finalImageCoords);
       
       // 최소 크기 확인 (최소 5x5 픽셀)
       if (width > 5 && height > 5) {
@@ -859,7 +886,10 @@ const ImageCanvas = ({
     onAddBox,
     onToolChange,
     toolTypes.RECTANGLE,
-    toolTypes.HAND
+    toolTypes.HAND,
+    clientToImageCoords,
+    canvasDimensions.width,
+    canvasDimensions.height
   ]);
 
   // 활성 도구가 변경될 때 실행되는 effect
@@ -1235,7 +1265,7 @@ const ImageCanvas = ({
                   handleBoxMouseDown(e, defect.id);
                 }}
               >
-                ({defect.id}) {defect.confidence === null || defect.confidence === undefined || defect.confidence === 0.9 ? '-' : defect.confidence.toFixed(2)}
+                ({defect.displayId || defect.id}) {defect.confidence === null || defect.confidence === undefined || defect.confidence === 0.9 ? '-' : defect.confidence.toFixed(2)}
               </div>
             </div>
           );
