@@ -343,7 +343,7 @@ const Sidebar = ({
                     className={`annotator-defect-color ${getDefectColorClass(defect.type)}`}
                     style={{ backgroundColor: defect.color || getDefectColor(defect.type) }}
                   ></div>
-                  <span className="annotator-defect-id">#{defect.id}</span>
+                  <span className="annotator-defect-id">#{defect.displayId || defect.id}</span>
                   <span className="annotator-defect-name">{getDefectTypeName(defect.type)}</span>
                   <span className="annotator-confidence">{defect.confidence === null || defect.confidence === 0 ? '-' : defect.confidence.toFixed(2)}</span>
                   
