@@ -353,69 +353,59 @@ const useAnnotationData = (imageId, addToHistory) => {
       const newAnnotations = [];
       const existingAnnotations = [];
       
-      // defects 목록이 비어있는 경우 처리
-      if (!defects || defects.length === 0) {
-        console.log('저장할 defects가 없습니다.');
-        setIsLoading(false);
-        alert('저장할 어노테이션이 없습니다.');
-        return false;
-      }
-      
-      console.log(`저장할 defects 개수: ${defects.length}`);
+      console.log(`저장할 defects 개수: ${defects?.length || 0}`);
       console.log('초기 로드된 어노테이션 ID:', Array.from(initialAnnotationIds));
       
-      defects.forEach(defect => {
-        // pixelCoords가 없는 경우 스킵
-        if (!defect.coordinates) {
-          console.warn('좌표 정보가 없는 defect 무시:', defect.id);
-          return;
-        }
-        
-        // 픽셀 좌표를 정규화된 좌표로 변환 (사용자 정의 형식: h, w, x_center, y_center)
-        const pixelCoords = defect.coordinates;
-        const imageWidth = dataInfo.dimensions.width || 4032;
-        const imageHeight = dataInfo.dimensions.height || 3024;
-        
-        // 정규화된 좌표 계산 (0~1 사이 값) - 사용자 정의 형식 사용
-        const boundingBoxForApi = {
-          // 사용자 정의 순서: h, w, x_center, y_center
-          h: pixelCoords.height / imageHeight,
-          w: pixelCoords.width / imageWidth,
-          x_center: (pixelCoords.x + pixelCoords.width / 2) / imageWidth,
-          y_center: (pixelCoords.y + pixelCoords.height / 2) / imageHeight
-        };
-        
-        // 초기 로드된 어노테이션 ID 집합에 포함된 경우 기존 어노테이션으로 처리
-        if (initialAnnotationIds.has(defect.id)) {
-          console.log(`기존 어노테이션으로 처리: ID=${defect.id}, 타입=${defect.type}`);
+      // defects가 있는 경우에만 처리
+      if (defects && defects.length > 0) {
+        defects.forEach(defect => {
+          // pixelCoords가 없는 경우 스킵
+          if (!defect.coordinates) {
+            console.warn('좌표 정보가 없는 defect 무시:', defect.id);
+            return;
+          }
           
-          // API 요청 스키마에 맞게 필수 필드만 포함
-          existingAnnotations.push({
-            class_id: defect.typeId,
-            bounding_box: boundingBoxForApi,
-            annotation_id: parseInt(defect.id)
-          });
-        } else {
-          // 초기 로드 목록에 없는 경우 새 어노테이션으로 처리
-          console.log(`새 어노테이션으로 처리: ID=${defect.id}, 타입=${defect.type}`);
+          // 픽셀 좌표를 정규화된 좌표로 변환 (사용자 정의 형식: h, w, x_center, y_center)
+          const pixelCoords = defect.coordinates;
+          const imageWidth = dataInfo.dimensions.width || 4032;
+          const imageHeight = dataInfo.dimensions.height || 3024;
           
-          // API 요청 스키마에 맞게 필수 필드만 포함
-          newAnnotations.push({
-            class_id: defect.typeId,
-            bounding_box: boundingBoxForApi
-          });
-        }
-      });
+          // 정규화된 좌표 계산 (0~1 사이 값) - 사용자 정의 형식 사용
+          const boundingBoxForApi = {
+            // 사용자 정의 순서: h, w, x_center, y_center
+            h: pixelCoords.height / imageHeight,
+            w: pixelCoords.width / imageWidth,
+            x_center: (pixelCoords.x + pixelCoords.width / 2) / imageWidth,
+            y_center: (pixelCoords.y + pixelCoords.height / 2) / imageHeight
+          };
+          
+          // 초기 로드된 어노테이션 ID 집합에 포함된 경우 기존 어노테이션으로 처리
+          if (initialAnnotationIds.has(defect.id)) {
+            console.log(`기존 어노테이션으로 처리: ID=${defect.id}, 타입=${defect.type}`);
+            
+            // API 요청 스키마에 맞게 필수 필드만 포함
+            existingAnnotations.push({
+              class_id: defect.typeId,
+              bounding_box: boundingBoxForApi,
+              annotation_id: parseInt(defect.id)
+            });
+          } else {
+            // 초기 로드 목록에 없는 경우 새 어노테이션으로 처리
+            console.log(`새 어노테이션으로 처리: ID=${defect.id}, 타입=${defect.type}`);
+            
+            // API 요청 스키마에 맞게 필수 필드만 포함
+            newAnnotations.push({
+              class_id: defect.typeId,
+              bounding_box: boundingBoxForApi
+            });
+          }
+        });
+      } else {
+        console.log('모든 어노테이션을 삭제합니다.');
+      }
       
       console.log('새 어노테이션 개수:', newAnnotations.length);
       console.log('기존 어노테이션 개수:', existingAnnotations.length);
-      
-      if (newAnnotations.length === 0 && existingAnnotations.length === 0) {
-        console.log('저장할 어노테이션이 없습니다.');
-        setIsLoading(false);
-        alert('저장할 어노테이션이 없습니다.');
-        return false;
-      }
       
       try {
         // API 호출 시작, 요청 데이터 로깅
@@ -430,7 +420,7 @@ const useAnnotationData = (imageId, addToHistory) => {
         console.log('새 어노테이션:', JSON.stringify(newAnnotations, null, 2));
         console.log('기존 어노테이션:', JSON.stringify(existingAnnotations, null, 2));
         
-        // API 호출하여 어노테이션 업데이트
+        // API 호출하여 어노테이션 업데이트 (빈 배열도 전송 가능)
         const updatedAnnotations = await AnnotationService.updateImageAnnotations(
           userId,
           imageId,
@@ -438,28 +428,28 @@ const useAnnotationData = (imageId, addToHistory) => {
           existingAnnotations
         );
         
-        console.log('API 호출 성공! 응답 데이터 개수:', updatedAnnotations.length);
+        console.log('API 호출 성공! 응답 데이터 개수:', updatedAnnotations?.length || 0);
         
         // 저장 성공 후 지연 설정 (API 처리 시간 확보)
         await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // 마지막 수정 날짜 업데이트
-      const now = new Date();
-      const formattedDate = formatDateTime(now.toISOString());
-      
-      setDataInfo(prev => ({
-        ...prev,
-        lastModified: formattedDate
-      }));
-      
-      // 저장 후 변경 사항 없음으로 설정
-      setHasUnsavedChanges(false);
+        // 마지막 수정 날짜 업데이트
+        const now = new Date();
+        const formattedDate = formatDateTime(now.toISOString());
         
+        setDataInfo(prev => ({
+          ...prev,
+          lastModified: formattedDate
+        }));
+        
+        // 저장 후 변경 사항 없음으로 설정
+        setHasUnsavedChanges(false);
+          
         // 로딩 상태 해제
         setIsLoading(false);
-      
-      // 성공 시 alert 제거 (호출하는 쪽에서 처리)
-      return true;
+        
+        // 성공 시 alert 제거 (호출하는 쪽에서 처리)
+        return true;
       } catch (apiError) {
         console.error('API 호출 오류:', apiError);
         
