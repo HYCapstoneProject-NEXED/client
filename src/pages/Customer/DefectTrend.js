@@ -119,12 +119,12 @@ const DefectTrend = () => {
     const getDefectTypeValues = (defects) => {
         // 결함 유형이 숫자로 저장되어 있다면 해당하는 문자열 값으로 변환
         const defectTypeMap = {
+            0: 'mouse_bite',
             1: 'open',
             2: 'short',
             3: 'spurious_copper',
-            4: 'mouse_bite',
-            5: 'missing_hole',
-            6: 'missing_component'
+            4: 'missing_hole',
+            5: 'missing_component'
             // 필요한 경우 더 많은 매핑 추가
         };
         
