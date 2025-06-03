@@ -457,6 +457,24 @@ class AnnotationService {
   }
 
   /**
+   * 특정 이미지의 마지막 어노테이션 ID 계산
+   * @param {number} imageId - 이미지 ID
+   * @returns {number} 마지막 어노테이션 ID
+   */
+  getLastAnnotationId(imageId) {
+    // 해당 이미지의 모든 어노테이션 찾기
+    const imageAnnotations = DUMMY_ANNOTATIONS.filter(anno => anno.image_id === imageId);
+    
+    if (imageAnnotations.length === 0) {
+      return 0; // 어노테이션이 없으면 0 반환
+    }
+    
+    // 가장 큰 annotation_id 반환
+    const maxId = Math.max(...imageAnnotations.map(anno => anno.annotation_id));
+    return maxId;
+  }
+
+  /**
    * 특정 이미지의 어노테이션 상세 정보 가져오기
    * @param {number} imageId - 이미지 ID
    * @returns {Promise<Object>} 이미지 상세 정보
@@ -494,6 +512,7 @@ class AnnotationService {
           width: imageDetail.width || 640,
           height: imageDetail.height || 640,
           status: imageDetail.status || 'pending',
+          last_annotation_id: imageDetail.last_annotation_id || this.getLastAnnotationId(imageDetail.image_id),
           capture_date_formatted: formatDateTime(imageDetail.date),
           last_modified_formatted: formatDateTime(imageDetail.date)
         };
@@ -716,6 +735,7 @@ class AnnotationService {
           ...imageDetail,
           width: imageDetail.width || 4032, // 실제 이미지 크기 사용
           height: imageDetail.height || 3024, // 실제 이미지 크기 사용
+          last_annotation_id: imageDetail.last_annotation_id || this.getLastAnnotationId(imageId),
           capture_date_formatted: formatDateTime(imageDetail.capture_date),
           last_modified_formatted: formatDateTime(imageDetail.last_modified)
         };
@@ -734,6 +754,7 @@ class AnnotationService {
             ...imageDetail,
             width: imageDetail.width || 4032, // 실제 이미지 크기 사용
             height: imageDetail.height || 3024, // 실제 이미지 크기 사용
+            last_annotation_id: imageDetail.last_annotation_id || this.getLastAnnotationId(imageId),
             capture_date_formatted: formatDateTime(imageDetail.capture_date),
             last_modified_formatted: formatDateTime(imageDetail.last_modified)
           };
@@ -744,16 +765,17 @@ class AnnotationService {
       }
       
       // API 호출이 모두 실패한 경우 더미 데이터 사용
-          const image = DUMMY_IMAGES.find(img => img.image_id === imageId);
-          if (image) {
+      const image = DUMMY_IMAGES.find(img => img.image_id === imageId);
+      if (image) {
         return {
-              ...image,
+          ...image,
           width: image.width || 4032, // 실제 이미지 크기 사용
           height: image.height || 3024, // 실제 이미지 크기 사용
-              capture_date_formatted: formatDateTime(image.capture_date),
-              last_modified_formatted: formatDateTime(image.last_modified)
+          last_annotation_id: this.getLastAnnotationId(imageId), // 동적으로 계산
+          capture_date_formatted: formatDateTime(image.capture_date),
+          last_modified_formatted: formatDateTime(image.last_modified)
         };
-          }
+      }
       return null;
     } catch (error) {
       console.error(`Failed to fetch image detail for ID ${imageId}:`, error);
@@ -764,6 +786,7 @@ class AnnotationService {
           ...image,
           width: image.width || 4032, // 실제 이미지 크기 사용
           height: image.height || 3024, // 실제 이미지 크기 사용
+          last_annotation_id: this.getLastAnnotationId(imageId), // 동적으로 계산
           capture_date_formatted: formatDateTime(image.capture_date),
           last_modified_formatted: formatDateTime(image.last_modified)
         };

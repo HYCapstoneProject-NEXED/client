@@ -39,6 +39,11 @@ const useAnnotationData = (imageId, addToHistory) => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   // 초기 로드된 어노테이션 ID 추적
   const [initialAnnotationIds, setInitialAnnotationIds] = useState(new Set());
+  
+  // 새로운 ID 관리 시스템을 위한 상태 추가
+  const [lastAnnotationId, setLastAnnotationId] = useState(0);
+  const [annotationQueue, setAnnotationQueue] = useState([]); // 추가/삭제된 주석 큐
+  const [nextIdCounter, setNextIdCounter] = useState(1); // 다음 ID 카운터
 
   /**
    * DefectClasses 데이터 불러오기
@@ -84,10 +89,17 @@ const useAnnotationData = (imageId, addToHistory) => {
           const annotationDetail = await AnnotationService.getAnnotationsByImageId(imageId);
           console.log('어노테이션 상세 정보 로드 성공, 개수:', annotationDetail.length);
       
-      // 이미지 상세 정보 가져오기
+          // 이미지 상세 정보 가져오기
           imageDetail = await AnnotationService.getImageDetailById(imageId);
           
-      if (imageDetail) {
+          if (imageDetail) {
+            // last_annotation_id 설정 및 ID 관리 시스템 초기화
+            const lastId = imageDetail.last_annotation_id || 0;
+            setLastAnnotationId(lastId);
+            setNextIdCounter(lastId + 1);
+            setAnnotationQueue([]); // 큐 초기화
+            console.log('ID 관리 시스템 초기화 - last_annotation_id:', lastId, 'next_id_counter:', lastId + 1);
+            
             // 어노테이션 상세 정보를 defects 배열로 변환
             const transformedData = annotationDetail.map(defect => {
               return transformDefectToFrontendModel(defect, classes, imageDetail);
@@ -100,19 +112,19 @@ const useAnnotationData = (imageId, addToHistory) => {
             
             setDefects(transformedData);
         
-        // 이미지 데이터 포맷팅
-        setDataInfo({
-          dataId: `IMG_${imageDetail.image_id}`,
+            // 이미지 데이터 포맷팅
+            setDataInfo({
+              dataId: `IMG_${imageDetail.image_id}`,
               confidenceScore: calculateMinConfidence(annotationDetail),
-          captureDate: imageDetail.capture_date_formatted,
-          lastModified: imageDetail.last_modified_formatted,
-          state: imageDetail.status || 'pending',
-          filePath: imageDetail.file_path,
-          dimensions: {
+              captureDate: imageDetail.capture_date_formatted,
+              lastModified: imageDetail.last_modified_formatted,
+              state: imageDetail.status || 'pending',
+              filePath: imageDetail.file_path,
+              dimensions: {
                 width: imageDetail.width || 4032,
                 height: imageDetail.height || 3024
-          }
-        });
+              }
+            });
           }
         } else {
           // 상세 페이지: POST /annotations/details 사용
@@ -124,6 +136,13 @@ const useAnnotationData = (imageId, addToHistory) => {
           imageDetail = detailsResult.length > 0 ? detailsResult[0] : null;
           
           if (imageDetail) {
+            // last_annotation_id 설정 및 ID 관리 시스템 초기화
+            const lastId = imageDetail.last_annotation_id || 0;
+            setLastAnnotationId(lastId);
+            setNextIdCounter(lastId + 1);
+            setAnnotationQueue([]); // 큐 초기화
+            console.log('ID 관리 시스템 초기화 - last_annotation_id:', lastId, 'next_id_counter:', lastId + 1);
+            
             // 어노테이션 상세 정보를 defects 배열로 변환
             const transformedData = imageDetail.defects.map(defect => {
               return transformDefectToFrontendModel(defect, classes, imageDetail);
@@ -165,6 +184,61 @@ const useAnnotationData = (imageId, addToHistory) => {
       setIsLoading(false);
     }
   }, [imageId, loadDefectClasses, formatDateTime]);
+
+  /**
+   * 새로운 어노테이션 ID 생성 (큐 기반)
+   * @returns {number} 새로운 어노테이션 ID
+   */
+  const generateNewAnnotationId = useCallback(() => {
+    console.log('=== 새 어노테이션 ID 생성 시작 ===');
+    console.log('현재 nextIdCounter:', nextIdCounter);
+    
+    // 새로운 ID 생성 (단순하게 nextIdCounter 사용)
+    const newId = nextIdCounter;
+    setNextIdCounter(prev => prev + 1);
+    
+    console.log('새 ID 생성:', newId, '다음 카운터:', nextIdCounter + 1);
+    
+    // 큐에 추가 작업 기록
+    setAnnotationQueue(prev => {
+      const updatedQueue = [...prev, { action: 'add', id: newId }];
+      console.log('추가 작업 기록 후 큐:', updatedQueue);
+      return updatedQueue;
+    });
+    
+    console.log('=== 새 어노테이션 ID 생성 완료:', newId, '===');
+    return newId;
+  }, [nextIdCounter]);
+
+  /**
+   * 어노테이션 삭제 시 큐 업데이트 및 카운터 조정
+   * @param {number} deletedId - 삭제된 어노테이션 ID
+   */
+  const handleAnnotationDeletion = useCallback((deletedId) => {
+    console.log('=== 큐 및 카운터 관리 시작 ===');
+    console.log('삭제된 ID:', deletedId);
+    console.log('현재 큐 상태:', annotationQueue);
+    console.log('현재 nextIdCounter:', nextIdCounter);
+    
+    // 삭제 작업을 큐에 기록
+    const newDeleteAction = { action: 'delete', id: deletedId };
+    
+    // 큐 업데이트
+    setAnnotationQueue(prev => {
+      const updatedQueue = [...prev, newDeleteAction];
+      console.log('삭제 작업 추가 후 큐:', updatedQueue);
+      return updatedQueue;
+    });
+    
+    // nextIdCounter 조정 (하나씩 줄이기)
+    setNextIdCounter(prev => {
+      const newCounter = prev - 1;
+      console.log(`nextIdCounter 조정: ${prev} -> ${newCounter}`);
+      return newCounter;
+    });
+    
+    console.log('=== 큐 및 카운터 관리 완료 ===');
+  }, [annotationQueue, nextIdCounter]);
 
   // 최소 신뢰도 점수 계산 헬퍼 함수
   const calculateMinConfidence = (defects) => {
@@ -469,65 +543,65 @@ const useAnnotationData = (imageId, addToHistory) => {
    */
   const addBox = useCallback(async (coordinates, defectType) => {
     try {
-    // 새 ID 생성 (현재 최대 ID + 1)
-    const maxId = Math.max(...defects.map(d => parseInt(d.id) || 0), 0);
-    const newId = String(maxId + 1);
-    
-    console.log('Adding new box with type:', defectType, 'coordinates:', coordinates);
+      // 새로운 ID 관리 시스템을 사용하여 ID 생성
+      const newId = generateNewAnnotationId();
+      const newIdStr = String(newId);
       
+      console.log('Adding new box with ID:', newId, 'type:', defectType, 'coordinates:', coordinates);
+        
       // API에서 최신 결함 클래스 정보 가져오기
       console.log('GET /defect-classes API를 호출하여 최신 결함 클래스 정보 조회');
       const latestDefectClasses = await AnnotationService.getDefectClasses();
       console.log('조회된 결함 클래스:', latestDefectClasses);
-    
-    // defectType에 해당하는 defectClass 찾기
+      
+      // defectType에 해당하는 defectClass 찾기
       const defectClass = latestDefectClasses.find(dc => dc.class_name === defectType);
-    if (!defectClass) {
-      console.warn('Could not find defect class for type:', defectType, 'Using default class');
-    }
-    
-    const typeId = defectClass ? defectClass.class_id : 1; // 기본값은 Scratch (1)
-    const color = defectClass ? defectClass.class_color : null;
-    
-    console.log('Found defect class:', defectClass, 'typeId:', typeId, 'color:', color);
-    
-    // 새 defect 객체 생성
-    const newDefect = {
-      id: newId,
-      type: defectType,
-      typeId: typeId,
-      confidence: null, // 사용자가 생성한 바운딩 박스의 confidence 값 - null로 설정하여 '-'로 표시
-      coordinates: coordinates,
-      imageId: imageId,
-      color: color,
-      date: new Date().toISOString(),
-      status: 'pending',
-      userId: 2 // 새 어노테이션의 경우 userId를 2로 설정 (어노테이터 ID)
-    };
-    
-    console.log('Created new defect:', newDefect);
-    
-    // defects 배열에 추가
-    setDefects(prev => [...prev, newDefect]);
-    
-    // 변경 사항 있음으로 표시
-    setHasUnsavedChanges(true);
-    
-    // 히스토리에 작업 추가
-    addToHistory({
-      type: ACTION_TYPES.ADD_BOX,
-      data: {
-        defect: newDefect
+      if (!defectClass) {
+        console.warn('Could not find defect class for type:', defectType, 'Using default class');
       }
-    });
-    
-    return newId; // 새로 생성된 ID 반환
+      
+      const typeId = defectClass ? defectClass.class_id : 1; // 기본값은 Scratch (1)
+      const color = defectClass ? defectClass.class_color : null;
+      
+      console.log('Found defect class:', defectClass, 'typeId:', typeId, 'color:', color);
+      
+      // 새 defect 객체 생성
+      const newDefect = {
+        id: newIdStr,
+        type: defectType,
+        typeId: typeId,
+        confidence: null, // 사용자가 생성한 바운딩 박스의 confidence 값 - null로 설정하여 '-'로 표시
+        coordinates: coordinates,
+        imageId: imageId,
+        color: color,
+        date: new Date().toISOString(),
+        status: 'pending',
+        userId: 2 // 새 어노테이션의 경우 userId를 2로 설정 (어노테이터 ID)
+      };
+      
+      console.log('Created new defect with queue-based ID:', newDefect);
+      
+      // defects 배열에 추가
+      setDefects(prev => [...prev, newDefect]);
+      
+      // 변경 사항 있음으로 표시
+      setHasUnsavedChanges(true);
+      
+      // 히스토리에 작업 추가
+      addToHistory({
+        type: ACTION_TYPES.ADD_BOX,
+        data: {
+          defect: newDefect
+        }
+      });
+      
+      return newIdStr; // 새로 생성된 ID 반환
     } catch (error) {
       console.error('바운딩 박스 추가 중 오류 발생:', error);
       alert(`바운딩 박스 추가 중 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`);
       return null;
     }
-  }, [defects, imageId, addToHistory]);
+  }, [imageId, addToHistory, generateNewAnnotationId]);
 
   /**
    * 결함 좌표 업데이트
@@ -709,6 +783,7 @@ const useAnnotationData = (imageId, addToHistory) => {
   const deleteDefect = useCallback((defectId) => {
     // 문자열 ID 처리
     const defectIdStr = String(defectId);
+    const numericId = parseInt(defectId);
     
     // 삭제할 defect 저장
     const defectToDelete = defects.find(d => String(d.id) === defectIdStr);
@@ -717,16 +792,36 @@ const useAnnotationData = (imageId, addToHistory) => {
       return;
     }
     
+    console.log('=== 결함 삭제 및 ID 재정렬 시작 ===');
     console.log('Deleting defect:', defectToDelete);
+    console.log('현재 defects:', defects.map(d => ({ id: d.id, type: d.type })));
     
-    // defects 업데이트 - 삭제
+    // 삭제와 ID 재정렬을 한 번에 처리
     setDefects(currentDefects => {
-      const filteredDefects = currentDefects.filter(defect => 
-        String(defect.id) !== defectIdStr
-    );
-      console.log('Defects after deletion:', filteredDefects);
-      return filteredDefects;
+      // 1. 선택된 defect 제거
+      const remainingDefects = currentDefects.filter(d => String(d.id) !== defectIdStr);
+      console.log('삭제 후 남은 defects:', remainingDefects.map(d => ({ id: d.id, type: d.type })));
+      
+      // 2. 삭제된 ID보다 큰 ID들을 앞으로 당기기
+      const reorderedDefects = remainingDefects.map(defect => {
+        const currentId = parseInt(defect.id);
+        if (currentId > numericId) {
+          const newId = currentId - 1;
+          console.log(`ID 재정렬: ${currentId} -> ${newId} (${defect.type})`);
+          return {
+            ...defect,
+            id: String(newId)
+          };
+        }
+        return defect;
+      });
+      
+      console.log('최종 재정렬된 defects:', reorderedDefects.map(d => ({ id: d.id, type: d.type })));
+      return reorderedDefects;
     });
+    
+    // 큐 관리 및 카운터 조정
+    handleAnnotationDeletion(numericId);
     
     // 변경 사항 있음으로 표시
     setHasUnsavedChanges(true);
@@ -740,10 +835,11 @@ const useAnnotationData = (imageId, addToHistory) => {
     };
     
     console.log('Adding delete action to history:', deleteAction);
+    console.log('=== 결함 삭제 및 ID 재정렬 완료 ===');
     
     // 히스토리에 작업 추가
     addToHistory(deleteAction);
-  }, [defects, addToHistory]);
+  }, [defects, addToHistory, handleAnnotationDeletion]);
 
   /**
    * 초기 데이터 로딩
@@ -771,8 +867,13 @@ const useAnnotationData = (imageId, addToHistory) => {
     saveAnnotations,
     checkUnsavedChanges,
     hasUnsavedChanges,
-    setHasUnsavedChanges
+    setHasUnsavedChanges,
+    // 새로운 ID 관리 시스템 상태 추가
+    lastAnnotationId,
+    annotationQueue,
+    nextIdCounter,
+    generateNewAnnotationId
   };
 };
 
-export default useAnnotationData; 
+export default useAnnotationData;
