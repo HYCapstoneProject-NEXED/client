@@ -131,7 +131,7 @@ const Dashboard = () => {
   // 이미지 상세 정보를 가져오는 함수
   const fetchImageDetails = async (imageId) => {
     try {
-      const response = await axios.get(`${BASE_URL}/annotations/annotations/thumbnail/${imageId}`);
+      const response = await axios.get(`${BASE_URL}/annotations/thumbnail/${imageId}`);
       return response.data;
     } catch (err) {
       console.error('이미지 상세 정보를 가져오는데 실패했습니다:', err);
@@ -387,8 +387,8 @@ const Dashboard = () => {
                                       key={index}
                                       style={{
                                         position: 'absolute',
-                                        left: `${(box.cx - box.w/2) * 100}%`,
-                                        top: `${(box.cy - box.h/2) * 100}%`,
+                                        left: `${(box.x_center - box.w/2) * 100}%`,
+                                        top: `${(box.y_center - box.h/2) * 100}%`,
                                         width: `${box.w * 100}%`,
                                         height: `${box.h * 100}%`,
                                         border: `2px solid ${annotation.class_color || '#ff0000'}`,
