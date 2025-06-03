@@ -131,7 +131,7 @@ const Dashboard = () => {
   // 이미지 상세 정보를 가져오는 함수
   const fetchImageDetails = async (imageId) => {
     try {
-      const response = await axios.get(`${BASE_URL}/annotations/detail/${imageId}`);
+      const response = await axios.get(`${BASE_URL}/annotations/annotations/thumbnail/${imageId}`);
       return response.data;
     } catch (err) {
       console.error('이미지 상세 정보를 가져오는데 실패했습니다:', err);
@@ -149,8 +149,8 @@ const Dashboard = () => {
         fetchPromises.push(
           fetchImageDetails(defect.image_id)
             .then(details => {
-              if (details && details.file_path) {
-                newImageCache[defect.image_id] = details.file_path;
+              if (details) {
+                newImageCache[defect.image_id] = details;
               }
             })
             .catch(err => console.error(`이미지 ${defect.image_id} 로드 실패:`, err))
@@ -362,16 +362,53 @@ const Dashboard = () => {
                   defectData.map((defect) => (
                     <tr key={defect.image_id}>
                       <td>
-                        <img 
-                          src={imageCache[defect.image_id] || '/placeholder-image.png'}
-                          alt={`defect-${defect.image_id}`}
-                          className="customer-table-image"
+                        <div 
+                          className="image-container" 
+                          style={{ position: 'relative', width: '100px', height: '100px', cursor: 'pointer' }}
                           onClick={() => handleImageClick(defect.image_id)}
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = '/placeholder-image.png';
-                          }}
-                        />
+                        >
+                          {imageCache[defect.image_id] ? (
+                            <>
+                              <img 
+                                src={imageCache[defect.image_id].file_path}
+                                alt={`defect-${defect.image_id}`}
+                                className="customer-table-image"
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src = '/placeholder-image.png';
+                                }}
+                              />
+                              {imageCache[defect.image_id].annotations && 
+                                imageCache[defect.image_id].annotations.map((annotation, index) => {
+                                  const box = annotation.bounding_box;
+                                  return (
+                                    <div 
+                                      key={index}
+                                      style={{
+                                        position: 'absolute',
+                                        left: `${(box.cx - box.w/2) * 100}%`,
+                                        top: `${(box.cy - box.h/2) * 100}%`,
+                                        width: `${box.w * 100}%`,
+                                        height: `${box.h * 100}%`,
+                                        border: `2px solid ${annotation.class_color || '#ff0000'}`,
+                                        boxSizing: 'border-box',
+                                        pointerEvents: 'none'
+                                      }}
+                                    />
+                                  );
+                                })
+                              }
+                            </>
+                          ) : (
+                            <img 
+                              src="/placeholder-image.png"
+                              alt={`defect-${defect.image_id}`}
+                              className="customer-table-image"
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          )}
+                        </div>
                       </td>
                       <td>{defect.line_name}</td>
                       <td>{defect.camera_id}</td>
