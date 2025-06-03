@@ -6,6 +6,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaChevronDown, FaTrash, FaEye, FaThList, FaTh } from 'react-icons/fa';
 import useAnnotatorDashboard from '../../hooks/useAnnotatorDashboard';
+import useHistoryControl from '../../hooks/useHistoryControl';
 import { 
   FILTER_TYPES, 
   DEFECT_TYPE_FILTERS, 
@@ -58,29 +59,8 @@ const AnnotatorDashboard = () => {
     confidenceScore: useRef(null)
   };
 
-  // Disable browser back button on dashboard (improved implementation)
-  useEffect(() => {
-    // This function will be called when the back button is pressed
-    const preventBackNavigation = (e) => {
-      // Cancel the event
-      e.preventDefault();
-      // Push a new state to history to prevent going back
-      window.history.pushState(null, '', window.location.pathname);
-    };
-    
-    // Push two states to the history stack
-    // This ensures there's always a state to go back to, triggering our handler
-    window.history.pushState(null, '', window.location.pathname);
-    window.history.pushState(null, '', window.location.pathname);
-    
-    // Add event listener for popstate (back button) events
-    window.addEventListener('popstate', preventBackNavigation);
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener('popstate', preventBackNavigation);
-    };
-  }, []);
+  // Use history control to prevent back navigation
+  useHistoryControl();
 
   // 필터 팝업 토글 함수
   const toggleFilter = (filterName, event) => {
