@@ -421,7 +421,7 @@ const Dashboard = () => {
                         second: '2-digit',
                         hour12: false
                       })}</td>
-                      <td>{defect.defect_types.join(', ')}</td>
+                      <td>{[...new Set(defect.defect_types)].join(', ')}</td>
                     </tr>
                   ))
                 ) : (
